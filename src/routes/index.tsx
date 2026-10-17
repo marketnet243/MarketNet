@@ -303,11 +303,12 @@ const DEMO_PRODUCTS = [
 function InteractiveHeroDemo() {
   // Step 1: Catalogue, Step 2: Variantes du produit, Step 3: Message WhatsApp
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [displayStep, setDisplayStep] = useState<1 | 2 | 3>(1);
+  const [isVisible, setIsVisible] = useState(true);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [progress, setProgress] = useState(0);
 
-  // Currency & Product state
-  const [currencyMode, setCurrencyMode] = useState<"USD" | "CDF">("USD");
+  // Product state
   const [selectedProductId, setSelectedProductId] = useState<string>("wax");
   const [selectedSize, setSelectedSize] = useState<string>("M");
   const [selectedColor, setSelectedColor] = useState<string>("Doré Wax");
@@ -315,22 +316,37 @@ function InteractiveHeroDemo() {
 
   const activeProduct = DEMO_PRODUCTS.find((p) => p.id === selectedProductId) || DEMO_PRODUCTS[0];
 
+  // Transition fluide entre étapes
+  const transitionToStep = (step: 1 | 2 | 3) => {
+    if (step === currentStep) return;
+    setIsVisible(false);
+    setTimeout(() => {
+      setCurrentStep(step);
+      setDisplayStep(step);
+      setIsVisible(true);
+    }, 220);
+  };
+
   // Auto-play timer loop
   useEffect(() => {
     if (!isAutoPlay) return;
 
-    const STEP_DURATION = 4200; // 4.2s par étape
-    const INTERVAL = 100;
+    const STEP_DURATION = 4800; // 4.8s par étape
+    const INTERVAL = 80;
     const increment = (INTERVAL / STEP_DURATION) * 100;
 
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          // Passe à l'étape suivante
           setCurrentStep((step) => {
-            if (step === 1) return 2;
-            if (step === 2) return 3;
-            return 1;
+            const next = step === 1 ? 2 : step === 2 ? 3 : 1;
+            // Transition fade via isVisible
+            setIsVisible(false);
+            setTimeout(() => {
+              setDisplayStep(next);
+              setIsVisible(true);
+            }, 220);
+            return next;
           });
           return 0;
         }
@@ -341,11 +357,11 @@ function InteractiveHeroDemo() {
     return () => clearInterval(timer);
   }, [isAutoPlay]);
 
-  // Manuel navigation : met en pause l'auto-play
+  // Navigation manuelle : met en pause et fait une transition fluide
   const goToStep = (step: 1 | 2 | 3) => {
-    setCurrentStep(step);
     setProgress(0);
     setIsAutoPlay(false);
+    transitionToStep(step);
   };
 
   const handleSelectProduct = (p: typeof DEMO_PRODUCTS[0]) => {
@@ -358,23 +374,8 @@ function InteractiveHeroDemo() {
 
   return (
     <div className="relative mx-auto w-full max-w-[340px] sm:max-w-sm select-none">
-      {/* ── BARRE DE CONTRÔLE AUTONOME & ÉTAPES ── */}
-      <div className="mb-3 space-y-1.5">
-        <div className="flex items-center justify-between px-1 text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-foreground">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px]">Démo autonome en direct :</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer bg-primary/10 px-2 py-0.5 rounded-full"
-          >
-            {isAutoPlay ? "⏸ Pause" : "▶ Reprendre le défilement"}
-          </button>
-        </div>
-
+      {/* ── STEPPER + BARRE DE PROGRESSION ── */}
+      <div className="mb-3">
         {/* Stepper interactif */}
         <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
           {[
@@ -399,46 +400,61 @@ function InteractiveHeroDemo() {
               >
                 <Icon className={cn("h-3 w-3 shrink-0", isActive && step === 3 ? "text-white" : "text-primary")} />
                 <span className="truncate">{label}</span>
-                {/* Ligne de progression fine sous l'étape active */}
-                {isActive && isAutoPlay && (
-                  <div
-                    className="absolute bottom-0 left-0 h-0.5 bg-primary transition-all duration-100"
-                    style={{ width: `${progress}%` }}
-                  />
-                )}
               </button>
             );
           })}
         </div>
+
+        {/* Barre de progression globale — fine, discrète, sous le stepper */}
+        <div className="mt-1.5 h-0.5 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all"
+            style={{
+              width: `${((currentStep - 1) * 100) / 3 + (isAutoPlay ? progress / 3 : 0)}%`,
+              transition: isAutoPlay ? "width 80ms linear" : "width 350ms ease",
+            }}
+          />
+        </div>
+
+        {/* Indicateur live discret */}
+        <div className="mt-1.5 flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Démo en direct</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAutoPlay(!isAutoPlay)}
+            className="text-[10px] font-semibold text-primary hover:underline cursor-pointer"
+          >
+            {isAutoPlay ? "⏸ Pause" : "▶ Reprendre"}
+          </button>
+        </div>
       </div>
 
       {/* ── CADRE SMARTPHONE ── */}
-      <div className="relative rounded-[2.5rem] border-4 border-foreground/15 bg-background shadow-2xl overflow-hidden transition-all duration-300">
-        {/* Status bar */}
+      <div className="relative rounded-[2.5rem] border-4 border-foreground/15 bg-background shadow-2xl overflow-hidden">
+        {/* Status bar simplifiée */}
         <div className="bg-muted/70 px-5 pt-3 pb-2 flex items-center justify-between border-b border-border/40">
           <span className="text-[10px] font-semibold text-muted-foreground">09:41</span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setCurrencyMode(currencyMode === "USD" ? "CDF" : "USD");
-                setIsAutoPlay(false);
-              }}
-              className="text-[9px] font-bold text-primary bg-background border px-1.5 py-0.5 rounded-md hover:bg-muted cursor-pointer"
-            >
-              Devise : {currencyMode === "USD" ? "$ USD" : "FC"}
-            </button>
-            <div className="flex items-center gap-1">
-              <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
-              <div className="h-1.5 w-3 rounded-full bg-muted-foreground/60" />
-              <div className="h-1.5 w-4 rounded-full bg-foreground/80" />
-            </div>
+          <div className="flex items-center gap-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+            <div className="h-1.5 w-3 rounded-full bg-muted-foreground/60" />
+            <div className="h-1.5 w-4 rounded-full bg-foreground/80" />
           </div>
         </div>
 
+        {/* ── CONTENU DES ÉTAPES — transition fade fluide ── */}
+        <div
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transition: "opacity 200ms ease",
+          }}
+        >
+
         {/* ── ÉTAPE 1 : VITRINE BOUTIQUE ÉLÉGANTE ── */}
-        {currentStep === 1 && (
-          <div className="flex flex-col h-[445px] bg-background animate-in fade-in duration-300">
+        {displayStep === 1 && (
+          <div className="flex flex-col h-[445px] bg-background">
             {/* Header boutique soigné */}
             <div className="bg-gradient-to-r from-orange-600 via-primary to-amber-500 px-3.5 py-2.5 text-white shadow-sm">
               <div className="flex items-center justify-between">
@@ -453,9 +469,9 @@ function InteractiveHeroDemo() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1">
-                      <p className="font-extrabold text-xs truncate">Awa Mode Kinshasa</p>
+                      <p className="font-extrabold text-xs truncate">Mère JO business</p>
                     </div>
-                    <p className="text-[10px] text-white/90 font-medium">⭐ 4.9 · Kinshasa Gombe</p>
+                    <p className="text-[10px] text-white/90 font-medium">⭐ 4.9 · Lubumbashi · Kalubwe</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
@@ -553,8 +569,8 @@ function InteractiveHeroDemo() {
         )}
 
         {/* ── ÉTAPE 2 : FICHE PRODUIT & CHOIX DES VARIANTES ── */}
-        {currentStep === 2 && (
-          <div className="flex flex-col h-[445px] bg-background animate-in slide-in-from-right duration-300">
+        {displayStep === 2 && (
+          <div className="flex flex-col h-[445px] bg-background">
             {/* Header fiche */}
             <div className="px-3.5 py-2 border-b flex items-center justify-between bg-card">
               <button
@@ -714,8 +730,8 @@ function InteractiveHeroDemo() {
         )}
 
         {/* ── ÉTAPE 3 : MESSAGE WHATSAPP REÇU EN TEMPS RÉEL ── */}
-        {currentStep === 3 && (
-          <div className="flex flex-col h-[445px] bg-[#EFEAE2] dark:bg-[#0c1317] animate-in fade-in duration-300">
+        {displayStep === 3 && (
+          <div className="flex flex-col h-[445px] bg-[#EFEAE2] dark:bg-[#0c1317]">
             {/* Header WhatsApp */}
             <div className="bg-[#008069] dark:bg-[#202c33] px-3.5 py-2.5 text-white flex items-center gap-2.5 shadow-sm">
               <div className="relative">
@@ -725,7 +741,7 @@ function InteractiveHeroDemo() {
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#008069]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold leading-tight truncate">Awa Mode Kinshasa</p>
+                <p className="text-xs font-bold leading-tight truncate">Mère JO business</p>
                 <p className="text-[10px] text-emerald-100 dark:text-zinc-400">En ligne · Compte professionnel</p>
               </div>
               <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">
@@ -747,7 +763,7 @@ function InteractiveHeroDemo() {
                   🛍️ Nouvelle commande via MarketNet !
                 </p>
                 <p className="text-[11px] leading-tight">
-                  Bonjour <strong>Awa Mode</strong>, je souhaite commander :
+                  Bonjour <strong>Mère JO</strong>, je souhaite commander :
                 </p>
 
                 <div className="my-2 border-y border-black/10 dark:border-white/10 py-1.5 space-y-1">
@@ -770,7 +786,7 @@ function InteractiveHeroDemo() {
                 </div>
 
                 <div className="mt-2 pt-1.5 border-t border-black/10 dark:border-white/10 text-[10px] text-[#54656f] dark:text-[#8696a0] space-y-0.5">
-                  <p>📍 Client : Sarah K. (Kinshasa / Gombe)</p>
+                  <p>📍 Client : Sarah K. (Lubumbashi / Kalubwe)</p>
                   <p>💳 Paiement : Mobile Money ou Cash à la livraison</p>
                 </div>
 
@@ -794,6 +810,7 @@ function InteractiveHeroDemo() {
             </div>
           </div>
         )}
+        </div>{/* fin wrapper fade */}
       </div>
     </div>
   );
