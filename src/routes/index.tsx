@@ -4,10 +4,12 @@ import {
   Check, MessageCircle, Palette, Smartphone, Store, Zap, ArrowRight,
   TrendingUp, Users, ShieldCheck, Menu, X, Sparkles, Layers, CreditCard,
   LogIn, Tag, Megaphone, BarChart3, Globe2, BadgePercent, Star, Clock,
-  Share2, Gift, Rocket, Send,
+  Share2, Gift, Rocket, Send, HelpCircle, Quote, ShoppingBag, Plus, Minus,
+  CheckCircle2, Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { useEffect, useState, useRef } from "react";
 import { formatCDF } from "@/lib/subscriptions";
@@ -76,6 +78,78 @@ const SHARING_FEATURES = [
   { icon: Sparkles, color: "text-amber-500", title: "Affiches prêtes à publier", desc: "Téléchargez des affiches percutantes au format story ou statut, prêtes à diffuser sur tous vos réseaux." },
   { icon: Share2, color: "text-primary", title: "Aperçus de liens enrichis", desc: "Vos liens partagés sur WhatsApp, Facebook ou Instagram affichent instantanément la photo, le titre et le prix de vos produits." },
   { icon: BarChart3, color: "text-cyan-500", title: "Statistiques en direct", desc: "Suivez vos vues, clics de partage et conversions directement depuis votre tableau de bord MarketNet." },
+];
+
+const PAYMENT_PARTNERS = [
+  { name: "M-Pesa", desc: "Vodacom RDC", color: "text-red-500", bg: "bg-red-500/10" },
+  { name: "Airtel Money", desc: "Airtel RDC", color: "text-red-600", bg: "bg-red-600/10" },
+  { name: "Orange Money", desc: "Orange RDC", color: "text-orange-500", bg: "bg-orange-500/10" },
+  { name: "Afrimoney", desc: "Africell RDC", color: "text-purple-600", bg: "bg-purple-600/10" },
+  { name: "Cash à la livraison", desc: "Paiement direct", color: "text-emerald-600", bg: "bg-emerald-600/10" },
+  { name: "0% Commission", desc: "100% de vos gains", color: "text-primary", bg: "bg-primary/10" },
+];
+
+const TESTIMONIALS = [
+  {
+    name: "Chantal Mbuyi",
+    role: "Créatrice & Gérante",
+    shop: "Awa Fashion & Wax",
+    city: "Kinshasa (Gombe)",
+    avatar: "CM",
+    color: "bg-amber-500",
+    quote: "Avant MarketNet, je passais mes journées à répondre « C'est combien ? » et à renvoyer 50 photos en DM. Maintenant, mon lien est dans ma bio TikTok et sur mes statuts. Les clientes choisissent, et m'envoient directement leur panier complet avec le total en Francs. J'ai doublé mes livraisons par semaine.",
+    metric: "+180 commandes / mois",
+    rating: 5,
+  },
+  {
+    name: "Dieudonné Kalala",
+    role: "Responsable Ventes",
+    shop: "TechStore 243",
+    city: "Lubumbashi",
+    avatar: "DK",
+    color: "bg-blue-600",
+    quote: "Ce qui m'a conquis, ce sont les promotions et le 0% de commission. Je lance une offre -20% le vendredi soir, je télécharge l'affiche en un clic pour mes statuts, et le samedi matin les paiements M-Pesa et Airtel Money tombent directement sans intermédiaire.",
+    metric: "Temps de gestion divisé par 3",
+    rating: 5,
+  },
+  {
+    name: "Grace Nsimba",
+    role: "Fondatrice",
+    shop: "Élégance Bio & Parfums",
+    city: "Goma",
+    avatar: "GN",
+    color: "bg-emerald-600",
+    quote: "Je n'ai pas d'ordinateur à la boutique, je fais absolument tout sur mon smartphone. Ajouter un produit prend 30 secondes avec la photo. Les clients apprécient le panier rapide et le récapitulatif clair avant l'envoi sur WhatsApp.",
+    metric: "100% géré sur smartphone",
+    rating: 5,
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    q: "Est-ce que MarketNet prélève une commission sur mes ventes ?",
+    a: "Non, absolument 0% de commission. Vous conservez 100% de vos bénéfices. Vous réglez uniquement le forfait fixe de votre abonnement selon la formule choisie, sans aucun frais caché ni pourcentage prélevé sur vos commandes.",
+  },
+  {
+    q: "Comment mes clients effectuent-ils le paiement ?",
+    a: "Le paiement s'effectue directement entre vous et votre client selon vos méthodes habituelles : Mobile Money (M-Pesa, Airtel Money, Orange Money, Afrimoney), virement bancaire ou paiement en espèces à la livraison. MarketNet ne bloque jamais votre argent.",
+  },
+  {
+    q: "Ai-je besoin d'un ordinateur pour gérer ma boutique ?",
+    a: "Pas du tout ! 100% de MarketNet est conçu et optimisé pour smartphone. Vous pouvez prendre des photos de vos articles, créer des promotions, ajuster vos prix et suivre vos statistiques directement depuis votre téléphone.",
+  },
+  {
+    q: "Mes clients doivent-ils télécharger une application ?",
+    a: "Non, aucun téléchargement n'est requis. Vos clients cliquent simplement sur le lien de votre boutique (depuis vos statuts WhatsApp, Facebook, TikTok ou Instagram) et votre catalogue s'ouvre directement dans leur navigateur web mobile.",
+  },
+  {
+    q: "Comment se passe la réception d'une commande sur WhatsApp ?",
+    a: "Dès que le client clique sur 'Commander sur WhatsApp' dans votre boutique, son application WhatsApp s'ouvre automatiquement avec un message structuré contenant les articles choisis, les options, le montant total calculé en Francs Congolais (FC) et son adresse. Il ne vous reste plus qu'à conclure la vente.",
+  },
+  {
+    q: "Puis-je commencer gratuitement et changer d'offre plus tard ?",
+    a: "Oui ! Vous pouvez démarrer immédiatement avec notre formule gratuite pour publier vos premiers produits. Dès que votre catalogue s'agrandit, vous pouvez passer au forfait Pro ou Business en un clic sans interruption de service.",
+  },
 ];
 
 function ScrollReveal({
@@ -193,6 +267,278 @@ function SectionBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
+function InteractiveHeroDemo() {
+  const [activeTab, setActiveTab] = useState<"store" | "whatsapp">("store");
+  const [cart, setCart] = useState<Record<string, number>>({ wax: 1, bag: 1, shoes: 0 });
+
+  const DEMO_PRODUCTS = [
+    { id: "wax", name: "Robe Wax Ankara", originalPrice: 25000, price: 20000, promo: "-20%", color: "from-amber-400/40 to-orange-400/40" },
+    { id: "bag", name: "Sac Cuir Gombe", originalPrice: 45000, price: 45000, promo: null, color: "from-purple-400/40 to-pink-400/40" },
+    { id: "shoes", name: "Sandales Élégance", originalPrice: 20000, price: 17000, promo: "-15%", color: "from-teal-400/40 to-cyan-400/40" },
+  ];
+
+  const toggleItem = (id: string) => {
+    setCart((prev) => ({
+      ...prev,
+      [id]: (prev[id] || 0) > 0 ? 0 : 1,
+    }));
+  };
+
+  const selectedProducts = DEMO_PRODUCTS.filter((p) => (cart[p.id] || 0) > 0);
+  const totalCount = selectedProducts.reduce((sum, p) => sum + (cart[p.id] || 0), 0);
+  const totalPrice = selectedProducts.reduce((sum, p) => sum + (cart[p.id] || 0) * p.price, 0);
+
+  return (
+    <div className="relative mx-auto w-full max-w-[320px] sm:max-w-sm lg:max-w-sm select-none">
+      {/* Switcher tabs */}
+      <div className="mb-3 flex items-center justify-center p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
+        <button
+          type="button"
+          onClick={() => setActiveTab("store")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer",
+            activeTab === "store"
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+          <span>Boutique client</span>
+          {totalCount > 0 && (
+            <span className="ml-1 h-4 min-w-4 px-1 rounded-full bg-primary text-[10px] font-black text-primary-foreground flex items-center justify-center">
+              {totalCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("whatsapp")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer relative",
+            activeTab === "whatsapp"
+              ? "bg-green-600 text-white shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <MessageCircle className={cn("h-3.5 w-3.5", activeTab === "whatsapp" ? "text-white" : "text-green-500")} />
+          <span>Message reçu</span>
+          <span className="relative flex h-2 w-2 ml-0.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+          </span>
+        </button>
+      </div>
+
+      {/* Phone container */}
+      <div className="relative rounded-[2.5rem] border-4 border-foreground/15 bg-background shadow-2xl overflow-hidden transition-all duration-300">
+        {/* Status bar */}
+        <div className="bg-muted/70 px-5 pt-3 pb-2 flex items-center justify-between border-b border-border/40">
+          <span className="text-[10px] font-semibold text-muted-foreground">09:41</span>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-muted-foreground/60" />
+            <div className="h-2 w-3 rounded-full bg-muted-foreground/60" />
+            <div className="h-2 w-4 rounded-full bg-foreground/80" />
+          </div>
+        </div>
+
+        {activeTab === "store" ? (
+          /* TAB 1: STORE VIEW */
+          <div className="flex flex-col h-[385px] bg-background animate-in fade-in duration-200">
+            {/* Store App Bar */}
+            <div className="bg-gradient-to-r from-primary to-orange-500 px-4 py-3 text-white flex items-center gap-2.5 shadow-sm">
+              <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center font-black text-sm">
+                A
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-xs truncate">Awa Mode Kinshasa</p>
+                <div className="flex items-center gap-1 text-[10px] text-white/80">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                  <span>En ligne • Ouvert</span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center">
+                  <ShoppingBag className="h-3.5 w-3.5 text-white" />
+                </div>
+                {totalCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white text-primary font-black text-[9px] flex items-center justify-center shadow">
+                    {totalCount}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Hint bar */}
+            <div className="bg-primary/5 border-b px-3 py-1.5 text-center">
+              <p className="text-[10px] font-semibold text-primary">
+                👆 Touchez un article pour l'ajouter au panier
+              </p>
+            </div>
+
+            {/* Products interactive list */}
+            <div className="flex-1 p-3 space-y-2 overflow-y-auto">
+              {DEMO_PRODUCTS.map((item) => {
+                const isSelected = (cart[item.id] || 0) > 0;
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => toggleItem(item.id)}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-2xl border p-2.5 transition-all cursor-pointer select-none",
+                      isSelected
+                        ? "bg-primary/8 border-primary/40 shadow-sm"
+                        : "bg-card border-border/70 hover:border-border hover:bg-muted/40"
+                    )}
+                  >
+                    <div className={cn("h-11 w-11 rounded-xl bg-gradient-to-br shrink-0 shadow-inner", item.color)} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold truncate text-foreground">{item.name}</p>
+                        {item.promo && (
+                          <span className="shrink-0 rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-black text-white">
+                            {item.promo}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] font-bold text-foreground">
+                          {item.price.toLocaleString("fr-FR")} FC
+                        </span>
+                        {item.promo && (
+                          <span className="text-[10px] text-muted-foreground line-through">
+                            {item.originalPrice.toLocaleString("fr-FR")} FC
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      aria-label="Sélectionner le produit"
+                      className={cn(
+                        "h-7 w-7 rounded-xl flex items-center justify-center shrink-0 transition-transform active:scale-90",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary"
+                      )}
+                    >
+                      {isSelected ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Store Bottom Bar / CTA to WhatsApp */}
+            <div className="p-2.5 border-t bg-card/90 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => setActiveTab("whatsapp")}
+                className="w-full h-10 rounded-xl bg-green-600 hover:bg-green-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-green-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>
+                  Commander sur WhatsApp ({totalCount} • {totalPrice.toLocaleString("fr-FR")} FC)
+                </span>
+                <ArrowRight className="h-3.5 w-3.5 ml-auto" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* TAB 2: WHATSAPP MESSAGE PREVIEW */
+          <div className="flex flex-col h-[385px] bg-[#EFEAE2] dark:bg-[#0c1317] animate-in fade-in duration-200">
+            {/* WhatsApp Header */}
+            <div className="bg-[#008069] dark:bg-[#202c33] px-3 py-2.5 text-white flex items-center gap-2 shadow-sm">
+              <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
+                A
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold leading-tight truncate">Awa Mode Kinshasa</p>
+                <p className="text-[10px] text-emerald-100 dark:text-zinc-400">Compte professionnel</p>
+              </div>
+              <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">
+                Direct
+              </span>
+            </div>
+
+            {/* WhatsApp Chat Body */}
+            <div className="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+              <div className="text-center my-1">
+                <span className="bg-[#E1D9CE] dark:bg-[#182229] text-[9px] text-[#54656f] dark:text-[#8696a0] px-2.5 py-0.5 rounded-lg shadow-sm font-medium">
+                  Aujourd'hui
+                </span>
+              </div>
+
+              {/* Message Bubble */}
+              <div className="relative ml-auto max-w-[95%] rounded-2xl rounded-tr-none bg-[#D9FDD3] dark:bg-[#005c4b] p-3 text-[#111b21] dark:text-[#e9edef] shadow-sm">
+                <p className="font-bold text-[11px] text-[#008069] dark:text-[#25D366] mb-1">
+                  🛍️ Nouvelle commande via MarketNet !
+                </p>
+                <p className="text-[11px] leading-tight">
+                  Bonjour <strong>Awa Mode</strong>, je souhaite commander :
+                </p>
+
+                <div className="my-2 border-y border-black/10 dark:border-white/10 py-1.5 space-y-1">
+                  {selectedProducts.length > 0 ? (
+                    selectedProducts.map((p) => (
+                      <div key={p.id} className="flex justify-between items-center text-[10px]">
+                        <span>• 1x {p.name}</span>
+                        <span className="font-semibold">{p.price.toLocaleString("fr-FR")} FC</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[10px] italic text-muted-foreground">Aucun produit sélectionné</p>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center text-xs font-black pt-0.5">
+                  <span>TOTAL :</span>
+                  <span className="text-[#008069] dark:text-[#25D366]">
+                    {totalPrice.toLocaleString("fr-FR")} FC
+                  </span>
+                </div>
+
+                <div className="mt-2 pt-1.5 border-t border-black/10 dark:border-white/10 text-[10px] text-[#54656f] dark:text-[#8696a0] space-y-0.5">
+                  <p>📍 Client : Sarah K. (Kinshasa / Gombe)</p>
+                  <p>💳 Paiement : Mobile Money à la livraison</p>
+                </div>
+
+                <div className="mt-1 flex items-center justify-end gap-1 text-[9px] text-[#54656f] dark:text-[#8696a0]">
+                  <span>09:42</span>
+                  <span className="text-[#53bdeb] font-bold">✓✓</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Back button */}
+            <div className="p-2 border-t bg-background/95">
+              <button
+                type="button"
+                onClick={() => setActiveTab("store")}
+                className="w-full h-9 rounded-xl border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+                <span>Modifier les produits du panier</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Floating badges */}
+      <div className="absolute -left-4 top-1/4 rounded-2xl bg-white dark:bg-zinc-800 border px-3 py-2 shadow-xl flex items-center gap-2 animate-[bounce_3s_infinite] z-20">
+        <MessageCircle className="h-4 w-4 text-green-500" />
+        <span className="text-xs font-bold">0% de commission</span>
+      </div>
+      <div className="absolute -right-4 bottom-1/4 rounded-2xl bg-white dark:bg-zinc-800 border px-3 py-2 shadow-xl flex items-center gap-2 animate-[bounce_3.5s_infinite] z-20">
+        <BadgePercent className="h-4 w-4 text-rose-500" />
+        <span className="text-xs font-bold">Prix en FC directs</span>
+      </div>
+    </div>
+  );
+}
+
 function Index() {
   const { data: plans } = useQuery({
     queryKey: ["plans-public"],
@@ -227,12 +573,13 @@ function Index() {
           </div>
 
           {/* Desktop nav — centre */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-muted-foreground">
             <a href="#features" className="transition-colors hover:text-foreground">Fonctionnalités</a>
             <a href="#promotions" className="transition-colors hover:text-foreground">Promotions</a>
-            <a href="#partage" className="transition-colors hover:text-foreground">Partage & Visibilité</a>
-            <a href="#how-it-works" className="transition-colors hover:text-foreground">Comment ça marche</a>
+            <a href="#partage" className="transition-colors hover:text-foreground">Partage</a>
+            <a href="#temoignages" className="transition-colors hover:text-foreground">Témoignages</a>
             <a href="#pricing" className="transition-colors hover:text-foreground">Tarifs</a>
+            <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
           </nav>
 
           {/* Desktop CTA — droite */}
@@ -246,7 +593,7 @@ function Index() {
           </div>
 
           {/* Mobile burger */}
-          <div className="flex items-center sm:hidden flex-shrink-0">
+          <div className="flex items-center lg:hidden flex-shrink-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -260,14 +607,16 @@ function Index() {
 
         {/* Mobile Dropdown */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-b bg-background/98 backdrop-blur-lg px-4 pt-2 pb-6 space-y-1 shadow-xl animate-in slide-in-from-top-4 duration-200">
+          <div className="lg:hidden border-b bg-background/98 backdrop-blur-lg px-4 pt-2 pb-6 space-y-1 shadow-xl animate-in slide-in-from-top-4 duration-200">
             <nav className="flex flex-col space-y-1 pt-2">
               {[
                 { href: "#features", icon: Sparkles, label: "Fonctionnalités", color: "text-primary" },
                 { href: "#promotions", icon: BadgePercent, label: "Promotions", color: "text-rose-500" },
                 { href: "#partage", icon: Share2, label: "Partage & Visibilité", color: "text-emerald-500" },
+                { href: "#temoignages", icon: Quote, label: "Témoignages réels", color: "text-amber-500" },
                 { href: "#how-it-works", icon: Layers, label: "Comment ça marche", color: "text-blue-500" },
-                { href: "#pricing", icon: CreditCard, label: "Tarifs", color: "text-amber-500" },
+                { href: "#pricing", icon: CreditCard, label: "Tarifs", color: "text-cyan-500" },
+                { href: "#faq", icon: HelpCircle, label: "FAQ", color: "text-purple-500" },
               ].map(({ href, icon: Icon, label, color }) => (
                 <a
                   key={href}
@@ -352,68 +701,8 @@ function Index() {
               </FadeIn>
             </div>
 
-            <FadeIn className="delay-500 relative mx-auto w-full max-w-[300px] sm:max-w-sm lg:max-w-xs xl:max-w-sm">
-              {/* Phone mockup */}
-              <div className="relative rounded-[2.5rem] border-4 border-foreground/10 bg-background shadow-2xl overflow-hidden">
-                {/* Status bar */}
-                <div className="bg-muted/60 px-6 pt-3 pb-2 flex items-center justify-between">
-                  <span className="text-[10px] font-semibold text-muted-foreground">9:41</span>
-                  <div className="flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
-                    <div className="h-1.5 w-3 rounded-full bg-muted-foreground/60" />
-                    <div className="h-1.5 w-4 rounded-full bg-foreground/80" />
-                  </div>
-                </div>
-                {/* App bar */}
-                <div className="bg-primary px-4 py-3 flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center font-black text-white text-sm">M</div>
-                  <div>
-                    <p className="text-white font-bold text-xs">MarketNet</p>
-                    <p className="text-white/60 text-[10px]">Boutique Awa Mode</p>
-                  </div>
-                  <div className="ml-auto h-6 w-6 rounded-full bg-white/10 flex items-center justify-center">
-                    <MessageCircle className="h-3 w-3 text-white" />
-                  </div>
-                </div>
-                {/* Products */}
-                <div className="p-3 space-y-2 bg-background">
-                  {[
-                    { name: "Robe Wax Ankara", price: "25 000 FC", badge: "-20%", color: "from-amber-400/30 to-orange-300/30" },
-                    { name: "Sac Cuir Premium", price: "45 000 FC", badge: null, color: "from-purple-400/30 to-pink-300/30" },
-                    { name: "Sandales Été", price: "18 000 FC", badge: "-10%", color: "from-teal-400/30 to-cyan-300/30" },
-                  ].map((item) => (
-                    <div key={item.name} className="flex items-center gap-2.5 rounded-xl border bg-card p-2.5 shadow-sm">
-                      <div className={cn("h-11 w-11 rounded-xl bg-gradient-to-br shrink-0", item.color)} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-xs font-semibold truncate">{item.name}</p>
-                          {item.badge && (
-                            <span className="shrink-0 rounded-full bg-rose-500 px-1.5 py-px text-[9px] font-black text-white">{item.badge}</span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{item.price}</p>
-                      </div>
-                      <div className="h-7 w-7 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                        <MessageCircle className="h-3.5 w-3.5 text-white" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {/* Bottom bar */}
-                <div className="bg-muted/40 px-4 py-2.5 flex items-center justify-center gap-1">
-                  <span className="text-[10px] text-muted-foreground font-medium">Boutique propulsée par</span>
-                  <span className="text-[10px] font-black text-primary">MarketNet</span>
-                </div>
-              </div>
-              {/* Floating badges */}
-              <div className="absolute -left-5 top-1/4 rounded-2xl bg-white dark:bg-zinc-800 border px-3 py-2 shadow-xl flex items-center gap-2 animate-[bounce_3s_infinite]">
-                <MessageCircle className="h-4 w-4 text-green-500" />
-                <span className="text-xs font-bold">Commande reçue !</span>
-              </div>
-              <div className="absolute -right-5 bottom-1/4 rounded-2xl bg-white dark:bg-zinc-800 border px-3 py-2 shadow-xl flex items-center gap-2 animate-[bounce_3.5s_infinite]">
-                <BadgePercent className="h-4 w-4 text-rose-500" />
-                <span className="text-xs font-bold">Promo active</span>
-              </div>
+            <FadeIn className="delay-500 relative">
+              <InteractiveHeroDemo />
             </FadeIn>
           </div>
         </div>
@@ -438,6 +727,33 @@ function Index() {
                 </h4>
                 <p className="mt-1 text-sm font-medium text-muted-foreground">{label}</p>
               </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PAIEMENTS LOCAUX & CONFIANCE ── */}
+      <section className="border-b bg-card/40 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-6">
+            <p className="text-xs uppercase font-extrabold tracking-wider text-muted-foreground">
+              Paiements directs sans intermédiaire · 0% de commission prélevée
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+            {PAYMENT_PARTNERS.map((partner) => (
+              <div
+                key={partner.name}
+                className="flex items-center gap-2.5 rounded-2xl border bg-background px-4 py-2.5 shadow-sm transition-all hover:scale-105 hover:border-primary/30"
+              >
+                <div className={cn("h-7 w-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0", partner.bg, partner.color)}>
+                  <Check className="h-3.5 w-3.5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground leading-tight">{partner.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{partner.desc}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -676,6 +992,64 @@ function Index() {
         </div>
       </section>
 
+      {/* ── TÉMOIGNAGES RÉELS ── */}
+      <section id="temoignages" className="py-24 scroll-mt-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" className="text-center">
+            <SectionBadge>
+              <Quote className="h-3.5 w-3.5 text-primary" /> Témoignages réels
+            </SectionBadge>
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              Ils développent leur commerce avec MarketNet
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              Découvrez comment des vendeurs de Kinshasa, Lubumbashi et Goma ont transformé leurs ventes WhatsApp au quotidien.
+            </p>
+          </ScrollReveal>
+
+          <div className="mt-16 grid gap-8 md:grid-cols-3">
+            {TESTIMONIALS.map((item, i) => (
+              <ScrollReveal key={item.name} delay={i * 100} direction="up">
+                <div className="flex flex-col justify-between h-full rounded-3xl border bg-card p-7 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1.5 hover:border-primary/20">
+                  <div>
+                    {/* Stars + metric badge */}
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div className="flex items-center gap-1 text-amber-500">
+                        {Array.from({ length: item.rating }).map((_, idx) => (
+                          <Star key={idx} className="h-4 w-4 fill-amber-500" />
+                        ))}
+                      </div>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+                        {item.metric}
+                      </span>
+                    </div>
+
+                    {/* Quote */}
+                    <p className="text-sm text-foreground/90 leading-relaxed italic mb-6">
+                      « {item.quote} »
+                    </p>
+                  </div>
+
+                  {/* Author */}
+                  <div className="flex items-center gap-3 pt-4 border-t">
+                    <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-md", item.color)}>
+                      {item.avatar}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-sm truncate text-foreground">{item.name}</p>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{item.shop} • {item.city}</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
       <section id="how-it-works" className="bg-secondary/30 py-24 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -785,6 +1159,57 @@ function Index() {
           </div>
         </section>
       )}
+
+      {/* ── FAQ ── */}
+      <section id="faq" className="py-24 scroll-mt-20 bg-muted/20 border-t">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" className="text-center">
+            <SectionBadge>
+              <HelpCircle className="h-3.5 w-3.5 text-primary" /> Foire Aux Questions
+            </SectionBadge>
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+              Questions fréquentes
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Des réponses claires et précises pour démarrer sereinement votre boutique en ligne.
+            </p>
+          </ScrollReveal>
+
+          <div className="mt-12">
+            <ScrollReveal direction="up" delay={100}>
+              <Accordion type="single" collapsible className="w-full space-y-4">
+                {FAQ_ITEMS.map((faq, i) => (
+                  <AccordionItem
+                    key={faq.q}
+                    value={`item-${i}`}
+                    className="rounded-2xl border bg-card px-6 py-1 shadow-sm transition-all hover:border-primary/20"
+                  >
+                    <AccordionTrigger className="text-left font-bold text-sm sm:text-base py-4 hover:no-underline hover:text-primary">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed pt-1 pb-4">
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </ScrollReveal>
+          </div>
+
+          <div className="mt-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              Vous avez une autre question ?{" "}
+              <Link
+                to="/auth"
+                search={{ mode: "signup" }}
+                className="font-bold text-primary hover:underline inline-flex items-center gap-1"
+              >
+                Créez votre boutique gratuitement en 5 minutes <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA BOTTOM ── */}
       <section className="relative overflow-hidden bg-primary py-24 text-primary-foreground">
