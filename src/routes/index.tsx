@@ -5,7 +5,7 @@ import {
   TrendingUp, Users, ShieldCheck, Menu, X, Sparkles, Layers, CreditCard,
   LogIn, Tag, Megaphone, BarChart3, Globe2, BadgePercent, Star, Clock,
   Share2, Gift, Rocket, Send, HelpCircle, Quote, ShoppingBag, Plus, Minus,
-  CheckCircle2, Wallet,
+  CheckCircle2, Wallet, Flame,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -301,140 +301,133 @@ const DEMO_PRODUCTS = [
 ];
 
 function InteractiveHeroDemo() {
-  const [activeTab, setActiveTab] = useState<"store" | "whatsapp">("store");
+  // Step 1: Catalogue, Step 2: Variantes du produit, Step 3: Message WhatsApp
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  // Currency & Product state
   const [currencyMode, setCurrencyMode] = useState<"USD" | "CDF">("USD");
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string>("wax");
+  const [selectedSize, setSelectedSize] = useState<string>("M");
+  const [selectedColor, setSelectedColor] = useState<string>("Doré Wax");
+  const [selectedQty, setSelectedQty] = useState<number>(1);
 
-  // Cart state
-  const [cart, setCart] = useState<DemoCartItem[]>([
-    { id: "wax", name: "Robe Wax Élégante", priceUsd: 20, priceCdf: 56000, size: "M", color: "Doré Wax", qty: 1 },
-  ]);
+  const activeProduct = DEMO_PRODUCTS.find((p) => p.id === selectedProductId) || DEMO_PRODUCTS[0];
 
-  // Variant selection when inspecting product
-  const [activeSize, setActiveSize] = useState<string>("M");
-  const [activeColor, setActiveColor] = useState<string>("Doré Wax");
-  const [activeQty, setActiveQty] = useState<number>(1);
+  // Auto-play timer loop
+  useEffect(() => {
+    if (!isAutoPlay) return;
 
-  const viewingProduct = DEMO_PRODUCTS.find((p) => p.id === selectedProductId);
+    const STEP_DURATION = 4200; // 4.2s par étape
+    const INTERVAL = 100;
+    const increment = (INTERVAL / STEP_DURATION) * 100;
 
-  const openProductDetail = (p: typeof DEMO_PRODUCTS[0]) => {
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          // Passe à l'étape suivante
+          setCurrentStep((step) => {
+            if (step === 1) return 2;
+            if (step === 2) return 3;
+            return 1;
+          });
+          return 0;
+        }
+        return prev + increment;
+      });
+    }, INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [isAutoPlay]);
+
+  // Manuel navigation : met en pause l'auto-play
+  const goToStep = (step: 1 | 2 | 3) => {
+    setCurrentStep(step);
+    setProgress(0);
+    setIsAutoPlay(false);
+  };
+
+  const handleSelectProduct = (p: typeof DEMO_PRODUCTS[0]) => {
     setSelectedProductId(p.id);
-    setActiveSize(p.sizes[0] || "M");
-    setActiveColor(p.colors[0] || "Standard");
-    setActiveQty(1);
+    setSelectedSize(p.sizes[0] || "M");
+    setSelectedColor(p.colors[0] || "Standard");
+    setSelectedQty(1);
+    goToStep(2);
   };
-
-  const addToCartFromDetail = () => {
-    if (!viewingProduct) return;
-    setCart((prev) => {
-      const existing = prev.find(
-        (item) => item.id === viewingProduct.id && item.size === activeSize && item.color === activeColor
-      );
-      if (existing) {
-        return prev.map((item) =>
-          item === existing ? { ...item, qty: item.qty + activeQty } : item
-        );
-      }
-      return [
-        ...prev,
-        {
-          id: viewingProduct.id,
-          name: viewingProduct.name,
-          priceUsd: viewingProduct.priceUsd,
-          priceCdf: viewingProduct.priceCdf,
-          size: activeSize,
-          color: activeColor,
-          qty: activeQty,
-        },
-      ];
-    });
-    setSelectedProductId(null);
-  };
-
-  const addDirect = (p: typeof DEMO_PRODUCTS[0], e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === p.id);
-      if (existing) {
-        return prev.filter((item) => item.id !== p.id);
-      }
-      return [
-        ...prev,
-        {
-          id: p.id,
-          name: p.name,
-          priceUsd: p.priceUsd,
-          priceCdf: p.priceCdf,
-          size: p.sizes[0] || "M",
-          color: p.colors[0] || "Standard",
-          qty: 1,
-        },
-      ];
-    });
-  };
-
-  const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
-  const totalUsd = cart.reduce((sum, item) => sum + item.priceUsd * item.qty, 0);
-  const totalCdf = cart.reduce((sum, item) => sum + item.priceCdf * item.qty, 0);
 
   return (
     <div className="relative mx-auto w-full max-w-[340px] sm:max-w-sm select-none">
-      {/* Switcher tabs */}
-      <div className="mb-3 flex items-center justify-center p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
-        <button
-          type="button"
-          onClick={() => { setActiveTab("store"); setSelectedProductId(null); }}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer",
-            activeTab === "store"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-          <span>Boutique démo</span>
-          {totalCount > 0 && (
-            <span className="ml-1 h-4 min-w-4 px-1 rounded-full bg-primary text-[10px] font-black text-primary-foreground flex items-center justify-center">
-              {totalCount}
-            </span>
-          )}
-        </button>
+      {/* ── BARRE DE CONTRÔLE AUTONOME & ÉTAPES ── */}
+      <div className="mb-3 space-y-1.5">
+        <div className="flex items-center justify-between px-1 text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-foreground">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px]">Démo autonome en direct :</span>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab("whatsapp")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer relative",
-            activeTab === "whatsapp"
-              ? "bg-green-600 text-white shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <MessageCircle className={cn("h-3.5 w-3.5", activeTab === "whatsapp" ? "text-white" : "text-green-500")} />
-          <span>Commande WhatsApp</span>
-          <span className="relative flex h-2 w-2 ml-0.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setIsAutoPlay(!isAutoPlay)}
+            className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer bg-primary/10 px-2 py-0.5 rounded-full"
+          >
+            {isAutoPlay ? "⏸ Pause" : "▶ Reprendre le défilement"}
+          </button>
+        </div>
+
+        {/* Stepper interactif */}
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
+          {[
+            { step: 1 as const, label: "1. Vitrine", icon: ShoppingBag },
+            { step: 2 as const, label: "2. Variantes", icon: Tag },
+            { step: 3 as const, label: "3. WhatsApp", icon: MessageCircle },
+          ].map(({ step, label, icon: Icon }) => {
+            const isActive = currentStep === step;
+            return (
+              <button
+                key={step}
+                type="button"
+                onClick={() => goToStep(step)}
+                className={cn(
+                  "relative flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer overflow-hidden",
+                  isActive
+                    ? step === 3
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className={cn("h-3 w-3 shrink-0", isActive && step === 3 ? "text-white" : "text-primary")} />
+                <span className="truncate">{label}</span>
+                {/* Ligne de progression fine sous l'étape active */}
+                {isActive && isAutoPlay && (
+                  <div
+                    className="absolute bottom-0 left-0 h-0.5 bg-primary transition-all duration-100"
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Phone container */}
+      {/* ── CADRE SMARTPHONE ── */}
       <div className="relative rounded-[2.5rem] border-4 border-foreground/15 bg-background shadow-2xl overflow-hidden transition-all duration-300">
         {/* Status bar */}
         <div className="bg-muted/70 px-5 pt-3 pb-2 flex items-center justify-between border-b border-border/40">
           <span className="text-[10px] font-semibold text-muted-foreground">09:41</span>
           <div className="flex items-center gap-2">
-            {/* Currency switch */}
-            <div className="flex items-center rounded-lg bg-background border px-1 py-0.5 text-[9px] font-bold">
-              <button
-                type="button"
-                onClick={() => setCurrencyMode(currencyMode === "USD" ? "CDF" : "USD")}
-                className="text-primary hover:underline cursor-pointer"
-              >
-                {currencyMode === "USD" ? "$ USD (ou FC)" : "FC CDF (ou $)"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCurrencyMode(currencyMode === "USD" ? "CDF" : "USD");
+                setIsAutoPlay(false);
+              }}
+              className="text-[9px] font-bold text-primary bg-background border px-1.5 py-0.5 rounded-md hover:bg-muted cursor-pointer"
+            >
+              Devise : {currencyMode === "USD" ? "$ USD" : "FC"}
+            </button>
             <div className="flex items-center gap-1">
               <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
               <div className="h-1.5 w-3 rounded-full bg-muted-foreground/60" />
@@ -443,263 +436,304 @@ function InteractiveHeroDemo() {
           </div>
         </div>
 
-        {activeTab === "store" ? (
-          viewingProduct ? (
-            /* PRODUCT DETAIL & VARIANTS VIEW */
-            <div className="flex flex-col h-[400px] bg-background animate-in slide-in-from-right duration-200">
-              {/* Header retour */}
-              <div className="px-3 py-2.5 border-b flex items-center justify-between bg-card">
-                <button
-                  type="button"
-                  onClick={() => setSelectedProductId(null)}
-                  className="flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
-                >
-                  <ArrowRight className="h-3.5 w-3.5 rotate-180" />
-                  <span>Catalogue</span>
-                </button>
-                <span className="text-[11px] font-bold text-muted-foreground">{viewingProduct.category}</span>
-              </div>
-
-              {/* Detail body */}
-              <div className="flex-1 p-3 overflow-y-auto space-y-2.5">
-                <div className="relative h-28 w-full rounded-2xl overflow-hidden bg-muted">
-                  <img
-                    src={viewingProduct.image}
-                    alt={viewingProduct.name}
-                    className="h-full w-full object-cover"
-                  />
-                  {viewingProduct.promo && (
-                    <span className="absolute top-2 right-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow">
-                      {viewingProduct.promo}
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-bold text-foreground">{viewingProduct.name}</h4>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-sm font-extrabold text-foreground">
-                      {currencyMode === "USD" ? `$${viewingProduct.priceUsd}` : `${viewingProduct.priceCdf.toLocaleString("fr-FR")} FC`}
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      ({currencyMode === "USD" ? `${viewingProduct.priceCdf.toLocaleString("fr-FR")} FC` : `$${viewingProduct.priceUsd}`})
+        {/* ── ÉTAPE 1 : VITRINE BOUTIQUE ÉLÉGANTE ── */}
+        {currentStep === 1 && (
+          <div className="flex flex-col h-[445px] bg-background animate-in fade-in duration-300">
+            {/* Header boutique soigné */}
+            <div className="bg-gradient-to-r from-orange-600 via-primary to-amber-500 px-3.5 py-2.5 text-white shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="relative">
+                    <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center font-black text-xs shadow-inner">
+                      A
+                    </div>
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-primary flex items-center justify-center">
+                      <Check className="h-2 w-2 text-white stroke-[3]" />
                     </span>
                   </div>
-                </div>
-
-                {/* Taille variants */}
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                    Taille / Format :
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {viewingProduct.sizes.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setActiveSize(s)}
-                        className={cn(
-                          "px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
-                          activeSize === s
-                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                            : "bg-card text-foreground hover:bg-muted"
-                        )}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <p className="font-extrabold text-xs truncate">Awa Mode Kinshasa</p>
+                    </div>
+                    <p className="text-[10px] text-white/90 font-medium">⭐ 4.9 · Kinshasa Gombe</p>
                   </div>
                 </div>
-
-                {/* Couleur variants */}
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                    Couleur / Variante :
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {viewingProduct.colors.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setActiveColor(c)}
-                        className={cn(
-                          "px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
-                          activeColor === c
-                            ? "bg-foreground text-background border-foreground shadow-sm"
-                            : "bg-card text-foreground hover:bg-muted"
-                        )}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
+                  <ShoppingBag className="h-3 w-3" />
+                  <span>1 panier</span>
                 </div>
-
-                {/* Quantité */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-xs font-bold text-foreground">Quantité :</span>
-                  <div className="flex items-center border rounded-xl bg-card">
-                    <button
-                      type="button"
-                      onClick={() => setActiveQty(Math.max(1, activeQty - 1))}
-                      className="h-7 w-7 grid place-items-center text-muted-foreground hover:text-foreground cursor-pointer"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <span className="px-2 text-xs font-bold">{activeQty}</span>
-                    <button
-                      type="button"
-                      onClick={() => setActiveQty(activeQty + 1)}
-                      className="h-7 w-7 grid place-items-center text-muted-foreground hover:text-foreground cursor-pointer"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detail footer actions */}
-              <div className="p-2.5 border-t bg-card space-y-1.5">
-                <button
-                  type="button"
-                  onClick={addToCartFromDetail}
-                  className="w-full h-9 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <ShoppingBag className="h-3.5 w-3.5" />
-                  <span>
-                    Ajouter au panier ({activeSize} · {activeColor})
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { addToCartFromDetail(); setActiveTab("whatsapp"); }}
-                  className="w-full h-8 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  <span>Commander immédiatement sur WhatsApp</span>
-                </button>
               </div>
             </div>
-          ) : (
-            /* STORE CATALOGUE VIEW */
-            <div className="flex flex-col h-[400px] bg-background animate-in fade-in duration-200">
-              {/* App Bar */}
-              <div className="bg-gradient-to-r from-primary to-orange-500 px-3.5 py-2.5 text-white flex items-center gap-2.5 shadow-sm">
-                <div className="h-7 w-7 rounded-xl bg-white/20 flex items-center justify-center font-black text-xs">
-                  A
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-xs truncate">Awa Mode Kinshasa</p>
-                  <p className="text-[10px] text-white/80">Commandes WhatsApp directes</p>
-                </div>
-                <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                  <ShoppingBag className="h-3 w-3" />
-                  <span>{totalCount}</span>
-                </div>
-              </div>
 
-              {/* Sub-header instruction */}
-              <div className="bg-primary/5 border-b px-3 py-1 flex items-center justify-between text-[10px]">
-                <span className="font-semibold text-primary">👆 Touchez un produit pour voir ses variantes</span>
-                <span className="text-muted-foreground font-medium">{DEMO_PRODUCTS.length} articles</span>
-              </div>
+            {/* Hint animé */}
+            <div className="bg-primary/5 border-b px-3 py-1.5 flex items-center justify-between text-[10px]">
+              <span className="font-bold text-primary flex items-center gap-1 truncate">
+                <Sparkles className="h-3 w-3 shrink-0" /> Étape 1 : Le client explore la vitrine
+              </span>
+              <span className="text-muted-foreground shrink-0">{DEMO_PRODUCTS.length} articles</span>
+            </div>
 
-              {/* Products list */}
-              <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
-                {DEMO_PRODUCTS.map((item) => {
-                  const inCart = cart.some((c) => c.id === item.id);
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => openProductDetail(item)}
+            {/* Liste des produits de la vitrine */}
+            <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
+              {DEMO_PRODUCTS.map((p) => {
+                const isSelected = p.id === activeProduct.id;
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => handleSelectProduct(p)}
+                    className={cn(
+                      "group flex items-center gap-2.5 rounded-2xl border p-2 transition-all cursor-pointer select-none",
+                      isSelected
+                        ? "bg-primary/8 border-primary/50 shadow-sm ring-1 ring-primary/20"
+                        : "bg-card border-border/70 hover:border-border hover:bg-muted/40"
+                    )}
+                  >
+                    <img
+                      src={p.image}
+                      alt={p.name}
+                      className="h-12 w-12 rounded-xl object-cover shrink-0 shadow-sm"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs font-bold truncate text-foreground group-hover:text-primary transition-colors">
+                          {p.name}
+                        </p>
+                        {p.promo && (
+                          <span className="shrink-0 rounded-full bg-rose-500 px-1.5 py-px text-[9px] font-black text-white">
+                            {p.promo}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] font-extrabold text-foreground">
+                          ${p.priceUsd}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          · {p.priceCdf.toLocaleString("fr-FR")} FC
+                        </span>
+                      </div>
+                      <p className="text-[9px] text-primary font-semibold mt-0.5">
+                        {p.sizes.length} tailles · {p.colors.length} couleurs
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectProduct(p);
+                      }}
                       className={cn(
-                        "group flex items-center gap-2.5 rounded-2xl border p-2 transition-all cursor-pointer select-none",
-                        inCart
-                          ? "bg-primary/6 border-primary/40 shadow-sm"
-                          : "bg-card border-border/70 hover:border-border hover:bg-muted/40"
+                        "h-7 px-2.5 rounded-xl flex items-center justify-center gap-1 text-[10px] font-bold shrink-0 transition-transform active:scale-95 cursor-pointer",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "bg-primary/10 text-primary hover:bg-primary/20"
                       )}
                     >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-12 w-12 rounded-xl object-cover shrink-0 shadow-sm"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <p className="text-xs font-bold truncate text-foreground group-hover:text-primary transition-colors">
-                            {item.name}
-                          </p>
-                          {item.promo && (
-                            <span className="shrink-0 rounded-full bg-rose-500 px-1.5 py-px text-[9px] font-black text-white">
-                              {item.promo}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-[11px] font-extrabold text-foreground">
-                            ${item.priceUsd}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            · {item.priceCdf.toLocaleString("fr-FR")} FC
-                          </span>
-                        </div>
-                        <p className="text-[9px] text-primary/80 mt-0.5">
-                          {item.sizes.length} tailles · {item.colors.length} couleurs
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => addDirect(item, e)}
-                        className={cn(
-                          "h-7 w-7 rounded-xl flex items-center justify-center shrink-0 transition-transform active:scale-90 cursor-pointer",
-                          inCart
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary"
-                        )}
-                        aria-label="Ajouter au panier"
-                      >
-                        {inCart ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Bottom CTA to WhatsApp */}
-              <div className="p-2 border-t bg-card/95 backdrop-blur-sm">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("whatsapp")}
-                  className="w-full h-9 rounded-xl bg-green-600 hover:bg-green-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-green-600/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>
-                    Valider ma commande ({totalCount} · ${totalUsd} / {totalCdf.toLocaleString("fr-FR")} FC)
-                  </span>
-                  <ArrowRight className="h-3.5 w-3.5 ml-auto" />
-                </button>
-              </div>
+                      <span>Variantes</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-          )
-        ) : (
-          /* TAB 2: WHATSAPP MESSAGE PREVIEW */
-          <div className="flex flex-col h-[400px] bg-[#EFEAE2] dark:bg-[#0c1317] animate-in fade-in duration-200">
-            {/* WhatsApp Header */}
-            <div className="bg-[#008069] dark:bg-[#202c33] px-3 py-2 text-white flex items-center gap-2 shadow-sm">
-              <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
-                A
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold leading-tight truncate">Awa Mode Kinshasa</p>
-                <p className="text-[10px] text-emerald-100 dark:text-zinc-400">Compte professionnel WhatsApp</p>
-              </div>
-              <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">
-                En direct
+
+            {/* Bottom action bar */}
+            <div className="p-3 pb-3.5 border-t bg-card/95">
+              <button
+                type="button"
+                onClick={() => goToStep(2)}
+                className="w-full h-10 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md flex items-center justify-center gap-1.5 cursor-pointer hover:opacity-90 active:scale-95 transition-all"
+              >
+                <span>Ouvrir l'article et ses options</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 2 : FICHE PRODUIT & CHOIX DES VARIANTES ── */}
+        {currentStep === 2 && (
+          <div className="flex flex-col h-[445px] bg-background animate-in slide-in-from-right duration-300">
+            {/* Header fiche */}
+            <div className="px-3.5 py-2 border-b flex items-center justify-between bg-card">
+              <button
+                type="button"
+                onClick={() => goToStep(1)}
+                className="flex items-center gap-1 text-xs font-bold text-primary hover:underline cursor-pointer"
+              >
+                <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+                <span>Catalogue</span>
+              </button>
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+                Étape 2 : Variantes
               </span>
             </div>
 
-            {/* WhatsApp Chat Body */}
+            {/* Body fiche produit */}
+            <div className="flex-1 p-3 overflow-y-auto space-y-2.5">
+              <div className="relative h-28 w-full rounded-2xl overflow-hidden bg-muted shadow-sm">
+                <img
+                  src={activeProduct.image}
+                  alt={activeProduct.name}
+                  className="h-full w-full object-cover"
+                />
+                {activeProduct.promo && (
+                  <span className="absolute top-2 right-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white shadow">
+                    {activeProduct.promo}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-foreground">{activeProduct.name}</h4>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-sm font-extrabold text-foreground">
+                    ${activeProduct.priceUsd}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    ({activeProduct.priceCdf.toLocaleString("fr-FR")} FC)
+                  </span>
+                </div>
+              </div>
+
+              {/* Sélecteur Taille */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Taille / Format :
+                  </span>
+                  <span className="text-[10px] font-bold text-primary">{selectedSize}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {activeProduct.sizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSize(s);
+                        setIsAutoPlay(false);
+                      }}
+                      className={cn(
+                        "px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                        selectedSize === s
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-card text-foreground hover:bg-muted"
+                      )}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sélecteur Couleur */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Couleur :
+                  </span>
+                  <span className="text-[10px] font-bold text-primary">{selectedColor}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {activeProduct.colors.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setSelectedColor(c);
+                        setIsAutoPlay(false);
+                      }}
+                      className={cn(
+                        "px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                        selectedColor === c
+                          ? "bg-foreground text-background border-foreground shadow-sm"
+                          : "bg-card text-foreground hover:bg-muted"
+                      )}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quantité */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-bold text-foreground">Quantité :</span>
+                <div className="flex items-center border rounded-xl bg-card">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedQty(Math.max(1, selectedQty - 1));
+                      setIsAutoPlay(false);
+                    }}
+                    className="h-7 w-7 grid place-items-center text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="px-2 text-xs font-bold">{selectedQty}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedQty(selectedQty + 1);
+                      setIsAutoPlay(false);
+                    }}
+                    className="h-7 w-7 grid place-items-center text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions fiche avec bouton WhatsApp aéré et ajusté */}
+            <div className="p-3 pb-3.5 border-t bg-card/95 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => goToStep(3)}
+                className="w-full h-11 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-[0.98] text-white font-bold shadow-lg shadow-emerald-600/25 flex items-center justify-between px-3.5 transition-all cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-7 w-7 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                    <MessageCircle className="h-4 w-4 text-white fill-white" />
+                  </div>
+                  <div className="text-left truncate">
+                    <p className="font-extrabold text-xs leading-tight">Commander sur WhatsApp</p>
+                    <p className="text-[10px] text-emerald-100 font-medium truncate">
+                      ${activeProduct.priceUsd * selectedQty} ({(activeProduct.priceCdf * selectedQty).toLocaleString("fr-FR")} FC) · {selectedSize} / {selectedColor}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-bold bg-white/20 px-2 py-0.5 rounded-lg shrink-0">
+                  <span>Valider</span>
+                  <ArrowRight className="h-3 w-3" />
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 3 : MESSAGE WHATSAPP REÇU EN TEMPS RÉEL ── */}
+        {currentStep === 3 && (
+          <div className="flex flex-col h-[445px] bg-[#EFEAE2] dark:bg-[#0c1317] animate-in fade-in duration-300">
+            {/* Header WhatsApp */}
+            <div className="bg-[#008069] dark:bg-[#202c33] px-3.5 py-2.5 text-white flex items-center gap-2.5 shadow-sm">
+              <div className="relative">
+                <div className="h-8 w-8 rounded-full bg-white/25 flex items-center justify-center font-bold text-xs">
+                  A
+                </div>
+                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#008069]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold leading-tight truncate">Awa Mode Kinshasa</p>
+                <p className="text-[10px] text-emerald-100 dark:text-zinc-400">En ligne · Compte professionnel</p>
+              </div>
+              <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold">
+                Direct WhatsApp
+              </span>
+            </div>
+
+            {/* Chat WhatsApp */}
             <div className="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
               <div className="text-center my-0.5">
                 <span className="bg-[#E1D9CE] dark:bg-[#182229] text-[9px] text-[#54656f] dark:text-[#8696a0] px-2.5 py-0.5 rounded-lg shadow-sm font-medium">
@@ -707,8 +741,8 @@ function InteractiveHeroDemo() {
                 </span>
               </div>
 
-              {/* Message Bubble */}
-              <div className="relative ml-auto max-w-[96%] rounded-2xl rounded-tr-none bg-[#D9FDD3] dark:bg-[#005c4b] p-3 text-[#111b21] dark:text-[#e9edef] shadow-sm">
+              {/* Bulle de commande structurée */}
+              <div className="relative ml-auto max-w-[96%] rounded-2xl rounded-tr-none bg-[#D9FDD3] dark:bg-[#005c4b] p-3 text-[#111b21] dark:text-[#e9edef] shadow-sm animate-in zoom-in-95 duration-200">
                 <p className="font-bold text-[11px] text-[#008069] dark:text-[#25D366] mb-1">
                   🛍️ Nouvelle commande via MarketNet !
                 </p>
@@ -717,27 +751,21 @@ function InteractiveHeroDemo() {
                 </p>
 
                 <div className="my-2 border-y border-black/10 dark:border-white/10 py-1.5 space-y-1">
-                  {cart.length > 0 ? (
-                    cart.map((item, idx) => (
-                      <div key={`${item.id}-${idx}`} className="text-[10px] leading-snug">
-                        <div className="flex justify-between items-center font-semibold">
-                          <span>• {item.qty}x {item.name}</span>
-                          <span>${item.priceUsd * item.qty} ({(item.priceCdf * item.qty).toLocaleString("fr-FR")} FC)</span>
-                        </div>
-                        <p className="text-[9px] text-[#54656f] dark:text-[#8696a0] pl-2">
-                          Variante : {item.size} · {item.color}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-[10px] italic text-muted-foreground">Panier vide</p>
-                  )}
+                  <div className="text-[10px] leading-snug">
+                    <div className="flex justify-between items-center font-semibold">
+                      <span>• {selectedQty}x {activeProduct.name}</span>
+                      <span>${activeProduct.priceUsd * selectedQty} ({(activeProduct.priceCdf * selectedQty).toLocaleString("fr-FR")} FC)</span>
+                    </div>
+                    <p className="text-[9px] text-[#54656f] dark:text-[#8696a0] pl-2 font-medium">
+                      Variante : Taille {selectedSize} · {selectedColor}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex justify-between items-center text-xs font-black pt-0.5">
                   <span>TOTAL :</span>
                   <span className="text-[#008069] dark:text-[#25D366]">
-                    ${totalUsd} · {totalCdf.toLocaleString("fr-FR")} FC
+                    ${activeProduct.priceUsd * selectedQty} · {(activeProduct.priceCdf * selectedQty).toLocaleString("fr-FR")} FC
                   </span>
                 </div>
 
@@ -753,19 +781,342 @@ function InteractiveHeroDemo() {
               </div>
             </div>
 
-            {/* Back button */}
-            <div className="p-2 border-t bg-background/95">
+            {/* Back action */}
+            <div className="p-3 pb-3.5 border-t bg-card/95">
               <button
                 type="button"
-                onClick={() => { setActiveTab("store"); setSelectedProductId(null); }}
-                className="w-full h-8 rounded-xl border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                onClick={() => goToStep(1)}
+                className="w-full h-9 rounded-xl border bg-card hover:bg-muted text-xs font-bold text-foreground flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-                <span>Modifier les produits / variantes</span>
+                <span>Recommencer la démo depuis le catalogue</span>
               </button>
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+const PROMO_CAMPAIGNS = [
+  {
+    id: "promo-kazi",
+    storeName: "Maison Kazi Kinshasa",
+    city: "Kinshasa Gombe",
+    campaignTitle: "🔥 Vente Flash Soirée Wax",
+    countdown: "04h 28m restantes",
+    discountBadge: "-35%",
+    headerGradient: "from-rose-600 via-rose-500 to-orange-500",
+    avatarBg: "bg-white/20",
+    avatarInitial: "M",
+    products: [
+      {
+        name: "Robe Sirène Wax Brodé",
+        image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 40,
+        oldPriceCdf: 112000,
+        promoPriceUsd: 26,
+        promoPriceCdf: 72800,
+        discount: "-35%",
+        variantInfo: "Tailles S à XL · 3 motifs",
+      },
+      {
+        name: "Kimono Chic Bogolan",
+        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 30,
+        oldPriceCdf: 84000,
+        promoPriceUsd: 22,
+        promoPriceCdf: 61600,
+        discount: "-27%",
+        variantInfo: "Taille unique · 2 coloris",
+      },
+      {
+        name: "Sac Cabas Cuir & Wax",
+        image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 35,
+        oldPriceCdf: 98000,
+        promoPriceUsd: 28,
+        promoPriceCdf: 78400,
+        discount: "-20%",
+        variantInfo: "Cuir véritable · Anses tressées",
+      },
+    ],
+  },
+  {
+    id: "promo-kenza",
+    storeName: "Kenza Sneakerhub",
+    city: "Lubumbashi Centre",
+    campaignTitle: "⚡ Spécial Streetwear & Sneakers",
+    countdown: "Offre limitée - Stock réduit",
+    discountBadge: "-30%",
+    headerGradient: "from-amber-600 via-orange-500 to-rose-500",
+    avatarBg: "bg-white/20",
+    avatarInitial: "K",
+    products: [
+      {
+        name: "Sneakers Urban Retro Low",
+        image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 50,
+        oldPriceCdf: 140000,
+        promoPriceUsd: 35,
+        promoPriceCdf: 98000,
+        discount: "-30%",
+        variantInfo: "Pointures 40 à 45 · Cuir",
+      },
+      {
+        name: "Mocassins Cuir Suédé Élite",
+        image: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 55,
+        oldPriceCdf: 154000,
+        promoPriceUsd: 39,
+        promoPriceCdf: 109200,
+        discount: "-29%",
+        variantInfo: "Noir & Marron Cognac",
+      },
+      {
+        name: "Sandales Été Perlées",
+        image: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 25,
+        oldPriceCdf: 70000,
+        promoPriceUsd: 18,
+        promoPriceCdf: 50400,
+        discount: "-28%",
+        variantInfo: "Artisanal · Cuir souple",
+      },
+    ],
+  },
+  {
+    id: "promo-elikya",
+    storeName: "Elikya Prestige & Fragrances",
+    city: "Goma Les Volcans",
+    campaignTitle: "✨ Coffrets Beauté & Parfums",
+    countdown: "Dernières 24 heures",
+    discountBadge: "-40%",
+    headerGradient: "from-purple-600 via-pink-600 to-rose-500",
+    avatarBg: "bg-white/20",
+    avatarInitial: "E",
+    products: [
+      {
+        name: "Coffret Extrait d'Oud Royal",
+        image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 45,
+        oldPriceCdf: 126000,
+        promoPriceUsd: 27,
+        promoPriceCdf: 75600,
+        discount: "-40%",
+        variantInfo: "Flacon 100ml + Déodorant",
+      },
+      {
+        name: "Sérum Éclat Vitaminé & Argan",
+        image: "https://images.unsplash.com/photo-1608248597359-2164478419eb?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 20,
+        oldPriceCdf: 56000,
+        promoPriceUsd: 14,
+        promoPriceCdf: 39200,
+        discount: "-30%",
+        variantInfo: "Flacon pipette 50ml",
+      },
+      {
+        name: "Brume Solaire Ambrée",
+        image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=350&q=80",
+        oldPriceUsd: 18,
+        oldPriceCdf: 50400,
+        promoPriceUsd: 12.5,
+        promoPriceCdf: 35000,
+        discount: "-30%",
+        variantInfo: "Tenue longue durée 250ml",
+      },
+    ],
+  },
+];
+
+function AutonomousPromotionShowcase() {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  const campaign = PROMO_CAMPAIGNS[activeIdx];
+
+  // Défilement automatique autonome
+  useEffect(() => {
+    if (!isAutoPlay) return;
+
+    const DURATION = 4500; // 4.5s par modèle de promotion
+    const INTERVAL = 100;
+    const step = (INTERVAL / DURATION) * 100;
+
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          setActiveIdx((current) => (current + 1) % PROMO_CAMPAIGNS.length);
+          return 0;
+        }
+        return prev + step;
+      });
+    }, INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [isAutoPlay]);
+
+  const selectCampaign = (idx: number) => {
+    setActiveIdx(idx);
+    setProgress(0);
+    setIsAutoPlay(false);
+  };
+
+  return (
+    <div className="relative mx-auto max-w-sm w-full select-none">
+      {/* Contrôle autoplay et sélecteur de modèle */}
+      <div className="mb-3 space-y-1.5">
+        <div className="flex items-center justify-between px-1 text-xs">
+          <div className="flex items-center gap-1.5 font-bold text-foreground">
+            <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+            <span className="text-[11px]">Campagnes réelles en direct :</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAutoPlay(!isAutoPlay)}
+            className="text-[10px] font-bold text-rose-500 hover:underline flex items-center gap-1 cursor-pointer bg-rose-500/10 px-2 py-0.5 rounded-full"
+          >
+            {isAutoPlay ? "⏸ Pause" : "▶ Défilement auto"}
+          </button>
+        </div>
+
+        {/* Boutons modèles */}
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
+          {PROMO_CAMPAIGNS.map((c, idx) => {
+            const isActive = activeIdx === idx;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => selectCampaign(idx)}
+                className={cn(
+                  "relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer overflow-hidden",
+                  isActive
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <span className="truncate">{c.storeName.split(" ")[0]}</span>
+                <span className="text-[9px] font-extrabold text-rose-500">{c.discountBadge}</span>
+                {isActive && isAutoPlay && (
+                  <div
+                    className="absolute bottom-0 left-0 h-0.5 bg-rose-500 transition-all duration-100"
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Carte promotionnelle autonome */}
+      <div className="relative rounded-3xl border bg-card shadow-2xl overflow-hidden transition-all duration-300">
+        {/* Header dynamique de la boutique réelle */}
+        <div className={cn("bg-gradient-to-r p-4 text-white shadow-sm", campaign.headerGradient)}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center font-black text-base shrink-0 shadow-inner">
+                {campaign.avatarInitial}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="font-extrabold text-sm truncate">{campaign.storeName}</p>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+                </div>
+                <p className="text-xs text-white/80 font-medium truncate">{campaign.city}</p>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm">
+                <Clock className="h-3 w-3" />
+                <span className="hidden sm:inline">Flash</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between pt-2 border-t border-white/20 text-xs">
+            <span className="font-bold flex items-center gap-1">
+              <Flame className="h-3.5 w-3.5 fill-white text-white" />
+              {campaign.campaignTitle}
+            </span>
+            <span className="text-[10px] text-white/90 font-semibold">{campaign.countdown}</span>
+          </div>
+        </div>
+
+        {/* Liste des produits réels en promotion */}
+        <div className="p-3.5 space-y-2.5 bg-background/50">
+          {campaign.products.map((product) => (
+            <div
+              key={product.name}
+              className="group flex items-center gap-3 rounded-2xl border bg-card p-2.5 transition-all hover:border-rose-500/40 hover:shadow-md"
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="h-14 w-14 rounded-xl object-cover shrink-0 shadow-sm"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-bold truncate text-foreground group-hover:text-rose-500 transition-colors">
+                    {product.name}
+                  </p>
+                  <span className="shrink-0 rounded-full bg-rose-500 px-1.5 py-px text-[9px] font-black text-white">
+                    {product.discount}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-xs font-extrabold text-rose-500">
+                    ${product.promoPriceUsd}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground">
+                    ({product.promoPriceCdf.toLocaleString("fr-FR")} FC)
+                  </span>
+                  <span className="text-[10px] text-muted-foreground line-through ml-auto">
+                    ${product.oldPriceUsd}
+                  </span>
+                </div>
+
+                <p className="text-[9px] text-muted-foreground mt-0.5 truncate">
+                  {product.variantInfo}
+                </p>
+              </div>
+
+              <div className="shrink-0 h-8 w-8 rounded-xl bg-emerald-500/15 group-hover:bg-emerald-500 flex items-center justify-center transition-colors">
+                <MessageCircle className="h-4 w-4 text-emerald-600 group-hover:text-white transition-colors" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer avec bouton WhatsApp optimisé */}
+        <div className="p-3 border-t bg-card">
+          <div className="flex items-center justify-between text-xs font-semibold mb-2 px-1 text-muted-foreground">
+            <span>Remise immédiate garantie</span>
+            <span className="text-rose-500 font-bold">Jusqu'à {campaign.discountBadge}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const text = encodeURIComponent(`Bonjour ${campaign.storeName}, je souhaite commander un article en promotion : ${campaign.products[0].name} à $${campaign.products[0].promoPriceUsd} (${campaign.products[0].promoPriceCdf.toLocaleString("fr-FR")} FC)`);
+              window.open(`https://wa.me/243810000000?text=${text}`, "_blank");
+            }}
+            className="w-full h-10 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+          >
+            <MessageCircle className="h-4 w-4 fill-white text-white" />
+            <span>Commander en promo sur WhatsApp</span>
+            <ArrowRight className="h-3.5 w-3.5 ml-auto" />
+          </button>
+        </div>
+
+        {/* Badge promotionnel flottant animé */}
+        <div className="absolute -top-3 -right-3 rounded-2xl bg-rose-500 px-3 py-1.5 text-white font-black text-sm shadow-xl shadow-rose-500/40 animate-[bounce_2.5s_infinite]">
+          {campaign.discountBadge}
+        </div>
       </div>
     </div>
   );
@@ -860,15 +1211,10 @@ function Index() {
                 </a>
               ))}
             </nav>
-            <div className="pt-3 border-t space-y-2">
-              <Button variant="outline" size="lg" className="w-full rounded-xl font-bold h-11 justify-center text-sm" asChild>
+            <div className="pt-3 border-t">
+              <Button size="lg" className="w-full rounded-xl font-bold h-11 justify-center text-sm shadow-md" asChild>
                 <Link to="/auth" search={{ mode: "login" }} onClick={() => setMobileMenuOpen(false)}>
                   <LogIn className="h-4 w-4 mr-2" /> Connexion
-                </Link>
-              </Button>
-              <Button size="lg" className="w-full rounded-xl font-bold h-11 justify-center text-sm" asChild>
-                <Link to="/auth" search={{ mode: "signup" }} onClick={() => setMobileMenuOpen(false)}>
-                  <Store className="h-4 w-4 mr-2" /> Créer ma boutique
                 </Link>
               </Button>
             </div>
@@ -1031,59 +1377,9 @@ function Index() {
               </div>
             </ScrollReveal>
 
-            {/* Right visual */}
+            {/* Right visual: Carte promotionnelle autonome avec campagnes réelles en direct */}
             <ScrollReveal direction="right" delay={150}>
-              <div className="relative mx-auto max-w-sm">
-                <div className="rounded-3xl border bg-card shadow-2xl overflow-hidden">
-                  {/* Mock store header */}
-                  <div className="bg-gradient-to-r from-rose-500 to-orange-500 p-4 text-white">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">B</div>
-                      <div>
-                        <p className="font-bold text-sm">Boutique Exemple</p>
-                        <p className="text-xs text-white/70">Promotions en cours</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Mock products */}
-                  <div className="p-4 space-y-3">
-                    {[
-                      { name: "Robe d'été", price: "25 000 FC", promo: "-30%", newPrice: "17 500 FC" },
-                      { name: "Sac à main", price: "45 000 FC", promo: "-20%", newPrice: "36 000 FC" },
-                      { name: "Chaussures", price: "60 000 FC", promo: null, newPrice: null },
-                    ].map((product) => (
-                      <div key={product.name} className="flex items-center gap-3 rounded-xl border bg-background p-3">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-blue-500/20 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold truncate">{product.name}</p>
-                            {product.promo && (
-                              <span className="shrink-0 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-black text-white">{product.promo}</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {product.promo ? (
-                              <>
-                                <span className="text-xs text-muted-foreground line-through">{product.price}</span>
-                                <span className="text-xs font-bold text-rose-500">{product.newPrice}</span>
-                              </>
-                            ) : (
-                              <span className="text-xs font-medium text-foreground">{product.price}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="shrink-0 h-7 w-7 rounded-full bg-green-500 flex items-center justify-center">
-                          <MessageCircle className="h-3.5 w-3.5 text-white" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* Floating badge */}
-                <div className="absolute -top-4 -right-4 rounded-2xl bg-rose-500 px-4 py-2 text-white font-black text-lg shadow-xl shadow-rose-500/30 animate-[bounce_2.5s_infinite]">
-                  -30%
-                </div>
-              </div>
+              <AutonomousPromotionShowcase />
             </ScrollReveal>
           </div>
         </div>
