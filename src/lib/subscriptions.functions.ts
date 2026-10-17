@@ -737,7 +737,7 @@ export const processDailySubscriptionChecks = createServerFn({ method: "POST" })
 const APP_URL =
   process.env["MARKETNET_SITE_URL"] ||
   process.env["VITE_SITE_URL"] ||
-  "https://marketnet-chi.vercel.app"; // fallback de sécurité uniquement
+  "https://appmarketnet.vercel.app"; // fallback de sécurité uniquement
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

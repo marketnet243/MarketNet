@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ShieldCheck, CheckCircle2, Lock, Share2, Trash2 } from "lucide-react";
+import { ShieldCheck, CheckCircle2, Lock, Share2, Trash2, ShieldAlert } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
@@ -50,7 +50,7 @@ function PrivacyPage() {
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">Politique de Confidentialité</h1>
             <p className="mt-3 text-muted-foreground text-lg">Protection et transparence de vos données personnelles.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 14 octobre 2026</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 17 octobre 2026</p>
           </div>
 
           <div className="space-y-12">
@@ -92,20 +92,18 @@ function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">2. Données issues de l'API Meta (Facebook & Instagram)</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">2. Réseaux sociaux et données Meta</h2>
               <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
-                Lorsque vous connectez volontairement votre page Facebook professionnelle à MarketNet :
+                La publication automatique sur les réseaux sociaux (Facebook & Instagram) n'est pas disponible sur MarketNet.
               </p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <Share2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Données collectées :</strong> L'identifiant (ID) et le nom de votre page Facebook, l'identifiant de compte Instagram professionnel lié, les jetons d'accès de page nécessaires, ainsi que l'identifiant des publications générées via MarketNet et leurs statistiques de lecture (vues).</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <Lock className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Ce que nous ne collectons pas :</strong> MarketNet n'accède <strong>jamais</strong> à votre profil Facebook personnel, à votre liste d'amis, ni à vos messages privés. La connexion sert exclusivement à synchroniser et publier vos produits à votre demande.</span>
-                </li>
-              </ul>
+              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5 space-y-2">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Tous les jetons d'accès et identifiants Meta précédemment enregistrés ont été <strong>définitivement supprimés</strong> de nos serveurs. MarketNet ne conserve, ne collecte et n'utilise aucun jeton ni donnée d'authentification liée à des comptes Facebook ou Instagram.
+                </p>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                  Les commerçants peuvent librement renseigner les liens publics de leurs profils sociaux (Facebook, Instagram, TikTok) sur leur vitrine pour permettre à leurs clients de les suivre, sans aucune connexion d'API ni échange de jetons.
+                </p>
+              </div>
             </section>
 
             <section>
@@ -127,11 +125,11 @@ function PrivacyPage() {
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
                   <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span>Publier vos produits sur votre page Facebook et votre compte Instagram professionnel à votre demande.</span>
+                  <span>Permettre la diffusion de votre vitrine (partage direct WhatsApp, affiches et aperçus enrichis des liens).</span>
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
                   <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span>Afficher les statistiques de performance de vos publications et de votre boutique.</span>
+                  <span>Afficher les statistiques de visites et de performances propres à votre boutique MarketNet.</span>
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
                   <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
@@ -152,10 +150,6 @@ function PrivacyPage() {
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
                   <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span><strong>Meta Platforms :</strong> Pour les fonctionnalités de publication et de commande WhatsApp activées par le commerçant.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
                   <span><strong>Fournisseurs d'infrastructure :</strong> Hébergement sécurisé (Supabase, Vercel) et gestion des médias (Cloudinary).</span>
                 </li>
               </ul>
@@ -164,7 +158,7 @@ function PrivacyPage() {
             <section>
               <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">6. Sécurité des données</h2>
               <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                L'architecture multi-tenant de MarketNet isole strictement les données de chaque boutique via des règles de sécurité au niveau des lignes (RLS - Row Level Security). Les jetons d'accès Meta sont chiffrés de bout en bout avec l'algorithme AES-256-GCM et stockés exclusivement côté serveur : ils ne sont jamais exposés au navigateur ni consignés dans les journaux système.
+                L'architecture multi-tenant de MarketNet isole strictement les données de chaque boutique via des règles de sécurité au niveau des lignes (RLS - Row Level Security). Aucun jeton d'accès externe ou de réseau social n'est conservé sur nos systèmes.
               </p>
             </section>
 
@@ -176,19 +170,16 @@ function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">8. Vos droits et révocation</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-3">
-                Vous disposez d'un droit d'accès, de rectification et de suppression totale de vos données personnelles.
-              </p>
+              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">8. Vos droits</h2>
               <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Vous pouvez révoquer à tout moment l'accès de MarketNet à vos pages Meta soit depuis votre tableau de bord (« Déconnecter »), soit directement sur Facebook dans <em>Paramètres & confidentialité &gt; Paramètres &gt; Intégrations professionnelles</em>.
+                Vous disposez d'un droit d'accès, de rectification et de suppression totale de vos données personnelles à tout moment depuis les réglages de votre compte ou sur simple demande.
               </p>
             </section>
 
             <section>
               <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">9. Demande de suppression des données</h2>
               <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Pour faire valoir votre droit à l'oubli et demander la suppression intégrale de vos informations ou de celles de votre page Facebook, consultez nos instructions dédiées sur la page{" "}
+                Pour faire valoir votre droit à l'oubli et demander la suppression intégrale de vos informations, consultez nos instructions dédiées sur la page{" "}
                 <Link to="/data-deletion" className="font-bold text-primary underline underline-offset-4 hover:opacity-80">
                   Suppression des données
                 </Link>{" "}

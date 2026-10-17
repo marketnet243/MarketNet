@@ -192,7 +192,7 @@ export function getDeletionEmailHtml(params: {
           <li>Votre boutique en ligne, vitrine et domaine personnalisé</li>
           <li>L'ensemble de votre catalogue de produits et images</li>
           <li>L'historique des commandes et messages clients</li>
-          <li>Les synchronisations Facebook Catalog et Instagram Shopping</li>
+          <li>Vos réglages de boutique et personnalisations visuelles</li>
           <li>Vos campagnes promotionnelles et remises configurées</li>
           <li>Vos identifiants d'accès et données de facturation</li>
         </ul>

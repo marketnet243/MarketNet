@@ -10,4 +10,4 @@ dist
 drizzle/
 test_count.mjs
 migration-output.txt
-
+.env.only

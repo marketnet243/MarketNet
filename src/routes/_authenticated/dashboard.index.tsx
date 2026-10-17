@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, Eye, Package, Plus, ShoppingBag, MessageCircle, ArrowRight, TrendingUp, Star, ExternalLink, Tag, Share2 } from "lucide-react";
+import { Copy, Eye, Package, Plus, ShoppingBag, MessageCircle, ArrowRight, TrendingUp, Star, ExternalLink, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyShop, useShopProducts } from "@/hooks/useMyShop";
@@ -154,7 +154,6 @@ function DashboardShortcuts({ shop }: { shop: any }) {
   };
 
   const isShopDone = !!(shop.logo_url && shop.banner_url && shop.description);
-  const isMetaDone = !!(shop.facebook || shop.instagram);
   const isPromoDone = (promos ?? 0) > 0;
 
   const cards = [
@@ -168,17 +167,6 @@ function DashboardShortcuts({ shop }: { shop: any }) {
       color: "text-blue-600",
       bg: "bg-blue-500/10",
       border: "border-blue-500/20",
-    },
-    {
-      id: "meta",
-      done: isMetaDone,
-      title: "Connecter mes réseaux",
-      desc: "Synchronisez Facebook & Instagram pour publier vos offres.",
-      icon: Share2,
-      to: "/dashboard/meta",
-      color: "text-purple-600",
-      bg: "bg-purple-500/10",
-      border: "border-purple-500/20",
     },
     {
       id: "promo",

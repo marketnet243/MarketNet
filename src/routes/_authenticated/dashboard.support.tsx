@@ -55,7 +55,6 @@ const STATUT_ICON: Record<SupportTicketStatut, React.FC<{ className?: string }>>
 
 const CATEGORIES: { value: SupportTicketCategorie; label: string }[] = [
   { value: "paiement_abonnement", label: "Paiement & abonnement" },
-  { value: "connexion_facebook", label: "Connexion Facebook" },
   { value: "boutique_produits", label: "Boutique & produits" },
   { value: "commandes", label: "Commandes" },
   { value: "autre", label: "Autre" },
@@ -412,7 +411,7 @@ function SupportPage() {
               </Label>
               <Input
                 id="ticket-titre"
-                placeholder="Ex. Problème de synchronisation des produits Facebook"
+                placeholder="Ex. Problème de paiement ou question sur ma boutique"
                 value={form.titre}
                 onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
                 maxLength={200}

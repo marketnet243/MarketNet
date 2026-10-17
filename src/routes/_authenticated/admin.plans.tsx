@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { logAction } from "@/hooks/useIsAdmin";
 import { formatCDF } from "@/lib/subscriptions";
 import {
-  Package, Facebook, Palette, BarChart3, CheckCircle2, Box,
+  Package, Palette, BarChart3, CheckCircle2, Box,
   Image as ImageIcon, Save, Plus, Zap, Edit2, X, Trash2, Tag,
   Sparkles, Check, Minus, RefreshCw, ShieldCheck
 } from "lucide-react";
@@ -317,7 +317,6 @@ function PlanCard({ plan }: { plan: Plan }) {
           max_photos: p.max_photos,
           max_active_promotions: (p as any).max_active_promotions,
           promo_templates: (p as any).promo_templates,
-          meta_access: p.meta_access,
           advanced_themes: p.advanced_themes,
           advanced_stats: p.advanced_stats,
           active: p.active,
@@ -515,14 +514,6 @@ function PlanCard({ plan }: { plan: Plan }) {
 
         {/* Features List */}
         <div className="space-y-1.5 pt-2 border-t border-border/60">
-          <FeatureRow
-            icon={Facebook}
-            iconColor="text-blue-500"
-            label="Accès API Meta (Facebook & IG)"
-            active={p.meta_access}
-            isEditing={isEditing}
-            onChange={(v) => setP({ ...p, meta_access: v })}
-          />
           <FeatureRow
             icon={Palette}
             iconColor="text-purple-500"

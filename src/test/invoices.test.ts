@@ -15,7 +15,7 @@ const mockInvoice: InvoiceData = {
   paymentDate: "14 octobre 2026, 15:30",
   validUntil: "14 novembre 2026",
   paymentMethod: "SasPay (Airtel Money)",
-  dashboardUrl: "https://marketnet-chi.vercel.app/dashboard/abonnement",
+  dashboardUrl: "https://appmarketnet.vercel.app/dashboard/abonnement",
 };
 
 describe("Système de facturation & PDF", () => {

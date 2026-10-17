@@ -88,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const origin =
       typeof window !== "undefined"
         ? window.location.origin
-        : (process.env.VITE_PUBLIC_URL ?? "https://marketnet-chi.vercel.app");
+        : (process.env.VITE_PUBLIC_URL ?? "https://appmarketnet.vercel.app");
     const ogImage = `${origin}/favicon.jpg`;
     return {
       meta: [

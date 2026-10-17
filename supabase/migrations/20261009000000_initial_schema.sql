@@ -11,7 +11,7 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
-create table public.user_roles (
+create table if not exists public.user_roles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
   role app_role not null,
@@ -27,7 +27,7 @@ as $$ select exists(select 1 from public.user_roles where user_id=_user_id and r
 
 create policy "own roles" on public.user_roles for select to authenticated using (user_id = auth.uid() or public.has_role(auth.uid(),'admin'));
 
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key,
   full_name text,
   email text,
@@ -49,7 +49,7 @@ begin
 end $$;
 create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
 
-create table public.shops (
+create table if not exists public.shops (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null unique,
   name text not null check (char_length(name) between 2 and 80),
@@ -105,7 +105,7 @@ as $$ select exists(select 1 from public.shops where id=_shop_id and owner_id=au
 create or replace function public.is_shop_public(_shop_id uuid) returns boolean language sql stable security definer set search_path = public
 as $$ select exists(select 1 from public.shops where id=_shop_id and is_published and not is_suspended) $$;
 
-create table public.product_categories (
+create table if not exists public.product_categories (
   id uuid primary key default gen_random_uuid(),
   shop_id uuid not null references public.shops(id) on delete cascade,
   name text not null check (char_length(name) between 1 and 50),
@@ -119,7 +119,7 @@ alter table public.product_categories enable row level security;
 create policy "public read" on public.product_categories for select to anon, authenticated using (public.is_shop_public(shop_id));
 create policy "owner all" on public.product_categories for all to authenticated using (public.is_shop_owner(shop_id)) with check (public.is_shop_owner(shop_id));
 
-create table public.products (
+create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
   shop_id uuid not null references public.shops(id) on delete cascade,
   category_id uuid references public.product_categories(id) on delete set null,
@@ -143,7 +143,7 @@ alter table public.products enable row level security;
 create policy "public read" on public.products for select to anon, authenticated using (status <> 'hidden' and public.is_shop_public(shop_id));
 create policy "owner all" on public.products for all to authenticated using (public.is_shop_owner(shop_id)) with check (public.is_shop_owner(shop_id));
 
-create table public.orders (
+create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   shop_id uuid not null references public.shops(id) on delete cascade,
   customer_name text not null check (char_length(customer_name) between 1 and 80),

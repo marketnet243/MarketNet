@@ -47,15 +47,61 @@ export async function runMigrations() {
     idle_timeout: 10,
     connect_timeout: 30,
     ssl: { rejectUnauthorized: false },
+    onnotice: () => {},
   });
 
   try {
-    // Récupérer les migrations déjà appliquées par Supabase CLI
+    // 1. S'assurer que le schéma et la table de suivi des migrations existent
+    await sql`
+      CREATE SCHEMA IF NOT EXISTS supabase_migrations;
+    `.catch(() => {});
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (
+        version text PRIMARY KEY,
+        name text,
+        inserted_at timestamptz DEFAULT now()
+      );
+    `.catch(() => {});
+
+    // 2. Récupérer les migrations déjà appliquées
     const appliedRows = await sql`
-      select version from supabase_migrations.schema_migrations
+      SELECT version FROM supabase_migrations.schema_migrations
     `.catch(() => []);
 
     const appliedSet = new Set(appliedRows.map((r) => String(r.version)));
+
+    // 3. Détection de base : si la base était déjà créée sans schema_migrations
+    const existingTablesRows = await sql`
+      SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'
+    `.catch(() => []);
+    const existingTables = new Set(existingTablesRows.map((r) => r.table_name));
+
+    if (existingTables.has("user_roles")) {
+      const baselines = [
+        { version: "20261009000000", name: "initial_schema" },
+        { version: "20261009000001", name: "shop_views" },
+      ];
+      if (existingTables.has("plans")) baselines.push({ version: "20261009000002", name: "plans_admin" });
+      if (existingTables.has("promotions")) {
+        baselines.push({ version: "20261009000004", name: "promotions_module" });
+        baselines.push({ version: "20261009000005", name: "promotion_badge_label" });
+      }
+      if (existingTables.has("subscriptions")) baselines.push({ version: "20261014000000", name: "subscriptions_system" });
+      if (existingTables.has("support_tickets")) baselines.push({ version: "20261015000001", name: "support_module" });
+
+      for (const b of baselines) {
+        if (!appliedSet.has(b.version)) {
+          console.log(`ℹ️ Table existante détectée pour ${b.version}_${b.name} : marquée comme appliquée.`);
+          await sql`
+            INSERT INTO supabase_migrations.schema_migrations (version, name)
+            VALUES (${b.version}, ${b.name})
+            ON CONFLICT (version) DO NOTHING
+          `.catch(() => {});
+          appliedSet.add(b.version);
+        }
+      }
+    }
 
     const migrationsDir = resolve(process.cwd(), "supabase/migrations");
     const files = (await readdir(migrationsDir))
@@ -65,7 +111,6 @@ export async function runMigrations() {
     let appliedCount = 0;
 
     for (const file of files) {
-      // Le préfixe version est composé des chiffres avant le premier underscore
       const versionMatch = file.match(/^(\d+)_/);
       const version = versionMatch ? versionMatch[1] : file.replace(/\.sql$/, "");
       const name = file.replace(/^\d+_/, "").replace(/\.sql$/, "");
@@ -78,26 +123,47 @@ export async function runMigrations() {
       const filePath = join(migrationsDir, file);
       const sqlContent = await readFile(filePath, "utf8");
 
-      // Appliquer le SQL
-      await sql.unsafe(sqlContent);
+      try {
+        await sql.unsafe(sqlContent);
+        await sql`
+          INSERT INTO supabase_migrations.schema_migrations (version, name)
+          VALUES (${version}, ${name})
+          ON CONFLICT (version) DO NOTHING
+        `.catch((e) => {
+          console.warn(`Note: enregistrement dans schema_migrations: ${e.message}`);
+        });
 
-      // Enregistrer dans supabase_migrations.schema_migrations
-      await sql`
-        insert into supabase_migrations.schema_migrations (version, name)
-        values (${version}, ${name})
-        on conflict (version) do nothing
-      `.catch((e) => {
-        console.warn(`Note: enregistrement dans schema_migrations: ${e.message}`);
-      });
+        console.log(`✅ Migration appliquée avec succès : ${file}`);
+        appliedCount++;
+      } catch (migrationErr) {
+        // Si l'erreur indique qu'une table, colonne, fonction ou politique existe déjà
+        const isAlreadyExists =
+          migrationErr.code === "42P07" || // duplicate_table
+          migrationErr.code === "42701" || // duplicate_column
+          migrationErr.code === "42710" || // duplicate_object
+          migrationErr.code === "42P16" || // invalid_table_definition
+          migrationErr.code === "42723" || // duplicate_function
+          /already exists/i.test(migrationErr.message);
 
-      console.log(`✅ Migration appliquée avec succès : ${file}`);
-      appliedCount++;
+        if (isAlreadyExists) {
+          console.warn(`⚠️ Note pour ${file} : un objet existe déjà en base (${migrationErr.message}). Migration marquée comme appliquée.`);
+          await sql`
+            INSERT INTO supabase_migrations.schema_migrations (version, name)
+            VALUES (${version}, ${name})
+            ON CONFLICT (version) DO NOTHING
+          `.catch(() => {});
+          appliedSet.add(version);
+        } else {
+          console.error(`❌ Erreur pendant l'application de ${file} :`, migrationErr);
+          throw migrationErr;
+        }
+      }
     }
 
     if (appliedCount === 0) {
       console.log("✨ Toutes les migrations sont déjà à jour.");
     } else {
-      console.log(`🎉 ${appliedCount} migration(s) appliquée(s) avec succès.`);
+      console.log(`🎉 ${appliedCount} migration(s) traitée(s) avec succès.`);
     }
   } catch (err) {
     console.error("❌ Erreur pendant l'application des migrations :", err);

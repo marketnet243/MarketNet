@@ -4,7 +4,7 @@ import {
   Check, MessageCircle, Palette, Smartphone, Store, Zap, ArrowRight,
   TrendingUp, Users, ShieldCheck, Menu, X, Sparkles, Layers, CreditCard,
   LogIn, Tag, Megaphone, BarChart3, Globe2, BadgePercent, Star, Clock,
-  Facebook, Instagram, Share2, Gift, Rocket,
+  Share2, Gift, Rocket, Send,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -50,11 +50,11 @@ const PROMO_FEATURES = [
   { icon: Star, title: "Mise en avant", desc: "Les produits en promotion s'affichent en premier dans votre boutique avec un badge visible." },
 ];
 
-const META_FEATURES = [
-  { icon: Facebook, color: "text-[#1877F2]", title: "Facebook Catalog", desc: "Synchronisez automatiquement vos produits avec votre catalogue Facebook pour vendre directement sur Marketplace." },
-  { icon: Instagram, color: "text-[#E1306C]", title: "Instagram Shopping", desc: "Taguez vos produits dans vos posts Instagram. Vos abonnés achètent sans quitter l'application." },
-  { icon: Share2, color: "text-primary", title: "Partage multi-plateformes", desc: "Partagez votre catalogue directement sur vos pages Facebook et Instagram en quelques secondes." },
-  { icon: BarChart3, color: "text-cyan-500", title: "Suivi des performances", desc: "Visualisez combien de visiteurs viennent de Facebook ou Instagram dans vos statistiques." },
+const SHARING_FEATURES = [
+  { icon: MessageCircle, color: "text-green-500", title: "Partage WhatsApp instantané", desc: "Diffusez vos produits, promotions et catalogue directement sur vos statuts WhatsApp et dans vos groupes de clients." },
+  { icon: Sparkles, color: "text-amber-500", title: "Affiches prêtes à publier", desc: "Téléchargez des affiches percutantes au format story ou statut, prêtes à diffuser sur tous vos réseaux." },
+  { icon: Share2, color: "text-primary", title: "Aperçus de liens enrichis", desc: "Vos liens partagés sur WhatsApp, Facebook ou Instagram affichent instantanément la photo, le titre et le prix de vos produits." },
+  { icon: BarChart3, color: "text-cyan-500", title: "Statistiques en direct", desc: "Suivez vos vues, clics de partage et conversions directement depuis votre tableau de bord MarketNet." },
 ];
 
 function ScrollReveal({
@@ -209,7 +209,7 @@ function Index() {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <a href="#features" className="transition-colors hover:text-foreground">Fonctionnalités</a>
             <a href="#promotions" className="transition-colors hover:text-foreground">Promotions</a>
-            <a href="#meta" className="transition-colors hover:text-foreground">Meta / Réseaux</a>
+            <a href="#partage" className="transition-colors hover:text-foreground">Partage & Visibilité</a>
             <a href="#how-it-works" className="transition-colors hover:text-foreground">Comment ça marche</a>
             <a href="#pricing" className="transition-colors hover:text-foreground">Tarifs</a>
           </nav>
@@ -244,9 +244,9 @@ function Index() {
               {[
                 { href: "#features", icon: Sparkles, label: "Fonctionnalités", color: "text-primary" },
                 { href: "#promotions", icon: BadgePercent, label: "Promotions", color: "text-rose-500" },
-                { href: "#meta", icon: Facebook, label: "Meta / Réseaux", color: "text-[#1877F2]" },
+                { href: "#partage", icon: Share2, label: "Partage & Visibilité", color: "text-emerald-500" },
                 { href: "#how-it-works", icon: Layers, label: "Comment ça marche", color: "text-blue-500" },
-                { href: "#pricing", icon: CreditCard, label: "Tarifs", color: "text-emerald-500" },
+                { href: "#pricing", icon: CreditCard, label: "Tarifs", color: "text-amber-500" },
               ].map(({ href, icon: Icon, label, color }) => (
                 <a
                   key={href}
@@ -548,8 +548,8 @@ function Index() {
         </div>
       </section>
 
-      {/* ── META / RÉSEAUX SOCIAUX ── */}
-      <section id="meta" className="py-24 scroll-mt-20 bg-gradient-to-b from-[#1877F2]/4 to-transparent">
+      {/* ── PARTAGE & VISIBILITÉ ── */}
+      <section id="partage" className="py-24 scroll-mt-20 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
             {/* Left visual */}
@@ -557,25 +557,25 @@ function Index() {
               <div className="relative mx-auto max-w-sm">
                 <div className="rounded-3xl border bg-card shadow-2xl p-6 space-y-4">
                   <div className="flex items-center gap-3 pb-3 border-b">
-                    <div className="h-10 w-10 rounded-xl bg-[#1877F2]/10 flex items-center justify-center">
-                      <Facebook className="h-5 w-5 text-[#1877F2]" />
+                    <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                      <MessageCircle className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold">Catalogue Facebook</p>
+                      <p className="text-sm font-bold">Partage WhatsApp & Réseaux</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-xs text-green-600 font-medium">Synchronisé</span>
+                        <span className="text-xs text-green-600 font-medium">Lien enrichi actif</span>
                       </div>
                     </div>
-                    <div className="ml-auto text-xs text-muted-foreground bg-muted rounded-full px-2.5 py-1">48 produits</div>
+                    <div className="ml-auto text-xs text-primary font-bold bg-primary/10 rounded-full px-2.5 py-1">1 clic</div>
                   </div>
 
-                  {/* Sync stats */}
+                  {/* Share stats */}
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: "Publiés", val: "48", color: "text-green-500" },
-                      { label: "En attente", val: "3", color: "text-amber-500" },
-                      { label: "Erreurs", val: "0", color: "text-muted-foreground" },
+                      { label: "Visites", val: "1.2k", color: "text-primary" },
+                      { label: "Partages", val: "148", color: "text-green-500" },
+                      { label: "Commandes", val: "36", color: "text-orange-500" },
                     ].map(({ label, val, color }) => (
                       <div key={label} className="rounded-xl border bg-background p-3 text-center">
                         <p className={cn("text-xl font-black", color)}>{val}</p>
@@ -584,34 +584,34 @@ function Index() {
                     ))}
                   </div>
 
-                  {/* Instagram row */}
-                  <div className="flex items-center gap-3 rounded-2xl border bg-gradient-to-r from-[#E1306C]/5 to-[#F77737]/5 p-3">
-                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#E1306C] to-[#F77737] flex items-center justify-center">
-                      <Instagram className="h-4 w-4 text-white" />
+                  {/* Affiches row */}
+                  <div className="flex items-center gap-3 rounded-2xl border bg-gradient-to-r from-amber-500/10 to-orange-500/10 p-3">
+                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                      <Sparkles className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-bold">Instagram Shopping</p>
-                      <p className="text-[11px] text-muted-foreground">Taguez vos produits dans vos posts</p>
+                      <p className="text-xs font-bold">Affiches prêtes à publier</p>
+                      <p className="text-[11px] text-muted-foreground">Téléchargez vos visuels en haute qualité</p>
                     </div>
                     <div className="rounded-full bg-green-500/10 px-2.5 py-1">
                       <Check className="h-3.5 w-3.5 text-green-500" />
                     </div>
                   </div>
 
-                  {/* Last sync */}
+                  {/* Open Graph hint */}
                   <p className="text-[11px] text-center text-muted-foreground">
-                    Dernière synchronisation : il y a 2 minutes
+                    Aperçu automatique complet sur WhatsApp, Facebook et X (Twitter)
                   </p>
                 </div>
 
                 {/* Floating elements */}
                 <div className="absolute -top-4 -left-4 rounded-2xl bg-white dark:bg-zinc-800 border px-3 py-2 shadow-xl flex items-center gap-2 animate-[bounce_3s_infinite]">
-                  <Facebook className="h-4 w-4 text-[#1877F2]" />
-                  <span className="text-xs font-bold">+120 vues</span>
+                  <MessageCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-xs font-bold">+240 vues statut</span>
                 </div>
                 <div className="absolute -bottom-4 -right-4 rounded-2xl bg-white dark:bg-zinc-800 border px-3 py-2 shadow-xl flex items-center gap-2 animate-[bounce_3.5s_infinite]">
-                  <Instagram className="h-4 w-4 text-[#E1306C]" />
-                  <span className="text-xs font-bold">+85 clics</span>
+                  <Share2 className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-bold">Partage direct</span>
                 </div>
               </div>
             </ScrollReveal>
@@ -619,22 +619,19 @@ function Index() {
             {/* Right text */}
             <ScrollReveal direction="right" className="order-1 lg:order-2">
               <SectionBadge>
-                <Facebook className="h-3.5 w-3.5 text-[#1877F2]" />
-                <Instagram className="h-3.5 w-3.5 text-[#E1306C]" />
-                Intégration Meta
+                <Share2 className="h-3.5 w-3.5 text-primary" />
+                Diffusion & Visibilité
               </SectionBadge>
               <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-                Vendez sur{" "}
-                <span className="text-[#1877F2]">Facebook</span>{" "}
-                &{" "}
-                <span className="text-[#E1306C]">Instagram</span>
+                Partagez en 1 clic et{" "}
+                <span className="text-primary">multipliez vos ventes</span>
               </h2>
               <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                Connectez votre boutique MarketNet à Facebook et Instagram. Vos produits se synchronisent automatiquement et vos clients peuvent commander directement depuis leurs réseaux sociaux préférés.
+                Faites rayonner votre boutique partout. Partagez des liens enrichis avec photos automatiques sur WhatsApp et téléchargez des affiches prêtes à publier sur vos statuts et réseaux sociaux.
               </p>
 
               <div className="mt-8 space-y-4">
-                {META_FEATURES.map((mf, i) => (
+                {SHARING_FEATURES.map((mf, i) => (
                   <ScrollReveal key={mf.title} delay={i * 80} direction="up">
                     <div className="flex items-start gap-4 rounded-2xl border bg-card p-4 shadow-sm transition-all hover:shadow-md hover:border-primary/20">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
@@ -650,8 +647,8 @@ function Index() {
               </div>
 
               <div className="mt-8 flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">Disponible dans le plan</span>
-                <span className="rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-bold">Premium</span>
+                <span className="text-sm text-muted-foreground">Inclus dans</span>
+                <span className="rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-bold">Toutes les formules</span>
               </div>
             </ScrollReveal>
           </div>
@@ -736,7 +733,7 @@ function Index() {
                                 ? `${(p as any).max_active_promotions} promotions actives max` 
                                 : "Promotions actives illimitées" 
                           },
-                          { show: Boolean(p.meta_access), text: "Accès API Meta (Facebook & Instagram)" },
+                          { show: true, text: "Affiches prêtes à publier & partage en 1 clic" },
                           { show: Boolean(p.advanced_themes), text: "Thèmes avancés" },
                           { show: Boolean(p.advanced_stats), text: "Statistiques Pro" },
                           { show: true, text: "Commandes WhatsApp directes" },

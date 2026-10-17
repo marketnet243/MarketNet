@@ -43,7 +43,7 @@ function buildEmailShell(params: {
   ctaLabel?: string;
   ctaUrl?: string;
 }): string {
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
   const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -303,7 +303,7 @@ export async function sendNewTicketAdminNotification(params: {
   whatsapp?: string;
   texteMessage: string;
 }): Promise<void> {
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
   const adminEmail = await getSupportAdminEmail();
   const subject = `[MarketNet Support] Nouveau ticket ${params.numero} — ${params.titre}`;
   const html = buildNewTicketAdminHtml({
@@ -334,7 +334,7 @@ export async function sendAdminReplyNotification(params: {
   merchantEmail: string;
 }): Promise<void> {
   if (!params.merchantEmail || !params.merchantEmail.includes("@")) return;
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
   const subject = `[MarketNet] Réponse à votre ticket ${params.numero} — ${params.titre}`;
   const html = buildAdminReplyHtml({
     numero: params.numero,
@@ -369,7 +369,7 @@ export async function sendSubscriptionReminderEmail(params: {
   if (!params.merchantEmail || !params.merchantEmail.includes("@")) {
     return { success: false };
   }
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
   const LABELS: Record<string, string> = {
     j_moins_7: "Abonnement expirant dans 7 jours",
     j_moins_3: "Abonnement expirant dans 3 jours",

@@ -17,7 +17,7 @@ L'ensemble de l'interface est pensée **mobile-first** pour garantir une fluidit
 ## 2. Architecture multi-tenant
 
 - Base partagée avec isolation stricte par boutique (`shop_id` + Row Level Security PostgreSQL). Un commerçant ne voit jamais les données d'un autre.
-- Chaque boutique a une URL publique dédiée : `marketnet.cd/b/{slug}` (slug unique, modifiable une fois).
+- Chaque boutique a une URL publique dédiée : `appmarketnet.vercel.app/b/{slug}` (slug unique, modifiable une fois).
 - Prévu pour l'extension future vers sous-domaine et domaine personnalisé.
 
 ---

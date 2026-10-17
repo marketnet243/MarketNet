@@ -65,7 +65,6 @@ function buildPlanFeatures(p: {
   max_products: number | null;
   max_photos: number | null;
   max_active_promotions: number | null;
-  meta_access: boolean;
   advanced_themes: boolean;
   advanced_stats: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,10 +101,8 @@ function buildPlanFeatures(p: {
     features.push({ icon: Tag, text: "Promotions actives illimitées" });
   }
 
-  // Meta Ads
-  if (p.meta_access) {
-    features.push({ icon: Share2, text: "Accès complet Meta Ads (Facebook & Instagram)" });
-  }
+  // Partage & visibilité
+  features.push({ icon: Share2, text: "Partage en un clic & affiches prêtes à publier" });
 
   // Thèmes premium
   if (p.advanced_themes) {
@@ -479,11 +476,11 @@ function DashboardAbonnementPage() {
 
                 <div className="rounded-2xl border bg-muted/20 hover:bg-muted/30 transition-colors p-3.5 space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Share2 className="h-3.5 w-3.5 text-primary" />
-                    <span>Meta Ads</span>
+                    <BarChart3 className="h-3.5 w-3.5 text-primary" />
+                    <span>Statistiques</span>
                   </div>
                   <p className="font-extrabold text-sm sm:text-base text-foreground">
-                    {subLimits?.meta_access ? "Inclus" : "Non inclus"}
+                    {subLimits?.advanced_stats ? "Avancées" : "Standard"}
                   </p>
                 </div>
               </div>

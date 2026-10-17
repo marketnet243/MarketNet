@@ -37,7 +37,6 @@ const DESKTOP_NAV = [
   { to: "/dashboard/promotions", label: "Promotions", icon: Tag },
   { to: "/dashboard/commandes", label: "Commandes", icon: ShoppingBag },
   { to: "/dashboard/boutique", label: "Boutique", icon: Palette },
-  { to: "/dashboard/meta", label: "Réseaux", icon: Share2 },
   { to: "/dashboard/support", label: "Support", icon: LifeBuoy },
 ] as const;
 
@@ -78,10 +77,9 @@ function DashboardLayout() {
   });
   const supportUnread = supportUnreadData ?? 0;
 
-  // Check shop completion, meta connection and support unread for notification dots
+  // Check shop completion and support unread for notification dots
   const isShopIncomplete = !shop?.logo_url || !shop?.banner_url || !shop?.description;
-  const isMetaDisconnected = !shop?.facebook && !shop?.instagram;
-  const hasPlusBadge = isShopIncomplete || isMetaDisconnected || supportUnread > 0;
+  const hasPlusBadge = isShopIncomplete || supportUnread > 0;
 
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
@@ -122,7 +120,6 @@ function DashboardLayout() {
   const isOrdersActive = currentPath.startsWith("/dashboard/commandes");
   const isPlusActive =
     currentPath.startsWith("/dashboard/boutique") ||
-    currentPath.startsWith("/dashboard/meta") ||
     currentPath.startsWith("/dashboard/abonnement") ||
     currentPath.startsWith("/dashboard/reglages") ||
     currentPath.startsWith("/dashboard/support");
@@ -472,28 +469,6 @@ function DashboardLayout() {
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </Link>
 
-              {/* Réseaux sociaux */}
-              <Link
-                to="/dashboard/meta"
-                onClick={() => setPlusOpen(false)}
-                className="flex items-center justify-between rounded-2xl border p-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
-                    <Share2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm">Réseaux sociaux</span>
-                      {isMetaDisconnected && (
-                        <span className="h-2 w-2 rounded-full bg-red-500" title="Réseaux non connectés" />
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">Publication Facebook & Instagram</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </Link>
 
               {/* Abonnement */}
               <Link

@@ -89,7 +89,7 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
       })
     : "30 jours après activation";
 
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
 
   return {
     invoiceNumber,
@@ -776,7 +776,7 @@ export async function sendAssignmentLetterEmail(params: {
       return { success: false, error: "Adresse email du commerçant invalide" };
     }
 
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
     const letterNumber = `ATT-${params.paymentRef.slice(-8).toUpperCase()}`;
 
     const assignmentDate = new Date().toLocaleString("fr-FR", {
@@ -947,7 +947,6 @@ export function buildDeletionEmailHtml(params: {
           <li style="margin-bottom: 6px;">Votre boutique en ligne, vitrine et lien public</li>
           <li style="margin-bottom: 6px;">L'ensemble de vos produits, images et tarifs</li>
           <li style="margin-bottom: 6px;">L'historique de vos commandes et clients</li>
-          <li style="margin-bottom: 6px;">Vos synchronisations Meta (Facebook Catalog & Instagram)</li>
           <li style="margin-bottom: 6px;">Vos campagnes promotionnelles et remises</li>
           <li>Vos accès commerçant et données de profil</li>
         </ul>
@@ -1000,7 +999,7 @@ export async function sendDeletionConfirmationEmail(params: {
     const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
     const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
     const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || fromEmail;
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet.cd";
+    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
 
     const deletedAt = new Date().toLocaleString("fr-FR", {
       timeZone: "Africa/Kinshasa",
@@ -1170,7 +1169,7 @@ export async function sendNewUserAdminNotification(params: NewUserRegistrationPa
     const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
     const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
     const adminEmail = process.env.MARKETNET_ADMIN_EMAIL || fromEmail;
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
 
     const registeredAt = new Date().toLocaleString("fr-FR", {
       timeZone: "Africa/Kinshasa",
@@ -1391,7 +1390,7 @@ export async function sendMerchantWelcomeEmail(params: MerchantWelcomeParams): P
     const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
     const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
     const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || fromEmail;
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://marketnet-chi.vercel.app";
+    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
 
     const shopUrl = `${siteUrl}/b/${encodeURIComponent(params.shopSlug)}`;
     const dashboardUrl = `${siteUrl}/dashboard`;

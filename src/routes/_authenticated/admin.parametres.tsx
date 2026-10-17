@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { logAction } from "@/hooks/useIsAdmin";
-import { Settings2, Activity, CreditCard, Save, Clock, Fingerprint, Globe, Facebook, Mail, Info, Edit2, X, CheckCircle2 } from "lucide-react";
+import { Settings2, Activity, CreditCard, Save, Clock, Fingerprint, Globe, Mail, Info, Edit2, X, CheckCircle2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_authenticated/admin/parametres")({ component: Settings });
@@ -25,16 +25,6 @@ function Settings() {
     queryFn: async () => (await supabase.from("audit_log").select("*").order("created_at", { ascending: false }).limit(50)).data ?? [] 
   });
 
-  const { data: syncedShopsCount } = useQuery({
-    queryKey: ["meta_synced_shops_count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("shops")
-        .select("*", { count: "exact", head: true })
-        .not("facebook", "is", null);
-      return count || 0;
-    }
-  });
 
   const [form, setForm] = useState<Record<string, string>>({});
   const [originalForm, setOriginalForm] = useState<Record<string, string>>({});
@@ -129,10 +119,9 @@ function Settings() {
         
         <div className="space-y-6">
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1">
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1">
               <TabsTrigger value="general" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">General</TabsTrigger>
               <TabsTrigger value="billing" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Facturation</TabsTrigger>
-              <TabsTrigger value="integrations" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Integrations</TabsTrigger>
             </TabsList>
             
             <TabsContent value="general" className="mt-4 outline-none">
@@ -233,43 +222,7 @@ function Settings() {
             </TabsContent>
 
 
-            <TabsContent value="integrations" className="mt-4 outline-none">
-              <div className="rounded-2xl border bg-card overflow-hidden shadow-sm">
-                <div className="border-b bg-muted/10 px-6 py-5 flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-500/10 p-2 text-blue-600"><Facebook className="h-5 w-5" /></div>
-                  <div>
-                    <h2 className="font-semibold">Statut API Meta (Facebook & Instagram)</h2>
-                    <p className="text-xs text-muted-foreground">Surveillance de la connexion de la plateforme au serveur Meta.</p>
-                  </div>
-                </div>
-                
-                <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="border rounded-xl p-4 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/50 flex flex-col justify-center items-center text-center">
-                      <div className="flex items-center justify-center h-8 w-8 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400 mb-2">
-                        <CheckCircle2 className="h-5 w-5" />
-                      </div>
-                      <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">Connexion Active</p>
-                      <p className="text-[11px] text-emerald-700/70 dark:text-emerald-400/70 mt-1">Serveur authentifie avec succes</p>
-                    </div>
-                    
-                    <div className="border rounded-xl p-4 bg-muted/20 flex flex-col justify-center items-center text-center">
-                      <div className="text-2xl font-black text-foreground mb-1">{syncedShopsCount ?? 0}</div>
-                      <p className="text-sm font-semibold">Boutiques Synchro</p>
-                      <p className="text-[11px] text-muted-foreground mt-1">Catalogues actifs en ce moment</p>
-                    </div>
-                  </div>
 
-                  <div className="flex justify-end pt-4 border-t border-dashed">
-                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="w-full sm:w-auto">
-                      <Button className="w-full rounded-xl h-11 bg-[#1877F2] text-white hover:bg-[#1877F2]/90 shadow-sm border-0">
-                        <Facebook className="mr-2 h-4 w-4" /> Acceder au tableau de bord Meta
-                      </Button>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
           </Tabs>
         </div>
 

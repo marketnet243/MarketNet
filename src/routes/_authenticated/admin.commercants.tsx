@@ -766,7 +766,7 @@ function Merchants() {
                           className="rounded-xl h-8 text-xs font-semibold"
                         >
                           <a
-                            href={`https://${selectedMerchant.shop.slug}.marketnet.cd`}
+                            href={`/b/${selectedMerchant.shop.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

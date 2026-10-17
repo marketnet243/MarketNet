@@ -110,17 +110,5 @@ export const recordShopVisit = createServerFn({ method: "POST" })
       console.error("Erreur increment_shop_view:", err);
     }
 
-    // 2. Si la visite vient de facebook (?src=facebook), enregistrer le clic
-    if (data.src === "facebook") {
-      try {
-        await admin.rpc("record_facebook_visit", {
-          _shop_slug: data.slug,
-          _product_id: data.productId ?? undefined,
-        });
-      } catch (err) {
-        console.error("Erreur record_facebook_visit:", err);
-      }
-    }
-
     return { ok: true };
   });

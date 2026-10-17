@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2, LogIn, Facebook, Mail, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Trash2, LogIn, Mail, AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
@@ -12,13 +12,13 @@ export const Route = createFileRoute("/data-deletion")({
       {
         name: "description",
         content:
-          "Comment supprimer vos données personnelles et votre compte MarketNet. Instructions détaillées pour les commerçants et utilisateurs Facebook.",
+          "Comment supprimer vos données personnelles et votre compte MarketNet. Instructions détaillées pour les commerçants.",
       },
       { property: "og:title", content: "Suppression des données — MarketNet" },
       {
         property: "og:description",
         content:
-          "Supprimez votre compte MarketNet ou révoquez l'accès de l'application Facebook en quelques étapes.",
+          "Supprimez votre compte MarketNet et vos données personnelles en quelques étapes simples.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -66,14 +66,27 @@ function DataDeletionPage() {
               Suppression des données
             </h1>
             <p className="mt-3 text-muted-foreground text-lg">
-              Vous avez le droit à l'oubli. Voici toutes les façons de supprimer vos données.
+              Vous avez le droit à l'oubli. Voici comment supprimer vos données.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Dernière mise à jour : 12 octobre 2026
+              Dernière mise à jour : 17 octobre 2026
             </p>
           </div>
 
           <div className="space-y-10">
+            {/* ── Note réseaux sociaux & jetons Meta ── */}
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-3">
+                <ShieldAlert className="h-5 w-5 text-blue-600 shrink-0" />
+                <h3 className="font-bold text-foreground text-base sm:text-lg">
+                  Information sur les réseaux sociaux et jetons Meta
+                </h3>
+              </div>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                La publication automatique sur les réseaux sociaux (Facebook & Instagram) n'est pas disponible sur MarketNet. Tous les jetons d'accès et identifiants Meta précédemment enregistrés ont été <strong>définitivement supprimés</strong> de nos serveurs. Notre plateforme ne conserve aucun jeton ni accès à vos comptes de réseaux sociaux.
+              </p>
+            </div>
+
             {/* ── Méthode 1 : Dans l'application ── */}
             <section className="rounded-2xl border bg-muted/30 p-6 sm:p-8">
               <div className="flex items-center gap-4 mb-5">
@@ -97,7 +110,7 @@ function DataDeletionPage() {
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold mt-0.5">2</span>
-                  <span>Dans le menu de gauche, accédez à <strong>Réglages</strong>.</span>
+                  <span>Dans le menu de navigation, accédez à <strong>Réglages</strong>.</span>
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold mt-0.5">3</span>
@@ -113,67 +126,20 @@ function DataDeletionPage() {
                 <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
                 <p className="text-sm text-red-700 dark:text-red-400">
                   <strong>Suppression immédiate et définitive.</strong> Votre compte, vos boutiques,
-                  vos produits, vos commandes, vos jetons Meta et toutes vos données personnelles
+                  vos produits, vos commandes et toutes vos données personnelles
                   sont effacés de façon permanente et ne peuvent pas être récupérés.
                 </p>
               </div>
             </section>
 
-            {/* ── Méthode 2 : Via Facebook ── */}
-            <section className="rounded-2xl border bg-muted/30 p-6 sm:p-8">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
-                  <Facebook className="h-6 w-6" />
-                </div>
-                <h2 className="text-xl font-bold text-foreground">
-                  2. Révoquer l'accès depuis Facebook
-                </h2>
-              </div>
-
-              <p className="text-muted-foreground text-base sm:text-lg mb-4">
-                Vous pouvez retirer à MarketNet l'accès à votre page Facebook directement depuis
-                les paramètres de votre compte Facebook, sans vous connecter à MarketNet.
-              </p>
-
-              <ol className="space-y-3 mb-5">
-                <li className="flex items-start gap-3 text-muted-foreground text-base">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold mt-0.5">1</span>
-                  <span>Ouvrez <strong>Facebook</strong> et accédez à <strong>Paramètres et confidentialité → Paramètres</strong>.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold mt-0.5">2</span>
-                  <span>Dans le menu de gauche, cliquez sur <strong>Intégrations professionnelles</strong>.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold mt-0.5">3</span>
-                  <span>Trouvez <strong>MARKETNET</strong> dans la liste et cliquez sur <strong>Retirer</strong>.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold mt-0.5">4</span>
-                  <span>Confirmez la suppression de l'autorisation d'accès.</span>
-                </li>
-              </ol>
-
-              <div className="flex items-start gap-3 rounded-xl bg-blue-500/10 border border-blue-500/20 p-4">
-                <CheckCircle2 className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  <strong>Ce que cela fait :</strong> MarketNet ne peut plus accéder à votre page
-                  Facebook ni la gérer. Les données associées à cette connexion (jeton d'accès,
-                  identifiant de page) sont supprimées de nos serveurs dans un délai de{" "}
-                  <strong>30 jours</strong>. Votre compte MarketNet reste actif si vous souhaitez
-                  continuer à utiliser le service sans la connexion Meta.
-                </p>
-              </div>
-            </section>
-
-            {/* ── Méthode 3 : Par e-mail ── */}
+            {/* ── Méthode 2 : Par e-mail ── */}
             <section className="rounded-2xl border bg-muted/30 p-6 sm:p-8">
               <div className="flex items-center gap-4 mb-5">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
                   <Mail className="h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground">
-                  3. Demande par e-mail
+                  2. Demande par e-mail
                 </h2>
               </div>
 
@@ -212,9 +178,8 @@ function DataDeletionPage() {
                   "Votre boutique en ligne et son URL publique",
                   "Tous vos produits, catégories, photos et descriptions",
                   "Votre historique de commandes",
-                  "Vos jetons d'accès Meta (Facebook & Instagram) chiffrés",
-                  "Les statistiques et publications associées à votre boutique",
-                  "Votre abonnement et votre historique de paiement",
+                  "Vos statistiques et configurations de boutique",
+                  "Votre abonnement et votre historique de facturation",
                 ].map((item) => (
                   <li
                     key={item}

@@ -170,7 +170,7 @@ function SettingsPage() {
         console.warn("[deleteAccount] Pas d'email trouvé pour la notification.");
       }
 
-      // 2. Suppression côté serveur : RPC qui cascade sur shops, products, orders, meta_tokens…
+      // 2. Suppression côté serveur : RPC qui cascade sur shops, products, orders…
       const { error } = await (supabase as any).rpc("delete_my_account");
       if (error) throw error;
 
@@ -378,8 +378,7 @@ function SettingsPage() {
             <div>
               <h2 className="font-bold text-sm sm:text-base text-red-600 dark:text-red-400">Supprimer mon compte</h2>
               <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Supprime définitivement votre compte, votre boutique, vos produits, vos commandes et
-                tous vos jetons Meta. Cette action est <strong>irréversible</strong>.
+                Supprime définitivement votre compte, votre boutique, vos produits et vos commandes. Cette action est <strong>irréversible</strong>.
               </p>
             </div>
           </div>
@@ -479,7 +478,7 @@ function SettingsPage() {
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-xs sm:text-sm text-left">
                   Cette action est <strong>définitive et irréversible</strong>. Votre boutique,
-                  vos produits, vos commandes et tous vos jetons d'accès Meta seront supprimés
+                  vos produits et vos commandes seront supprimés
                   immédiatement. Vous serez déconnecté automatiquement.
                 </AlertDialogDescription>
               </AlertDialogHeader>

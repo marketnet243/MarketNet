@@ -55,93 +55,6 @@ export type Database = {
           target?: string | null
         }
         Relationships: []
-      }
-      meta_connections: {
-        Row: {
-          access_token: string | null
-          connected_at: string
-          ig_account_id: string | null
-          page_id: string | null
-          page_name: string | null
-          shop_id: string
-          token_expires_at: string | null
-        }
-        Insert: {
-          access_token?: string | null
-          connected_at?: string
-          ig_account_id?: string | null
-          page_id?: string | null
-          page_name?: string | null
-          shop_id: string
-          token_expires_at?: string | null
-        }
-        Update: {
-          access_token?: string | null
-          connected_at?: string
-          ig_account_id?: string | null
-          page_id?: string | null
-          page_name?: string | null
-          shop_id?: string
-          token_expires_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "meta_connections_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: true
-            referencedRelation: "shops"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      meta_posts: {
-        Row: {
-          clicks: number | null
-          created_at: string
-          external_id: string | null
-          id: string
-          platform: string
-          product_id: string | null
-          reach: number | null
-          shop_id: string
-        }
-        Insert: {
-          clicks?: number | null
-          created_at?: string
-          external_id?: string | null
-          id?: string
-          platform: string
-          product_id?: string | null
-          reach?: number | null
-          shop_id: string
-        }
-        Update: {
-          clicks?: number | null
-          created_at?: string
-          external_id?: string | null
-          id?: string
-          platform?: string
-          product_id?: string | null
-          reach?: number | null
-          shop_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "meta_posts_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meta_posts_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "shops"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       merchant_subscriptions: {
         Row: {
           cree_le: string
@@ -291,7 +204,6 @@ export type Database = {
           max_active_promotions: number | null
           max_photos: number
           max_products: number | null
-          meta_access: boolean
           name: string
           position: number
           price_usd: number
@@ -305,7 +217,6 @@ export type Database = {
           max_active_promotions?: number | null
           max_photos?: number
           max_products?: number | null
-          meta_access?: boolean
           name: string
           position?: number
           price_usd?: number
@@ -319,7 +230,6 @@ export type Database = {
           max_active_promotions?: number | null
           max_photos?: number
           max_products?: number | null
-          meta_access?: boolean
           name?: string
           position?: number
           price_usd?: number
