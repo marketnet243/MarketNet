@@ -799,328 +799,6 @@ function InteractiveHeroDemo() {
   );
 }
 
-const PROMO_CAMPAIGNS = [
-  {
-    id: "promo-kazi",
-    storeName: "Maison Kazi Kinshasa",
-    city: "Kinshasa Gombe",
-    campaignTitle: "🔥 Vente Flash Soirée Wax",
-    countdown: "04h 28m restantes",
-    discountBadge: "-35%",
-    headerGradient: "from-rose-600 via-rose-500 to-orange-500",
-    avatarBg: "bg-white/20",
-    avatarInitial: "M",
-    products: [
-      {
-        name: "Robe Sirène Wax Brodé",
-        image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 40,
-        oldPriceCdf: 112000,
-        promoPriceUsd: 26,
-        promoPriceCdf: 72800,
-        discount: "-35%",
-        variantInfo: "Tailles S à XL · 3 motifs",
-      },
-      {
-        name: "Kimono Chic Bogolan",
-        image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 30,
-        oldPriceCdf: 84000,
-        promoPriceUsd: 22,
-        promoPriceCdf: 61600,
-        discount: "-27%",
-        variantInfo: "Taille unique · 2 coloris",
-      },
-      {
-        name: "Sac Cabas Cuir & Wax",
-        image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 35,
-        oldPriceCdf: 98000,
-        promoPriceUsd: 28,
-        promoPriceCdf: 78400,
-        discount: "-20%",
-        variantInfo: "Cuir véritable · Anses tressées",
-      },
-    ],
-  },
-  {
-    id: "promo-kenza",
-    storeName: "Kenza Sneakerhub",
-    city: "Lubumbashi Centre",
-    campaignTitle: "⚡ Spécial Streetwear & Sneakers",
-    countdown: "Offre limitée - Stock réduit",
-    discountBadge: "-30%",
-    headerGradient: "from-amber-600 via-orange-500 to-rose-500",
-    avatarBg: "bg-white/20",
-    avatarInitial: "K",
-    products: [
-      {
-        name: "Sneakers Urban Retro Low",
-        image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 50,
-        oldPriceCdf: 140000,
-        promoPriceUsd: 35,
-        promoPriceCdf: 98000,
-        discount: "-30%",
-        variantInfo: "Pointures 40 à 45 · Cuir",
-      },
-      {
-        name: "Mocassins Cuir Suédé Élite",
-        image: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 55,
-        oldPriceCdf: 154000,
-        promoPriceUsd: 39,
-        promoPriceCdf: 109200,
-        discount: "-29%",
-        variantInfo: "Noir & Marron Cognac",
-      },
-      {
-        name: "Sandales Été Perlées",
-        image: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 25,
-        oldPriceCdf: 70000,
-        promoPriceUsd: 18,
-        promoPriceCdf: 50400,
-        discount: "-28%",
-        variantInfo: "Artisanal · Cuir souple",
-      },
-    ],
-  },
-  {
-    id: "promo-elikya",
-    storeName: "Elikya Prestige & Fragrances",
-    city: "Goma Les Volcans",
-    campaignTitle: "✨ Coffrets Beauté & Parfums",
-    countdown: "Dernières 24 heures",
-    discountBadge: "-40%",
-    headerGradient: "from-purple-600 via-pink-600 to-rose-500",
-    avatarBg: "bg-white/20",
-    avatarInitial: "E",
-    products: [
-      {
-        name: "Coffret Extrait d'Oud Royal",
-        image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 45,
-        oldPriceCdf: 126000,
-        promoPriceUsd: 27,
-        promoPriceCdf: 75600,
-        discount: "-40%",
-        variantInfo: "Flacon 100ml + Déodorant",
-      },
-      {
-        name: "Sérum Éclat Vitaminé & Argan",
-        image: "https://images.unsplash.com/photo-1608248597359-2164478419eb?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 20,
-        oldPriceCdf: 56000,
-        promoPriceUsd: 14,
-        promoPriceCdf: 39200,
-        discount: "-30%",
-        variantInfo: "Flacon pipette 50ml",
-      },
-      {
-        name: "Brume Solaire Ambrée",
-        image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=350&q=80",
-        oldPriceUsd: 18,
-        oldPriceCdf: 50400,
-        promoPriceUsd: 12.5,
-        promoPriceCdf: 35000,
-        discount: "-30%",
-        variantInfo: "Tenue longue durée 250ml",
-      },
-    ],
-  },
-];
-
-function AutonomousPromotionShowcase() {
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [isAutoPlay, setIsAutoPlay] = useState(true);
-  const [progress, setProgress] = useState(0);
-
-  const campaign = PROMO_CAMPAIGNS[activeIdx];
-
-  // Défilement automatique autonome
-  useEffect(() => {
-    if (!isAutoPlay) return;
-
-    const DURATION = 4500; // 4.5s par modèle de promotion
-    const INTERVAL = 100;
-    const step = (INTERVAL / DURATION) * 100;
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setActiveIdx((current) => (current + 1) % PROMO_CAMPAIGNS.length);
-          return 0;
-        }
-        return prev + step;
-      });
-    }, INTERVAL);
-
-    return () => clearInterval(timer);
-  }, [isAutoPlay]);
-
-  const selectCampaign = (idx: number) => {
-    setActiveIdx(idx);
-    setProgress(0);
-    setIsAutoPlay(false);
-  };
-
-  return (
-    <div className="relative mx-auto max-w-sm w-full select-none">
-      {/* Contrôle autoplay et sélecteur de modèle */}
-      <div className="mb-3 space-y-1.5">
-        <div className="flex items-center justify-between px-1 text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-foreground">
-            <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
-            <span className="text-[11px]">Campagnes réelles en direct :</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className="text-[10px] font-bold text-rose-500 hover:underline flex items-center gap-1 cursor-pointer bg-rose-500/10 px-2 py-0.5 rounded-full"
-          >
-            {isAutoPlay ? "⏸ Pause" : "▶ Défilement auto"}
-          </button>
-        </div>
-
-        {/* Boutons modèles */}
-        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
-          {PROMO_CAMPAIGNS.map((c, idx) => {
-            const isActive = activeIdx === idx;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => selectCampaign(idx)}
-                className={cn(
-                  "relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer overflow-hidden",
-                  isActive
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <span className="truncate">{c.storeName.split(" ")[0]}</span>
-                <span className="text-[9px] font-extrabold text-rose-500">{c.discountBadge}</span>
-                {isActive && isAutoPlay && (
-                  <div
-                    className="absolute bottom-0 left-0 h-0.5 bg-rose-500 transition-all duration-100"
-                    style={{ width: `${progress}%` }}
-                  />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Carte promotionnelle autonome */}
-      <div className="relative rounded-3xl border bg-card shadow-2xl overflow-hidden transition-all duration-300">
-        {/* Header dynamique de la boutique réelle */}
-        <div className={cn("bg-gradient-to-r p-4 text-white shadow-sm", campaign.headerGradient)}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-2xl bg-white/20 flex items-center justify-center font-black text-base shrink-0 shadow-inner">
-                {campaign.avatarInitial}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="font-extrabold text-sm truncate">{campaign.storeName}</p>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
-                </div>
-                <p className="text-xs text-white/80 font-medium truncate">{campaign.city}</p>
-              </div>
-            </div>
-            <div className="text-right shrink-0">
-              <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm">
-                <Clock className="h-3 w-3" />
-                <span className="hidden sm:inline">Flash</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-3 flex items-center justify-between pt-2 border-t border-white/20 text-xs">
-            <span className="font-bold flex items-center gap-1">
-              <Flame className="h-3.5 w-3.5 fill-white text-white" />
-              {campaign.campaignTitle}
-            </span>
-            <span className="text-[10px] text-white/90 font-semibold">{campaign.countdown}</span>
-          </div>
-        </div>
-
-        {/* Liste des produits réels en promotion */}
-        <div className="p-3.5 space-y-2.5 bg-background/50">
-          {campaign.products.map((product) => (
-            <div
-              key={product.name}
-              className="group flex items-center gap-3 rounded-2xl border bg-card p-2.5 transition-all hover:border-rose-500/40 hover:shadow-md"
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-14 w-14 rounded-xl object-cover shrink-0 shadow-sm"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-bold truncate text-foreground group-hover:text-rose-500 transition-colors">
-                    {product.name}
-                  </p>
-                  <span className="shrink-0 rounded-full bg-rose-500 px-1.5 py-px text-[9px] font-black text-white">
-                    {product.discount}
-                  </span>
-                </div>
-
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-xs font-extrabold text-rose-500">
-                    ${product.promoPriceUsd}
-                  </span>
-                  <span className="text-[11px] font-bold text-foreground">
-                    ({product.promoPriceCdf.toLocaleString("fr-FR")} FC)
-                  </span>
-                  <span className="text-[10px] text-muted-foreground line-through ml-auto">
-                    ${product.oldPriceUsd}
-                  </span>
-                </div>
-
-                <p className="text-[9px] text-muted-foreground mt-0.5 truncate">
-                  {product.variantInfo}
-                </p>
-              </div>
-
-              <div className="shrink-0 h-8 w-8 rounded-xl bg-emerald-500/15 group-hover:bg-emerald-500 flex items-center justify-center transition-colors">
-                <MessageCircle className="h-4 w-4 text-emerald-600 group-hover:text-white transition-colors" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer avec bouton WhatsApp optimisé */}
-        <div className="p-3 border-t bg-card">
-          <div className="flex items-center justify-between text-xs font-semibold mb-2 px-1 text-muted-foreground">
-            <span>Remise immédiate garantie</span>
-            <span className="text-rose-500 font-bold">Jusqu'à {campaign.discountBadge}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              const text = encodeURIComponent(`Bonjour ${campaign.storeName}, je souhaite commander un article en promotion : ${campaign.products[0].name} à $${campaign.products[0].promoPriceUsd} (${campaign.products[0].promoPriceCdf.toLocaleString("fr-FR")} FC)`);
-              window.open(`https://wa.me/243810000000?text=${text}`, "_blank");
-            }}
-            className="w-full h-10 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
-          >
-            <MessageCircle className="h-4 w-4 fill-white text-white" />
-            <span>Commander en promo sur WhatsApp</span>
-            <ArrowRight className="h-3.5 w-3.5 ml-auto" />
-          </button>
-        </div>
-
-        {/* Badge promotionnel flottant animé */}
-        <div className="absolute -top-3 -right-3 rounded-2xl bg-rose-500 px-3 py-1.5 text-white font-black text-sm shadow-xl shadow-rose-500/40 animate-[bounce_2.5s_infinite]">
-          {campaign.discountBadge}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function Index() {
   const { data: plans } = useQuery({
@@ -1377,9 +1055,73 @@ function Index() {
               </div>
             </ScrollReveal>
 
-            {/* Right visual: Carte promotionnelle autonome avec campagnes réelles en direct */}
+            {/* Right visual : Vitrine promotionnelle moderne & percutante */}
             <ScrollReveal direction="right" delay={150}>
-              <AutonomousPromotionShowcase />
+              <div className="relative mx-auto max-w-md w-full">
+                {/* Carte visuelle principale avec coins arrondis et ombre douce */}
+                <div className="relative overflow-hidden rounded-3xl border bg-card shadow-2xl transition-all duration-300 group hover:shadow-primary/10">
+                  {/* Photo promotionnelle haute définition légère */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+                    <img
+                      src="/promo-banner.jpg"
+                      alt="Vitrine promotions et e-commerce MarketNet"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                      width={800}
+                      height={600}
+                    />
+                    {/* Dégradé d'ambiance bas pour lisibilité */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                    {/* Badge Vente Flash flottant en haut à gauche */}
+                    <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-xs font-bold text-white border border-white/20 shadow-lg">
+                      <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+                      <Flame className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
+                      <span>Campagne Flash Active</span>
+                    </div>
+
+                    {/* Badge remise -35% en haut à droite */}
+                    <div className="absolute top-4 right-4 rounded-2xl bg-rose-500 px-3.5 py-1 text-white font-black text-sm shadow-xl shadow-rose-500/40">
+                      -35%
+                    </div>
+
+                    {/* Encart bas style vitrine e-commerce */}
+                    <div className="absolute bottom-4 inset-x-4 rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-md p-3.5 border border-white/25 text-white shadow-xl">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+                            <p className="text-xs font-black truncate">Awa Mode Kinshasa</p>
+                            <span className="text-[10px] text-white/80">· Gombe</span>
+                          </div>
+                          <p className="text-sm font-extrabold mt-0.5 truncate">
+                            Collection Wax & Sacs en Promotion
+                          </p>
+                          <div className="flex items-baseline gap-2 mt-1">
+                            <span className="text-base font-black text-rose-400">$20</span>
+                            <span className="text-xs text-white/90 font-semibold">· 56 000 FC</span>
+                            <span className="text-xs text-white/60 line-through ml-1">$32</span>
+                          </div>
+                        </div>
+
+                        {/* Raccourci WhatsApp */}
+                        <div className="shrink-0 flex items-center justify-center h-10 w-10 rounded-2xl bg-[#25D366] text-white shadow-lg shadow-green-600/30">
+                          <MessageCircle className="h-5 w-5 fill-white text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Petit pied informatif rassurant */}
+                  <div className="px-4 py-3 bg-card border-t flex items-center justify-between text-xs text-muted-foreground font-medium">
+                    <span className="flex items-center gap-1 text-foreground font-bold">
+                      <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[3]" /> Badge promo automatique
+                    </span>
+                    <span className="text-rose-500 font-bold">Zéro commission</span>
+                  </div>
+                </div>
+              </div>
             </ScrollReveal>
           </div>
         </div>
