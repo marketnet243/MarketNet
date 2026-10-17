@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PackageSearch, Search, X, SlidersHorizontal, ChevronDown, Package } from "lucide-react";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { StoreHeader, ProductCard } from "@/components/store/StoreParts";
+import { StoreOfflineView } from "@/components/store/StoreOfflineView";
 import { PromoBanner, type PublicPromo } from "@/components/promo/PromoBanner";
 import { useCart } from "@/components/store/cart";
 import { cn } from "@/lib/utils";
@@ -17,32 +18,31 @@ export const Route = createFileRoute("/b/$slug/")({
     const title = `${shop.name} — Boutique en ligne`;
     const desc = shop.description?.slice(0, 160) || `Découvrez les produits de ${shop.name} et commandez directement sur WhatsApp.`;
     const shopUrl = `${origin}/b/${shop.slug}`;
-    // Bannière > Logo comme couverture quand on partage la boutique
-    const coverPath = shop.banner_url || shop.logo_url;
-    const ogImage = absoluteMediaUrl(coverPath, origin);
+    const shopCover = shop.banner_url || shop.logo_url;
+    const ogImage = shopCover ? absoluteMediaUrl(shopCover, origin) : null;
 
-    const meta: Record<string, string>[] = [
-      { title },
-      { name: "description", content: desc },
-      { property: "og:site_name", content: "MarketNet" },
-      { property: "og:title", content: title },
-      { property: "og:description", content: desc },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: shopUrl },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: desc },
-    ];
-
-    if (ogImage) {
-      meta.push(
-        { property: "og:image", content: ogImage },
-        { property: "og:image:alt", content: `Boutique ${shop.name}` },
-        { name: "twitter:image", content: ogImage },
-      );
-    }
-
-    return { meta };
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:site_name", content: shop.name },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: shopUrl },
+        ...(ogImage ? [
+          { property: "og:image", content: ogImage },
+          { property: "og:image:secure_url", content: ogImage },
+          { property: "og:image:alt", content: `Boutique ${shop.name}` },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:image", content: ogImage },
+        ] : []),
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+      ],
+    };
   },
   component: ShopHome,
 });
@@ -156,9 +156,31 @@ function ShopHome() {
 
   const clearAll = () => { setQ(""); setCat(null); setSort(""); setMaxPrice(""); };
 
+  const isOffline = !shop.is_published || shop.is_suspended;
+
+  if (isOffline) {
+    return (
+      <div className="min-h-screen">
+        <StoreHeader
+          shop={shop}
+          isPublished={shop.is_published}
+          isSuspended={shop.is_suspended}
+        />
+        <StoreOfflineView
+          shop={shop}
+          isSuspended={shop.is_suspended}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
-      <StoreHeader shop={shop} />
+      <StoreHeader
+        shop={shop}
+        isPublished={shop.is_published}
+        isSuspended={shop.is_suspended}
+      />
 
       {/* ── Bannière Promotions actives ────────────────────── */}
       {promos && promos.length > 0 && (

@@ -7,6 +7,7 @@ import { publicShopQuery } from "@/lib/storefront.query";
 import { useCart } from "@/components/store/cart";
 
 import { Button } from "@/components/ui/button";
+import { StoreOfflineView } from "@/components/store/StoreOfflineView";
 import { absoluteMediaUrl, formatPrice, mediaUrl, type Variant } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
 
@@ -23,28 +24,32 @@ export const Route = createFileRoute("/b/$slug/p/$productId")({
     const title = `${product.name} — ${formatPrice(Number(product.price), product.currency)} | ${shop.name}`;
     const desc = product.description?.slice(0, 160) || `Commandez ${product.name} chez ${shop.name} sur WhatsApp.`;
     const productUrl = `${origin}/b/${shop.slug}/p/${product.id}`;
-    // Image principale du produit comme couverture de partage
-    const ogImage = absoluteMediaUrl(product.images[0], origin);
-    const meta = [
-      { title },
-      { name: "description", content: desc },
-      { property: "og:site_name", content: "MarketNet" },
-      { property: "og:title", content: title },
-      { property: "og:description", content: desc },
-      { property: "og:type", content: "product" },
-      { property: "og:url", content: productUrl },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: desc },
-    ];
-    if (ogImage) {
-      meta.push(
-        { property: "og:image", content: ogImage },
-        { property: "og:image:alt", content: product.name },
-        { name: "twitter:image", content: ogImage },
-      );
-    }
-    return { meta };
+    const shopCover = shop.banner_url || shop.logo_url;
+    const coverPath = product.images?.[0] || shopCover;
+    const ogImage = coverPath ? absoluteMediaUrl(coverPath, origin) : null;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:site_name", content: shop.name },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: productUrl },
+        ...(ogImage ? [
+          { property: "og:image", content: ogImage },
+          { property: "og:image:secure_url", content: ogImage },
+          { property: "og:image:alt", content: product.name },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:image", content: ogImage },
+        ] : []),
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+      ],
+    };
   },
   notFoundComponent: () => <p className="py-20 text-center">Produit introuvable.</p>,
   component: ProductPage,
@@ -64,6 +69,17 @@ function ProductPage() {
 
   const isDiscounted = (product as any).discounted_price != null && (product as any).discounted_price < Number(product.price);
   const effectivePrice = isDiscounted ? (product as any).discounted_price : Number(product.price);
+
+  if (!data.shop.is_published || data.shop.is_suspended) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 pt-4">
+        <Link to="/b/$slug" params={{ slug }} className="inline-flex h-10 items-center gap-1 text-sm text-shop-muted hover:text-shop-fg">
+          <ArrowLeft className="h-4 w-4" />Retour à la boutique
+        </Link>
+        <StoreOfflineView shop={data.shop} isSuspended={data.shop.is_suspended} />
+      </div>
+    );
+  }
 
   function addToCart() {
     const missing = variants.find((v) => !choice[v.name]);

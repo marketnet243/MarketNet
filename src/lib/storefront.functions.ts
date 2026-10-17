@@ -1,26 +1,39 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { createClient } from "@supabase/supabase-js";
 import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { resolvePublicOrigin } from "@/lib/marketnet";
 
 export const getPublicShop = createServerFn({ method: "GET" })
   .validator((d) => z.object({ slug: z.string().min(1).max(60) }).parse(d))
   .handler(async ({ data }) => {
-    const sb = createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    });
-    const { data: shop } = await sb
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shop } = await supabaseAdmin
       .from("shops")
-      .select("id,name,slug,description,category,category_custom,logo_url,banner_url,city,address,whatsapp,hours,facebook,instagram,tiktok,theme,primary_color,currency")
+      .select("id,name,slug,description,category,category_custom,logo_url,banner_url,city,address,whatsapp,hours,facebook,instagram,tiktok,theme,primary_color,currency,is_published,is_suspended")
       .eq("slug", data.slug)
       .maybeSingle();
     if (!shop) throw notFound();
+
+    let origin = "";
+    try {
+      const req = getRequest();
+      const host = req.headers?.get("x-forwarded-host") || req.headers?.get("host");
+      const proto = req.headers?.get("x-forwarded-proto");
+      origin = resolvePublicOrigin(req.url, host, proto);
+    } catch {
+      origin = resolvePublicOrigin();
+    }
+
+    if (!shop.is_published || shop.is_suspended) {
+      return { shop, products: [], categories: [], promos: [], origin };
+    }
+
     const [{ data: products }, { data: categories }, { data: promos }] = await Promise.all([
-      sb.from("products").select("id,name,description,price,currency,images,status,featured,variants,category_id,created_at").eq("shop_id", shop.id).order("featured", { ascending: false }).order("created_at", { ascending: false }),
-      sb.from("product_categories").select("id,name,position").eq("shop_id", shop.id).order("position"),
-      sb.from("promotions").select(`
+      supabaseAdmin.from("products").select("id,name,description,price,currency,images,status,featured,variants,category_id,created_at").eq("shop_id", shop.id).order("featured", { ascending: false }).order("created_at", { ascending: false }),
+      supabaseAdmin.from("product_categories").select("id,name,position").eq("shop_id", shop.id).order("position"),
+      supabaseAdmin.from("promotions").select(`
         id, title, description, badge_label, image_url, template, discount_type, discount_value, button_label, starts_at, ends_at, position,
         promotion_products!promotion_products_promotion_id_fkey (product_id, position, discount_type, discount_value)
       `).eq("shop_id", shop.id).eq("status", "published").eq("is_hidden", false).order("position"),
@@ -89,8 +102,6 @@ export const getPublicShop = createServerFn({ method: "GET" })
       };
     });
 
-    let origin = "";
-    try { origin = new URL(getRequest().url).origin; } catch { /* noop */ }
     return { shop, products: productsWithPromos, categories: categories ?? [], promos: publicPromos, origin };
   });
 

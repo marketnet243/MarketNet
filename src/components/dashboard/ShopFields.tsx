@@ -64,22 +64,33 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
   }, [draft.slug, slugLocked, isCurrentSlug]);
 
   return (
-    <div className="space-y-4">
-      <Field label="Nom de la boutique"><Input className="h-12" value={draft.name} maxLength={80}
-        onChange={(e) => set({ name: e.target.value, ...(slugLocked === undefined && !currentSlug ? { slug: slugify(e.target.value) } : {}) })} /></Field>
-      <Field
-        label="Lien de la boutique"
-        hint={
-          isCurrentSlug
-            ? "Lien officiel et actif de votre boutique (non modifiable)."
-            : slugLocked
-            ? "Le lien a déjà été modifié une fois."
-            : "Modifiable une seule fois après la création."
-        }
-      >
-        <div className={cn("flex h-12 items-center overflow-hidden rounded-xl border bg-card text-sm",
-          isCurrentSlug ? "border-input bg-muted/40" :
-          slugState === "taken" || slugState === "error" ? "border-destructive" : slugState === "free" ? "border-green-600" : "border-input")}>
+    <div className="space-y-4 min-w-0 max-w-full">
+      <Field label="Nom de la boutique">
+        <Input
+          className="h-12 w-full min-w-0"
+          value={draft.name}
+          maxLength={80}
+          onChange={(e) =>
+            set({
+              name: e.target.value,
+              ...(slugLocked === undefined && !currentSlug ? { slug: slugify(e.target.value) } : {}),
+            })
+          }
+        />
+      </Field>
+      <Field label="Lien de la boutique">
+        <div
+          className={cn(
+            "flex h-12 w-full min-w-0 max-w-full items-center overflow-hidden rounded-xl border bg-card text-sm transition-colors",
+            isCurrentSlug
+              ? "border-input bg-muted/30"
+              : slugState === "taken" || slugState === "error"
+              ? "border-destructive"
+              : slugState === "free"
+              ? "border-green-600"
+              : "border-input"
+          )}
+        >
           {(() => {
             const host =
               typeof window !== "undefined" && window.location?.host
@@ -90,22 +101,43 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
                   )
                     .replace(/^https?:\/\//, "")
                     .replace(/\/+$/, "");
-            return <span className="pl-3 text-muted-foreground">{host}/b/</span>;
+            return (
+              <span
+                title={`${host}/b/`}
+                className="pl-3 pr-0 text-xs sm:text-sm font-medium text-muted-foreground select-none shrink truncate max-w-[140px] sm:max-w-none"
+              >
+                {host}/b/
+              </span>
+            );
           })()}
           <input
-            className="h-full flex-1 bg-transparent pr-3 outline-none disabled:opacity-75 disabled:cursor-not-allowed font-medium"
+            className="h-full min-w-0 flex-1 bg-transparent pl-0.5 pr-2 outline-none disabled:opacity-90 disabled:cursor-not-allowed font-medium text-xs sm:text-sm truncate text-foreground"
             value={draft.slug}
             disabled={isLocked}
-            onChange={(e) => set({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 42) })}
+            onChange={(e) =>
+              set({
+                slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 42),
+              })
+            }
           />
           {isCurrentSlug && <Check className="mr-3 h-4 w-4 text-emerald-600 shrink-0" />}
-          {!isLocked && slugState === "checking" && <Loader2 className="mr-3 h-4 w-4 animate-spin text-muted-foreground" />}
-          {!isLocked && slugState === "free" && <Check className="mr-3 h-4 w-4 text-green-600" />}
-          {!isLocked && (slugState === "taken" || slugState === "error") && <XCircle className="mr-3 h-4 w-4 text-destructive" />}
+          {!isLocked && slugState === "checking" && (
+            <Loader2 className="mr-3 h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+          )}
+          {!isLocked && slugState === "free" && <Check className="mr-3 h-4 w-4 text-green-600 shrink-0" />}
+          {!isLocked && (slugState === "taken" || slugState === "error") && (
+            <XCircle className="mr-3 h-4 w-4 text-destructive shrink-0" />
+          )}
         </div>
-        {!isLocked && slugState === "taken" && <p className="text-xs font-medium text-destructive">Ce lien est déjà pris, choisissez-en un autre.</p>}
-        {!isLocked && slugState === "free" && <p className="text-xs font-medium text-green-600">Ce lien est disponible.</p>}
-        {!isLocked && slugState === "error" && <p className="text-xs font-medium text-destructive">Impossible de vérifier la disponibilité du lien pour le moment.</p>}
+        {!isLocked && slugState === "taken" && (
+          <p className="text-xs font-medium text-destructive">Ce lien est déjà pris, choisissez-en un autre.</p>
+        )}
+        {!isLocked && slugState === "free" && (
+          <p className="text-xs font-medium text-green-600">Ce lien est disponible.</p>
+        )}
+        {!isLocked && slugState === "error" && (
+          <p className="text-xs font-medium text-destructive">Impossible de vérifier la disponibilité du lien pour le moment.</p>
+        )}
       </Field>
       <Field label="Catégorie">
         <select
@@ -120,16 +152,15 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
           }}
         >
           <option value="">Choisir…</option>
-          {SHOP_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+          {SHOP_CATEGORIES.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
       </Field>
       {draft.category === "Autre" && (
-        <Field
-          label="Décrivez la catégorie de votre boutique"
-          hint="Obligatoire (3 à 40 caractères)"
-        >
+        <Field label="Décrivez la catégorie de votre boutique">
           <Input
-            className="h-12"
+            className="h-12 w-full min-w-0"
             maxLength={40}
             placeholder="Ex. Papeterie, Fleuriste, Animalerie…"
             value={draft.category_custom}
@@ -138,26 +169,90 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
           />
         </Field>
       )}
-      <Field label="Description"><Textarea rows={3} maxLength={1000} value={draft.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ce que vous vendez, ce qui vous rend unique…" /></Field>
+      <Field label="Description">
+        <Textarea
+          rows={3}
+          maxLength={1000}
+          value={draft.description}
+          onChange={(e) => set({ description: e.target.value })}
+          placeholder="Ce que vous vendez, ce qui vous rend unique…"
+          className="w-full min-w-0"
+        />
+      </Field>
     </div>
   );
 }
 
 export function ContactFields({ draft, set }: P) {
   return (
-    <div className="space-y-4">
-      <Field label="Numéro WhatsApp" hint="Format international, ex. +243812345678"><Input className="h-12" inputMode="tel" value={draft.whatsapp} onChange={(e) => set({ whatsapp: e.target.value.replace(/[^\d+]/g, "") })} /></Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Ville"><Input className="h-12" value={draft.city} onChange={(e) => set({ city: e.target.value })} placeholder="Lubumbashi" /></Field>
+    <div className="space-y-4 min-w-0 max-w-full">
+      <Field label="Numéro WhatsApp">
+        <Input
+          className="h-12 w-full min-w-0"
+          inputMode="tel"
+          placeholder="+243812345678"
+          value={draft.whatsapp}
+          onChange={(e) => set({ whatsapp: e.target.value.replace(/[^\d+]/g, "") })}
+        />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+        <Field label="Ville">
+          <Input
+            className="h-12 w-full min-w-0"
+            value={draft.city}
+            onChange={(e) => set({ city: e.target.value })}
+            placeholder="Lubumbashi"
+          />
+        </Field>
         <Field label="Devise affichée">
-          <select className={sel} value={draft.currency} onChange={(e) => set({ currency: e.target.value })}><option value="USD">USD ($)</option><option value="CDF">CDF (FC)</option></select>
+          <select
+            className={sel}
+            value={draft.currency}
+            onChange={(e) => set({ currency: e.target.value })}
+          >
+            <option value="USD">USD ($)</option>
+            <option value="CDF">CDF (FC)</option>
+          </select>
         </Field>
       </div>
-      <Field label="Adresse"><Input className="h-12" value={draft.address} onChange={(e) => set({ address: e.target.value })} /></Field>
-      <Field label="Horaires"><Input className="h-12" value={draft.hours} onChange={(e) => set({ hours: e.target.value })} placeholder="Lun–Sam, 8h–18h" /></Field>
-      <Field label="Facebook (lien)"><Input className="h-12" value={draft.facebook} onChange={(e) => set({ facebook: e.target.value })} placeholder="https://facebook.com/…" /></Field>
-      <Field label="Instagram (lien)"><Input className="h-12" value={draft.instagram} onChange={(e) => set({ instagram: e.target.value })} placeholder="https://instagram.com/…" /></Field>
-      <Field label="TikTok (lien)"><Input className="h-12" value={draft.tiktok} onChange={(e) => set({ tiktok: e.target.value })} /></Field>
+      <Field label="Adresse">
+        <Input
+          className="h-12 w-full min-w-0"
+          value={draft.address}
+          onChange={(e) => set({ address: e.target.value })}
+        />
+      </Field>
+      <Field label="Horaires">
+        <Input
+          className="h-12 w-full min-w-0"
+          value={draft.hours}
+          onChange={(e) => set({ hours: e.target.value })}
+          placeholder="Lun–Sam, 8h–18h"
+        />
+      </Field>
+      <Field label="Facebook (lien)">
+        <Input
+          className="h-12 w-full min-w-0"
+          value={draft.facebook}
+          onChange={(e) => set({ facebook: e.target.value })}
+          placeholder="https://facebook.com/…"
+        />
+      </Field>
+      <Field label="Instagram (lien)">
+        <Input
+          className="h-12 w-full min-w-0"
+          value={draft.instagram}
+          onChange={(e) => set({ instagram: e.target.value })}
+          placeholder="https://instagram.com/…"
+        />
+      </Field>
+      <Field label="TikTok (lien)">
+        <Input
+          className="h-12 w-full min-w-0"
+          value={draft.tiktok}
+          onChange={(e) => set({ tiktok: e.target.value })}
+        />
+      </Field>
     </div>
   );
 }

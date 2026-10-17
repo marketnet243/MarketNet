@@ -40,18 +40,53 @@ export function mediaUrl(path?: string | null) {
 }
 
 /**
- * Returns a fully qualified URL for an image, required for og:image / twitter:image.
- * Falls back to the platform logo when no image is available.
+ * Resolves a reliable public base origin (never returns localhost in SSR when deployed).
+ */
+export function resolvePublicOrigin(reqUrl?: string | null, forwardedHost?: string | null, forwardedProto?: string | null): string {
+  if (forwardedHost && !forwardedHost.includes("localhost") && !forwardedHost.includes("127.0.0.1")) {
+    const proto = forwardedProto || "https";
+    return `${proto}://${forwardedHost}`.replace(/\/+$/, "");
+  }
+  const envUrl = (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "").trim();
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  if (reqUrl) {
+    try {
+      const u = new URL(reqUrl);
+      if (!u.hostname.includes("localhost") && !u.hostname.includes("127.0.0.1")) {
+        return u.origin.replace(/\/+$/, "");
+      }
+    } catch { /* noop */ }
+  }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin.replace(/\/+$/, "");
+  }
+  return "https://appmarketnet.vercel.app";
+}
+
+/**
+ * Returns a fully qualified public URL for an image, required for og:image / twitter:image.
+ * Falls back to platform assets if no custom image, ensuring link previews always render.
  */
 export function absoluteMediaUrl(
   path: string | null | undefined,
-  origin: string,
+  origin?: string | null,
   fallback?: string,
 ): string | null {
-  const raw = path ?? fallback ?? null;
+  const raw = path || fallback || null;
   if (!raw) return null;
-  if (raw.startsWith("http")) return raw;
-  return `${origin}/api/public/media/${raw}`;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+  const cleanOrigin = (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1"))
+    ? origin.replace(/\/+$/, "")
+    : (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "https://appmarketnet.vercel.app").replace(/\/+$/, "");
+
+  if (raw.startsWith("/")) {
+    return `${cleanOrigin}${raw}`;
+  }
+  return `${cleanOrigin}/api/public/media/${raw}`;
 }
 
 /** Pick readable foreground for a hex color */

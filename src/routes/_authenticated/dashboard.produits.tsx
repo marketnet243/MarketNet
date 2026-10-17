@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, Plus, Star, Trash2, X } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Search, Star, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyShop, useShopProducts, useShopCategories, type Product } from "@/hooks/useMyShop";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,25 @@ function ProductsPage() {
         <div><h1 className="text-2xl font-extrabold">Produits</h1><p className="text-sm text-muted-foreground">{products?.length ?? 0} produit(s)</p></div>
         <Button onClick={() => setForm(blank())}><Plus />Ajouter</Button>
       </div>
-      <Input className="mt-4 h-12" placeholder="Rechercher un produit…" value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <div className="relative mt-4">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <Input
+          className="h-11 rounded-xl pl-10 pr-10 text-sm bg-card shadow-xs"
+          placeholder="Rechercher un produit…"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        />
+        {filter && (
+          <button
+            type="button"
+            onClick={() => setFilter("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            title="Effacer la recherche"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
       <CategoryManager shopId={shop.id} />
       {isLoading ? <p className="mt-8 text-muted-foreground">Chargement…</p> : list.length === 0 ? (
         <div className="mt-8 rounded-2xl border-2 border-dashed p-8 text-center text-muted-foreground">Aucun produit pour l'instant.</div>
@@ -143,7 +161,7 @@ function ProductForm({ initial, shopId, categories, onDone }: { initial: Form; s
   async function save(again: boolean) {
     const price = Number(f.price.replace(",", "."));
     if (!f.name.trim()) return toast.error("Le nom est requis");
-    if (!isFinite(price) || price < 0) return toast.error("Prix invalide");
+    if (!isFinite(price) || price <= 0) return toast.error("Le prix doit être strictement supérieur à 0");
     const stock = f.stock.trim() === "" ? null : parseInt(f.stock, 10);
     if (stock !== null && (isNaN(stock) || stock < 0)) return toast.error("Stock invalide");
     const row = {

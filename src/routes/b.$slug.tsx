@@ -8,15 +8,39 @@ import { recordShopVisit } from "@/lib/storefront.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { CartProvider, useCart } from "@/components/store/cart";
 import { CartSheet } from "@/components/store/CartSheet";
-import { mediaUrl, shopStyle } from "@/lib/marketnet";
+import { absoluteMediaUrl, mediaUrl, shopStyle } from "@/lib/marketnet";
 
 export const Route = createFileRoute("/b/$slug")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(publicShopQuery(params.slug)),
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Boutique introuvable — MarketNet" }, { name: "robots", content: "noindex" }] };
+    const { shop, origin } = loaderData;
+    const title = `${shop.name} — Boutique en ligne`;
+    const desc = shop.description?.slice(0, 160) || `Découvrez les produits de ${shop.name} et commandez directement sur WhatsApp.`;
+    const shopUrl = `${origin}/b/${shop.slug}`;
+    const shopCover = shop.banner_url || shop.logo_url;
+    const ogImage = shopCover ? absoluteMediaUrl(shopCover, origin) : null;
+
     return {
       meta: [
-        { property: "og:site_name", content: "MarketNet" },
+        { title },
+        { name: "description", content: desc },
+        { property: "og:site_name", content: shop.name },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: shopUrl },
+        ...(ogImage ? [
+          { property: "og:image", content: ogImage },
+          { property: "og:image:secure_url", content: ogImage },
+          { property: "og:image:alt", content: `Boutique ${shop.name}` },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:image", content: ogImage },
+        ] : []),
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
       ],
     };
   },
@@ -48,21 +72,25 @@ function ShopLayout() {
       visitFn({ data: { slug, src, productId } }).catch(() => null);
     }
   }, [slug]);
+  const isOffline = !shop.is_published || shop.is_suspended;
+
   return (
     <CartProvider slug={slug}>
       <div className={`theme-${shop.theme} storefront min-h-screen pb-28`} style={shopStyle(shop.primary_color)}>
-        <TopBar name={shop.name} logo={shop.logo_url} slug={slug} />
+        <TopBar name={shop.name} logo={shop.logo_url} slug={slug} isOffline={isOffline} />
         <Outlet />
         <footer className="mt-16 px-4 text-center text-xs text-shop-muted">
           Boutique propulsée par <Link to="/" className="font-semibold underline">MarketNet</Link>
         </footer>
-        <CartSheet shop={shop} origin={origin || (typeof window !== "undefined" ? window.location.origin : "")} />
+        {!isOffline && (
+          <CartSheet shop={shop} origin={origin || (typeof window !== "undefined" ? window.location.origin : "")} />
+        )}
       </div>
     </CartProvider>
   );
 }
 
-function TopBar({ name, logo, slug }: { name: string; logo: string | null; slug: string }) {
+function TopBar({ name, logo, slug, isOffline }: { name: string; logo: string | null; slug: string; isOffline?: boolean }) {
   const { items, setOpen } = useCart();
   const count = items.reduce((s, i) => s + i.qty, 0);
   return (
@@ -71,10 +99,12 @@ function TopBar({ name, logo, slug }: { name: string; logo: string | null; slug:
         <Link to="/b/$slug" params={{ slug }} className="flex items-center gap-2 font-shop-heading font-bold">
           {logo && <img src={mediaUrl(logo)!} alt="" className="h-8 w-8 rounded-full object-cover" />}{name}
         </Link>
-        <button onClick={() => setOpen(true)} aria-label="Panier" className="relative grid h-11 w-11 place-items-center">
-          <ShoppingBag className="h-5 w-5" />
-          {count > 0 && <span className="absolute right-1 top-1 grid h-5 min-w-5 place-items-center rounded-full bg-shop px-1 text-[10px] font-bold text-shop-foreground">{count}</span>}
-        </button>
+        {!isOffline && (
+          <button onClick={() => setOpen(true)} aria-label="Panier" className="relative grid h-11 w-11 place-items-center">
+            <ShoppingBag className="h-5 w-5" />
+            {count > 0 && <span className="absolute right-1 top-1 grid h-5 min-w-5 place-items-center rounded-full bg-shop px-1 text-[10px] font-bold text-shop-foreground">{count}</span>}
+          </button>
+        )}
       </div>
     </div>
   );

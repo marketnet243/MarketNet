@@ -279,7 +279,7 @@ function SupportPage() {
   const unreadBroadcastsCount = (broadcasts ?? []).filter((b: any) => !b.lu_le).length;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6 min-w-0 max-w-full overflow-hidden">
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
@@ -382,14 +382,14 @@ function SupportPage() {
                   </button>
 
                   {isExpanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-border/50 space-y-3">
-                      <div className="rounded-xl bg-muted/40 p-3.5 text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                    <div className="px-4 pb-4 pt-1 border-t border-border/50 space-y-3 min-w-0">
+                      <div className="rounded-xl bg-muted/40 p-3.5 text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed overflow-hidden">
                         {b.message}
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-blue-200/60 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/40 p-3 text-xs">
-                        <p className="text-muted-foreground flex items-center gap-1.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-blue-200/60 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/40 p-3 text-xs min-w-0">
+                        <p className="text-muted-foreground flex items-center gap-1.5 min-w-0">
                           <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                          <span>Message de MarketNet : pour nous écrire, créez un ticket.</span>
+                          <span className="break-words">Message de MarketNet : pour nous écrire, créez un ticket.</span>
                         </p>
                         <Button
                           size="sm"
@@ -498,11 +498,12 @@ function SupportPage() {
       ))}
 
       {/* ─── MODAL : NOUVEAU TICKET DE SUPPORT ─── */}
+      {/* ─── MODAL : NOUVEAU TICKET DE SUPPORT ─── */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl p-4 sm:p-5 max-w-[calc(100vw-2rem)]">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:w-full sm:max-w-lg max-h-[88vh] overflow-y-auto rounded-3xl p-5 sm:p-6 shadow-2xl">
           <DialogHeader className="pb-1 text-left">
-            <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <LifeBuoy className="h-4 w-4 text-primary" />
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">
+              <LifeBuoy className="h-5 w-5 text-primary shrink-0" />
               Nouveau ticket de support
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground text-left">
@@ -510,16 +511,15 @@ function SupportPage() {
             </DialogDescription>
           </DialogHeader>
 
-
           <form
             onSubmit={(e) => {
               e.preventDefault();
               createMutation.mutate();
             }}
-            className="space-y-3 pt-0"
+            className="space-y-4 pt-1"
           >
             {/* Catégorie */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="ticket-categorie" className="text-xs font-semibold">
                 Catégorie <span className="text-red-500">*</span>
               </Label>
@@ -527,7 +527,7 @@ function SupportPage() {
                 value={form.categorie}
                 onValueChange={(val) => setForm((f) => ({ ...f, categorie: val as SupportTicketCategorie }))}
               >
-                <SelectTrigger id="ticket-categorie" className="h-9 rounded-xl text-sm">
+                <SelectTrigger id="ticket-categorie" className="h-10 sm:h-11 rounded-xl text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -541,7 +541,7 @@ function SupportPage() {
             </div>
 
             {/* Titre */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="ticket-titre" className="text-xs font-semibold">
                 Titre ou résumé <span className="text-red-500">*</span>
               </Label>
@@ -551,31 +551,30 @@ function SupportPage() {
                 value={form.titre}
                 onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
                 maxLength={200}
-                className={cn("h-9 rounded-xl text-sm", errors.titre && "border-red-500 focus-visible:ring-red-500")}
+                className={cn("h-10 sm:h-11 rounded-xl text-sm", errors.titre && "border-red-500 focus-visible:ring-red-500")}
               />
               {errors.titre && <p className="text-xs text-red-600">{errors.titre}</p>}
             </div>
 
             {/* Message */}
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <Label htmlFor="ticket-texte" className="text-xs font-semibold">
                 Description <span className="text-red-500">*</span>
               </Label>
               <Textarea
                 id="ticket-texte"
                 placeholder="Expliquez ce qui se passe, les étapes pour reproduire le problème…"
-                rows={3}
+                rows={4}
                 value={form.texte}
                 onChange={(e) => setForm((f) => ({ ...f, texte: e.target.value }))}
                 maxLength={10000}
-                className={cn("rounded-xl resize-none text-sm", errors.texte && "border-red-500 focus-visible:ring-red-500")}
+                className={cn("rounded-xl resize-none text-sm p-3 leading-relaxed", errors.texte && "border-red-500 focus-visible:ring-red-500")}
               />
               {errors.texte && <p className="text-xs text-red-600">{errors.texte}</p>}
             </div>
 
-
             {/* Pièces jointes (captures d'écran) */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold">Captures d'écran ({attachments.length}/3)</span>
                 <span className="text-[10px] text-muted-foreground">Max 5 Mo · JPG, PNG, WebP</span>
@@ -594,9 +593,9 @@ function SupportPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed py-2.5 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed py-3 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors"
                 >
-                  <Upload className="h-3.5 w-3.5" />
+                  <Upload className="h-4 w-4" />
                   Ajouter une capture d'écran
                 </button>
               )}
@@ -630,13 +629,13 @@ function SupportPage() {
             </div>
 
             {/* Boutons d'action */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setModalOpen(false)}
                 disabled={createMutation.isPending}
-                className="rounded-xl"
+                className="rounded-xl h-10 sm:h-11 px-4 text-xs sm:text-sm font-semibold"
               >
                 Annuler
               </Button>

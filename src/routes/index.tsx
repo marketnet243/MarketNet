@@ -11,18 +11,39 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useEffect, useState, useRef } from "react";
 import { formatCDF } from "@/lib/subscriptions";
+import { absoluteMediaUrl } from "@/lib/marketnet";
 
 export const Route = createFileRoute("/")(({
-  head: () => ({
-    meta: [
-      { title: "MarketNet — Votre boutique en ligne, commandes sur WhatsApp" },
-      { name: "description", content: "Créez gratuitement votre boutique en ligne en 5 minutes et recevez vos commandes directement sur WhatsApp. Pour les commerçants de RDC et d'Afrique francophone." },
-      { property: "og:title", content: "MarketNet — Votre boutique en ligne, commandes sur WhatsApp" },
-      { property: "og:description", content: "Boutique en ligne gratuite, commandes sur WhatsApp. Pensé pour le mobile." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => {
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "https://appmarketnet.vercel.app");
+    const ogImage = absoluteMediaUrl("/favicon.jpg", origin, "/favicon.jpg")!;
+    const title = "MarketNet — Votre boutique en ligne, commandes sur WhatsApp";
+    const desc = "Créez gratuitement votre boutique en ligne en 5 minutes et recevez vos commandes directement sur WhatsApp. Pour les commerçants de RDC et d'Afrique francophone.";
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:site_name", content: "MarketNet" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: origin },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:secure_url", content: ogImage },
+        { property: "og:image:alt", content: "MarketNet — Plateforme de boutiques en ligne" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+        { name: "twitter:image", content: ogImage },
+      ],
+    };
+  },
   component: Index,
 } as any));
 

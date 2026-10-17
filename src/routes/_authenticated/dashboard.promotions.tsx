@@ -32,6 +32,7 @@ import {
   SplitSquareVertical,
   Flame,
   Zap,
+  Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyShop, useShopProducts, type Product } from "@/hooks/useMyShop";
@@ -568,7 +569,6 @@ function PromoFormModal({
   const [busy, setBusy] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [previewTab, setPreviewTab] = useState<"desktop" | "mobile">("mobile");
-  const [showMobilePreview, setShowMobilePreview] = useState(false);
   const signUpload = useServerFn(cloudinaryUploadSignature);
 
   const set = (p: Partial<FormState>) => setF((prev) => ({ ...prev, ...p }));
@@ -740,18 +740,6 @@ function PromoFormModal({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* Bouton d'aperçu pour mobile */}
-            <Button
-              type="button"
-              variant={showMobilePreview ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowMobilePreview((v) => !v)}
-              className="lg:hidden rounded-xl h-9 px-3 text-xs font-semibold gap-1.5"
-            >
-              <Eye className="h-4 w-4" />
-              <span>{showMobilePreview ? "Formulaire" : "Aperçu"}</span>
-            </Button>
-
             <Button
               variant="ghost"
               size="icon"
@@ -790,7 +778,7 @@ function PromoFormModal({
       <div className="flex-1 overflow-y-auto p-5 sm:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto">
           {/* Formulaire gauche */}
-          <div className={cn("space-y-5 lg:col-span-7", showMobilePreview && "hidden lg:block")}>
+          <div className="space-y-5 lg:col-span-7 min-w-0">
             {/* STEP 1: Modèle & Image */}
             {step === 0 && (
               <div className="space-y-5">
@@ -1025,12 +1013,25 @@ function PromoFormModal({
                         : "Action : Vitrine dédiée"}
                     </span>
                   </div>
-                  <Input
-                    className="h-12 rounded-xl"
-                    placeholder="Rechercher un produit…"
-                    value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      className="h-11 rounded-xl pl-10 pr-10 text-sm bg-card shadow-xs"
+                      placeholder="Rechercher un produit…"
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                    />
+                    {productSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setProductSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        title="Effacer la recherche"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Articles sélectionnés */}
@@ -1218,15 +1219,26 @@ function PromoFormModal({
                 </div>
               </div>
             )}
+
+            {/* Aperçu en direct directement en bas sur mobile (sans bouton) */}
+            <div className="lg:hidden mt-8 pt-5 border-t border-border/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Aperçu en direct
+                </span>
+                <span className="text-[11px] font-semibold text-primary">
+                  Modèle : {availableTemplates.find((t) => t.id === f.template)?.name || f.template}
+                </span>
+              </div>
+              <div className="rounded-2xl border bg-card overflow-hidden shadow-md">
+                <PromoSlide promo={previewSlideData} currency={shop.currency} />
+              </div>
+            </div>
           </div>
 
-          {/* Aperçu live : sticky à droite sur grand écran, ou affiché quand activé sur mobile */}
-          <div
-            className={cn(
-              "space-y-4 lg:col-span-5",
-              showMobilePreview ? "block" : "hidden lg:block"
-            )}
-          >
+          {/* Aperçu live : sticky à droite sur grand écran */}
+          <div className="hidden lg:block space-y-4 lg:col-span-5">
             <div className="sticky top-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -1266,16 +1278,6 @@ function PromoFormModal({
                   <PromoSlide promo={previewSlideData} currency={shop.currency} />
                 </div>
               </div>
-
-              {showMobilePreview && (
-                <Button
-                  variant="outline"
-                  className="w-full lg:hidden rounded-xl h-12 font-medium"
-                  onClick={() => setShowMobilePreview(false)}
-                >
-                  Revenir au formulaire
-                </Button>
-              )}
             </div>
           </div>
         </div>

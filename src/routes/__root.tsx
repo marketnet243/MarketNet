@@ -88,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const origin =
       typeof window !== "undefined"
         ? window.location.origin
-        : (process.env.VITE_PUBLIC_URL ?? "https://appmarketnet.vercel.app");
+        : (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "https://appmarketnet.vercel.app");
     const ogImage = `${origin}/favicon.jpg`;
     return {
       meta: [
@@ -102,6 +102,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:description", content: "Créez votre boutique en ligne en quelques minutes et recevez vos commandes sur WhatsApp." },
         { property: "og:url", content: origin },
         { property: "og:image", content: ogImage },
+        { property: "og:image:secure_url", content: ogImage },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { property: "og:image:alt", content: "MarketNet — Logo" },

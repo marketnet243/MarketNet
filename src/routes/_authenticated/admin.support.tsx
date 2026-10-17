@@ -34,6 +34,7 @@ import {
   CheckSquare,
   Square,
   Sparkles,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -304,7 +305,7 @@ function AdminSupportPage() {
           {/* Filtres */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
                 id="search-tickets"
                 value={search}
@@ -313,8 +314,21 @@ function AdminSupportPage() {
                   setPage(1);
                 }}
                 placeholder="Rechercher par numéro ou titre…"
-                className="pl-9 h-10 rounded-xl"
+                className="pl-9 pr-9 h-10 rounded-xl"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPage(1);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Effacer la recherche"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <div className="flex gap-2">
               <Select
@@ -668,16 +682,29 @@ function AdminSupportPage() {
               {/* Panneau de sélection détaillée si 'selection' */}
               {bCible === "selection" && (
                 <div className="space-y-3 rounded-2xl border bg-muted/20 p-4">
-                  <div className="flex flex-col sm:flex-row gap-2 justify-between items-stretch sm:items-center">
-                    <Input
-                      placeholder="Rechercher boutique, nom ou e-mail…"
-                      value={candidateSearch}
-                      onChange={(e) => setCandidateSearch(e.target.value)}
-                      className="h-9 rounded-xl text-xs bg-background flex-1"
-                    />
+                  <div className="flex flex-col sm:flex-row gap-2.5 justify-between items-stretch sm:items-center">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Input
+                        placeholder="Rechercher boutique, nom ou e-mail…"
+                        value={candidateSearch}
+                        onChange={(e) => setCandidateSearch(e.target.value)}
+                        className="h-10 pl-9 pr-9 rounded-xl text-sm bg-background border-input"
+                      />
+                      {candidateSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setCandidateSearch("")}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Effacer"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
 
                     <select
-                      className="h-9 rounded-xl border border-input bg-background px-3 text-xs font-medium"
+                      className="h-10 rounded-xl border border-input bg-background px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
                       value={planFilter}
                       onChange={(e) => setPlanFilter(e.target.value)}
                     >
@@ -712,9 +739,9 @@ function AdminSupportPage() {
                   </div>
 
                   {/* Liste défilante de sélection */}
-                  <div className="max-h-52 overflow-y-auto divide-y rounded-xl border bg-background text-xs">
+                  <div className="max-h-56 overflow-y-auto divide-y rounded-xl border bg-background text-sm">
                     {filteredCandidates.length === 0 ? (
-                      <p className="p-4 text-center text-muted-foreground">Aucun commerçant correspondant.</p>
+                      <p className="p-4 text-center text-muted-foreground text-xs sm:text-sm">Aucun commerçant correspondant.</p>
                     ) : (
                       filteredCandidates.map((c) => {
                         const isSelected = selectedMerchantIds.includes(c.id);
@@ -722,20 +749,20 @@ function AdminSupportPage() {
                           <div
                             key={c.id}
                             onClick={() => toggleSelectCandidate(c.id)}
-                            className="flex items-center justify-between p-2.5 hover:bg-muted/40 cursor-pointer select-none"
+                            className="flex items-center justify-between p-3 hover:bg-muted/40 cursor-pointer select-none transition-colors"
                           >
-                            <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
                               {isSelected ? (
                                 <CheckSquare className="h-4 w-4 text-primary shrink-0" />
                               ) : (
                                 <Square className="h-4 w-4 text-muted-foreground/50 shrink-0" />
                               )}
                               <div className="truncate">
-                                <p className="font-semibold text-foreground truncate">{c.shop_name}</p>
-                                <p className="text-[11px] text-muted-foreground truncate">{c.email}</p>
+                                <p className="font-semibold text-sm text-foreground truncate">{c.shop_name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{c.email}</p>
                               </div>
                             </div>
-                            <span className="uppercase font-bold text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                            <span className="uppercase font-bold text-xs px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0 ml-2">
                               {c.plan_id}
                             </span>
                           </div>

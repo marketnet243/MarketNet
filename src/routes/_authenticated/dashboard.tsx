@@ -280,7 +280,7 @@ function DashboardLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col min-w-0 pb-24 lg:pb-0">
+      <div className="flex flex-1 flex-col min-w-0 pb-24 lg:pb-0 overflow-x-hidden">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur lg:px-8">
           <div className="lg:hidden">
             <Logo />

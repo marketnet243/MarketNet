@@ -927,7 +927,7 @@ function DashboardAbonnementPage() {
 
       {/* ── Modale Reçu de Paiement / Attribution (Design Épuré & Élégant) ────────── */}
       <Dialog open={!!selectedReceipt} onOpenChange={(o) => !o && setSelectedReceipt(null)}>
-        <DialogContent className="max-w-sm rounded-3xl p-6 sm:p-7 shadow-2xl border bg-background/98 backdrop-blur-xl space-y-0">
+        <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border bg-background/98 backdrop-blur-xl space-y-0">
           {selectedReceipt && (() => {
             const status = resolvePaymentStatus(selectedReceipt);
             const isAttributed = status === "attribué";
@@ -1070,7 +1070,7 @@ function DashboardAbonnementPage() {
                     <div className="space-y-2.5">
                       <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-xs leading-relaxed">
                         <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
-                        <span>Ce plan vous a été accordé par l'administrateur MarketNet. Votre lettre d'attribution officielle est disponible en téléchargement ci-dessous.</span>
+                        <span>Plan accordé par l'administrateur MarketNet. Téléchargez votre lettre officielle d'attribution ci-dessous.</span>
                       </div>
                       <Button
                         variant="outline"

@@ -5,7 +5,17 @@ import { cn } from "@/lib/utils";
 
 type ShopLike = Pick<Shop, "name" | "description" | "logo_url" | "banner_url" | "category" | "category_custom" | "city" | "hours" | "whatsapp" | "facebook" | "instagram">;
 
-export function StoreHeader({ shop, compact }: { shop: ShopLike; compact?: boolean }) {
+export function StoreHeader({
+  shop,
+  compact,
+  isPublished = true,
+  isSuspended = false,
+}: {
+  shop: ShopLike;
+  compact?: boolean;
+  isPublished?: boolean;
+  isSuspended?: boolean;
+}) {
   const banner = mediaUrl(shop.banner_url);
   const logo = mediaUrl(shop.logo_url);
   const hasWhatsapp = shop.whatsapp?.replace(/\D/g, "").length >= 8;
@@ -108,11 +118,23 @@ export function StoreHeader({ shop, compact }: { shop: ShopLike; compact?: boole
                 {getShopCategoryLabel(shop)}
               </span>
             )}
-            {/* Statut ouvert */}
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[11px] font-semibold">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Ouvert
-            </span>
+            {/* Statut ouvert / fermé / suspendu */}
+            {isSuspended ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 px-2.5 py-0.5 text-[11px] font-semibold">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                Suspendue
+              </span>
+            ) : !isPublished ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 text-[11px] font-semibold">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Fermée
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[11px] font-semibold">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Ouvert
+              </span>
+            )}
           </div>
 
           <h1 className={cn(

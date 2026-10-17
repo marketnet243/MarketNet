@@ -5,6 +5,7 @@ import { ArrowLeft, AlertCircle, Share2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { StoreHeader, ProductCard } from "@/components/store/StoreParts";
+import { StoreOfflineView } from "@/components/store/StoreOfflineView";
 import { PromoSlide } from "@/components/promo/PromoSlide";
 import { useCart } from "@/components/store/cart";
 import { absoluteMediaUrl, formatPrice, mediaUrl, type Variant } from "@/lib/marketnet";
@@ -47,33 +48,33 @@ export const Route = createFileRoute("/b/$slug/promo/$promoId")({
       ? `${promo.description.trim()}${discountNote} Disponible chez ${shop.name}.`
       : `Profitez de l'offre spéciale « ${promo?.title || "Promotion"} » sur ${shop.name}.${discountNote} Commandez vite sur WhatsApp !`;
 
-    // Priorité image : image dédiée de la promo > image du 1er produit en promo > bannière boutique > logo boutique
-    const coverPath = promo?.image_url || promoProductImage || shop.banner_url || shop.logo_url;
-    const ogImage = absoluteMediaUrl(coverPath, origin);
+    const shopCover = shop.banner_url || shop.logo_url;
+    const coverPath = promo?.image_url || promoProductImage || shopCover;
+    const ogImage = coverPath ? absoluteMediaUrl(coverPath, origin) : null;
     const promoUrl = `${origin}/b/${shop.slug}/promo/${promo?.id ?? ""}`;
 
-    const meta: Record<string, string>[] = [
-      { title: promoTitle },
-      { name: "description", content: promoDesc },
-      { property: "og:site_name", content: shop.name },
-      { property: "og:title", content: promoTitle },
-      { property: "og:description", content: promoDesc },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: promoUrl },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: promoTitle },
-      { name: "twitter:description", content: promoDesc },
-    ];
-
-    if (ogImage) {
-      meta.push(
-        { property: "og:image", content: ogImage },
-        { property: "og:image:alt", content: promoTitle },
-        { name: "twitter:image", content: ogImage },
-      );
-    }
-
-    return { meta };
+    return {
+      meta: [
+        { title: promoTitle },
+        { name: "description", content: promoDesc },
+        { property: "og:site_name", content: shop.name },
+        { property: "og:title", content: promoTitle },
+        { property: "og:description", content: promoDesc },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: promoUrl },
+        ...(ogImage ? [
+          { property: "og:image", content: ogImage },
+          { property: "og:image:secure_url", content: ogImage },
+          { property: "og:image:alt", content: promoTitle },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:image", content: ogImage },
+        ] : []),
+        { name: "twitter:title", content: promoTitle },
+        { name: "twitter:description", content: promoDesc },
+      ],
+    };
   },
   component: DedicatedPromoPage,
 });
@@ -103,10 +104,21 @@ function DedicatedPromoPage() {
     return products.filter((p) => pIds.has(p.id));
   }, [promo, products]);
 
+  const isOffline = !shop.is_published || shop.is_suspended;
+
+  if (isOffline) {
+    return (
+      <div className="min-h-screen">
+        <StoreHeader shop={shop} isPublished={shop.is_published} isSuspended={shop.is_suspended} />
+        <StoreOfflineView shop={shop} isSuspended={shop.is_suspended} />
+      </div>
+    );
+  }
+
   if (!promo && !isEnded) {
     return (
       <div className="min-h-screen">
-        <StoreHeader shop={shop} />
+        <StoreHeader shop={shop} isPublished={shop.is_published} isSuspended={shop.is_suspended} />
         <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-4">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
             <AlertCircle className="h-7 w-7" />
