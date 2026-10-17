@@ -66,3 +66,20 @@ export function shopStyle(primary: string): React.CSSProperties {
 }
 
 export type Variant = { name: string; options: string[] };
+
+/**
+ * Libellé affichable d'une catégorie de boutique.
+ * Si la catégorie est « Autre », affiche le texte personnalisé (category_custom) s'il est renseigné,
+ * sinon retombe sur « Autre ».
+ */
+export function getShopCategoryLabel(
+  shop?: { category?: string | null; category_custom?: string | null } | null
+): string {
+  if (!shop) return "";
+  const cat = shop.category?.trim() || "";
+  if (cat.toLowerCase() === "autre") {
+    const custom = shop.category_custom?.trim();
+    return custom || "Autre";
+  }
+  return cat;
+}

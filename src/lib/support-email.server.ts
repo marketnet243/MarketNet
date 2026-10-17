@@ -113,7 +113,6 @@ export function buildNewTicketAdminHtml(params: {
 }): string {
   const labelCat: Record<string, string> = {
     paiement_abonnement: "Paiement & abonnement",
-    connexion_facebook: "Connexion Facebook",
     boutique_produits: "Boutique & produits",
     commandes: "Commandes",
     autre: "Autre",
@@ -397,3 +396,78 @@ export async function sendSubscriptionReminderEmail(params: {
   });
   return { success: result.success };
 }
+
+// ─── API publique : diffusion d'annonce (Broadcast) ─────────────────────────
+
+export function buildBroadcastHtml(params: {
+  titre: string;
+  message: string;
+  supportUrl: string;
+  trackingPixelUrl?: string;
+}): string {
+  const body = `
+    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 12px; color: #0f172a;">📢 Annonce officielle MarketNet</h2>
+    <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">
+      ${params.titre}
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">
+      <p style="margin: 0; font-size: 14px; color: #1e293b; line-height: 1.7; white-space: pre-wrap;">${params.message}</p>
+    </div>
+    ${params.trackingPixelUrl ? `<img src="${params.trackingPixelUrl}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:0;" />` : ""}
+  `;
+  return buildEmailShell({
+    badgeText: "ANNONCE OFFICIELLE",
+    badgeColor: "#eff6ff",
+    title: params.titre,
+    body,
+    ctaLabel: "Ouvrir l'espace Support",
+    ctaUrl: params.supportUrl,
+  });
+}
+
+export async function sendBroadcastEmailNotification(params: {
+  broadcastId: string;
+  recipientEmail: string;
+  titre: string;
+  message: string;
+  merchantId?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (!params.recipientEmail || !params.recipientEmail.includes("@")) {
+    return { success: false, error: "Adresse email invalide" };
+  }
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const subject = `[MarketNet Annonce] ${params.titre}`;
+
+  const trackingPixelUrl = params.merchantId
+    ? `${siteUrl}/api/public/broadcast-track?b=${encodeURIComponent(params.broadcastId)}&m=${encodeURIComponent(params.merchantId)}`
+    : undefined;
+
+  const supportUrl = params.merchantId
+    ? `${siteUrl}/api/public/broadcast-track?b=${encodeURIComponent(params.broadcastId)}&m=${encodeURIComponent(params.merchantId)}&next=/dashboard/support`
+    : `${siteUrl}/dashboard/support`;
+
+  const html = buildBroadcastHtml({
+    titre: params.titre,
+    message: params.message,
+    supportUrl,
+    trackingPixelUrl,
+  });
+  const result = await sendWithRetry({
+    to: params.recipientEmail,
+    subject,
+    html,
+    tag: `Broadcast:${params.broadcastId.slice(0, 8)}`,
+  });
+  await recordOutbox({
+    destinataire: params.recipientEmail,
+    type: "support_broadcast",
+    reference: params.broadcastId,
+    sujet: subject,
+    success: result.success,
+    messageId: result.messageId,
+    error: result.error,
+    tentatives: 3,
+  });
+  return result;
+}
+

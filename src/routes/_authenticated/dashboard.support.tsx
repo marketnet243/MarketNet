@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   LifeBuoy, Plus, ChevronRight, MessageCircle, Clock, CheckCircle2,
-  XCircle, AlertCircle, Loader2, Inbox, Upload, X,
+  XCircle, AlertCircle, Loader2, Inbox, Upload, X, Megaphone, ChevronDown,
+  ChevronUp, Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +20,14 @@ import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { listMyTickets, createSupportTicket } from "@/lib/support.functions";
-import type { SupportTicketStatut, SupportTicketCategorie } from "@/lib/support.functions";
+import {
+  listMyTickets,
+  createSupportTicket,
+  listMyBroadcasts,
+  markBroadcastRead,
+  type SupportTicketStatut,
+  type SupportTicketCategorie,
+} from "@/lib/support.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/support")({
   head: () => ({
@@ -114,6 +121,35 @@ function SupportPage() {
     queryFn: () => listMyTicketsFn(),
     refetchInterval: 30000,
   });
+
+  const listMyBroadcastsFn = useServerFn(listMyBroadcasts);
+  const markBroadcastReadFn = useServerFn(markBroadcastRead);
+
+  // Charger les annonces / diffusions
+  const { data: broadcasts } = useQuery({
+    queryKey: ["myBroadcasts"],
+    queryFn: () => listMyBroadcastsFn(),
+    refetchInterval: 30000,
+  });
+
+  const [expandedBroadcasts, setExpandedBroadcasts] = useState<Record<string, boolean>>({});
+
+  const handleToggleBroadcast = async (broadcastId: string, isUnread: boolean) => {
+    setExpandedBroadcasts((prev) => ({
+      ...prev,
+      [broadcastId]: !prev[broadcastId],
+    }));
+
+    if (isUnread) {
+      try {
+        await markBroadcastReadFn({ data: { broadcast_id: broadcastId } });
+        qc.invalidateQueries({ queryKey: ["myBroadcasts"] });
+        qc.invalidateQueries({ queryKey: ["mySupportUnread"] });
+      } catch (e) {
+        // non bloquant
+      }
+    }
+  };
 
   // Synchroniser avec l'URL si on arrive sur /nouveau
   useEffect(() => {
@@ -239,7 +275,8 @@ function SupportPage() {
     });
   }
 
-  const totalUnread = (tickets ?? []).reduce((acc: number, t: any) => acc + (t.unread_count ?? 0), 0);
+  const totalUnreadTickets = (tickets ?? []).reduce((acc: number, t: any) => acc + (t.unread_count ?? 0), 0);
+  const unreadBroadcastsCount = (broadcasts ?? []).filter((b: any) => !b.lu_le).length;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -263,13 +300,112 @@ function SupportPage() {
         </Button>
       </div>
 
-      {/* Compteur de réponses non lues */}
-      {totalUnread > 0 && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 flex items-center gap-3 text-sm text-blue-800">
+      {/* Compteur d'éléments non lus */}
+      {(totalUnreadTickets > 0 || unreadBroadcastsCount > 0) && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900/50 px-4 py-3 flex items-center gap-3 text-sm text-blue-800 dark:text-blue-200">
           <MessageCircle className="h-4 w-4 shrink-0" />
           <span>
-            Vous avez <strong>{totalUnread}</strong> réponse{totalUnread > 1 ? "s" : ""} non lue{totalUnread > 1 ? "s" : ""}.
+            {totalUnreadTickets > 0 && unreadBroadcastsCount > 0
+              ? `Vous avez ${totalUnreadTickets} réponse${totalUnreadTickets > 1 ? "s" : ""} et ${unreadBroadcastsCount} annonce${unreadBroadcastsCount > 1 ? "s" : ""} non lue${unreadBroadcastsCount > 1 ? "s" : ""}.`
+              : totalUnreadTickets > 0
+              ? `Vous avez ${totalUnreadTickets} réponse${totalUnreadTickets > 1 ? "s" : ""} non lue${totalUnreadTickets > 1 ? "s" : ""} sur vos tickets.`
+              : `Vous avez ${unreadBroadcastsCount} nouvelle${unreadBroadcastsCount > 1 ? "s" : ""} annonce${unreadBroadcastsCount > 1 ? "s" : ""} officielle${unreadBroadcastsCount > 1 ? "s" : ""}.`}
           </span>
+        </div>
+      )}
+
+      {/* Annonces officielles / Diffusions */}
+      {broadcasts && broadcasts.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <Megaphone className="h-4 w-4 text-primary" />
+            <span>Annonces de MarketNet ({broadcasts.length})</span>
+          </div>
+
+          <div className="space-y-2.5">
+            {broadcasts.map((b) => {
+              const isUnread = !b.lu_le;
+              const isExpanded = !!expandedBroadcasts[b.id];
+              return (
+                <div
+                  key={b.id}
+                  className={cn(
+                    "rounded-2xl border transition-all overflow-hidden bg-card",
+                    isUnread
+                      ? "border-primary/40 shadow-xs bg-primary/[0.02]"
+                      : "border-border hover:border-border/80"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBroadcast(b.id, isUnread)}
+                    className="w-full text-left p-4 flex items-start justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div
+                        className={cn(
+                          "mt-0.5 h-8 w-8 rounded-xl flex items-center justify-center shrink-0",
+                          isUnread
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        <Megaphone className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-sm text-foreground">{b.titre}</h3>
+                          {isUnread && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                              Nouveau
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            {new Date(b.cree_le).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground shrink-0 mt-1">
+                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 pt-1 border-t border-border/50 space-y-3">
+                      <div className="rounded-xl bg-muted/40 p-3.5 text-xs text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                        {b.message}
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-blue-200/60 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/40 p-3 text-xs">
+                        <p className="text-muted-foreground flex items-center gap-1.5">
+                          <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                          <span>Message de MarketNet : pour nous écrire, créez un ticket.</span>
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setModalOpen(true)}
+                          className="rounded-lg h-7 px-2.5 text-xs font-semibold gap-1 shrink-0 bg-background"
+                        >
+                          <Plus className="h-3 w-3" /> Créer un ticket
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

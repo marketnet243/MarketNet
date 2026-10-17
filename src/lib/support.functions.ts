@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin as rawSupabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { sendNewTicketAdminNotification, sendAdminReplyNotification } from "@/lib/support-email.server";
+import {
+  sendNewTicketAdminNotification,
+  sendAdminReplyNotification,
+  sendBroadcastEmailNotification,
+} from "@/lib/support-email.server";
 
 // Cast pour les tables de la migration support
 const supabaseAdmin = rawSupabaseAdmin as any;
@@ -10,7 +14,6 @@ const supabaseAdmin = rawSupabaseAdmin as any;
 
 export type SupportTicketCategorie =
   | "paiement_abonnement"
-  | "connexion_facebook"
   | "boutique_produits"
   | "commandes"
   | "autre";
@@ -42,6 +45,38 @@ export interface SupportMessage {
   cree_le: string;
   lu_le: string | null;
   support_attachments?: { id: string; chemin: string; mime_type: string; taille: number }[];
+}
+
+export interface SupportBroadcast {
+  id: string;
+  admin_id: string;
+  titre: string;
+  message: string;
+  cible: "tous" | "selection";
+  destinataires_count: number;
+  envoyes_count: number;
+  echoues_count: number;
+  lus_count: number;
+  statut: string;
+  cree_le: string;
+}
+
+export interface SupportBroadcastItem {
+  id: string;
+  titre: string;
+  message: string;
+  cree_le: string;
+  lu_le: string | null;
+}
+
+export interface CandidateMerchant {
+  id: string;
+  email: string;
+  full_name: string | null;
+  shop_id: string;
+  shop_name: string;
+  shop_slug: string;
+  plan_id: string;
 }
 
 // ─── 1. Créer un ticket ────────────────────────────────────────────────────
@@ -235,6 +270,19 @@ export const getTicketDetail = createServerFn({ method: "GET" })
       }
     }
 
+    // Marquer les messages commerçant comme lus pour l'administrateur
+    if (isAdminData) {
+      const unreadMerchantIds = (messages ?? [])
+        .filter((m: any) => m.auteur === "merchant" && !m.lu_le)
+        .map((m: any) => m.id);
+      if (unreadMerchantIds.length > 0) {
+        await sb
+          .from("support_messages")
+          .update({ lu_le: new Date().toISOString() })
+          .in("id", unreadMerchantIds);
+      }
+    }
+
     return {
       ticket: ticket as SupportTicket,
       messages: filteredMessages as SupportMessage[],
@@ -412,7 +460,7 @@ export const adminListTickets = createServerFn({ method: "GET" })
     return { tickets: withUnread as unknown as (SupportTicket & { unread_count: number })[], total: count ?? 0 };
   });
 
-// ─── 7. Compteur de tickets en attente (admin, pour badge) ────────────────
+// ─── 7. Compteur de messages commerçants non lus (admin, pour badge) ─────
 
 export const adminPendingTicketsCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -421,10 +469,12 @@ export const adminPendingTicketsCount = createServerFn({ method: "GET" })
     const { data: isAdminData } = await sb.rpc("has_role", { _user_id: (context as any).userId, _role: "admin" });
     if (!isAdminData) return { count: 0 };
 
+    // Compter les messages commerçants non lus par l'administrateur
     const { count } = await sb
-      .from("support_tickets")
+      .from("support_messages")
       .select("*", { count: "exact", head: true })
-      .in("statut", ["ouvert", "en_cours"]);
+      .eq("auteur", "merchant")
+      .is("lu_le", null);
 
     return { count: count ?? 0 };
   });
@@ -466,7 +516,7 @@ export const getAttachmentSignedUrl = createServerFn({ method: "GET" })
     return { url: signed.signedUrl };
   });
 
-// ─── 9. Compteur tickets non lus pour le commerçant (badge menu) ──────────
+// ─── 9. Compteur support non lu pour le commerçant (badge menu) ──────────
 
 export const myUnreadSupportCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -474,22 +524,422 @@ export const myUnreadSupportCount = createServerFn({ method: "GET" })
     const sb = supabaseAdmin;
     const userId = (context as any).userId;
 
-    // Tickets du commerçant ayant au moins un message admin non lu
+    // 1. Messages tickets admin non lus par le commerçant
+    let ticketUnread = 0;
     const { data: tickets } = await sb
       .from("support_tickets")
       .select("id")
       .eq("merchant_id", userId);
 
-    if (!tickets?.length) return { count: 0 };
+    if (tickets?.length) {
+      const ids = tickets.map((t: any) => t.id);
+      const { count } = await sb
+        .from("support_messages")
+        .select("*", { count: "exact", head: true })
+        .in("ticket_id", ids)
+        .eq("auteur", "admin")
+        .eq("note_interne", false)
+        .is("lu_le", null);
+      ticketUnread = count ?? 0;
+    }
 
-    const ids = tickets.map((t: any) => t.id);
-    const { count } = await sb
-      .from("support_messages")
+    // 2. Diffusions (annonces) non lues par le commerçant
+    const { count: broadcastUnread } = await sb
+      .from("support_broadcast_recipients")
       .select("*", { count: "exact", head: true })
-      .in("ticket_id", ids)
-      .eq("auteur", "admin")
-      .eq("note_interne", false)
+      .eq("merchant_id", userId)
       .is("lu_le", null);
 
-    return { count: count ?? 0 };
+    return { count: ticketUnread + (broadcastUnread ?? 0) };
   });
+
+// ─── 10. MODULE DIFFUSIONS (BROADCASTS) ────────────────────────────────────
+
+export const adminListCandidateMerchants = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CandidateMerchant[]> => {
+    const sb = supabaseAdmin;
+    const { data: isAdminData } = await sb.rpc("has_role", { _user_id: (context as any).userId, _role: "admin" });
+    if (!isAdminData) throw new Error("Accès refusé");
+
+    const { data: shops, error: shopsErr } = await sb
+      .from("shops")
+      .select("id, name, slug, plan_id, owner_id, is_suspended")
+      .eq("is_suspended", false);
+
+    if (shopsErr) throw new Error(shopsErr.message);
+
+    const { data: profiles } = await sb
+      .from("profiles")
+      .select("id, email, full_name, status");
+
+    const { data: adminRoles } = await sb
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    const adminUserIds = new Set((adminRoles ?? []).map((r: any) => r.user_id));
+    const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+
+    const candidates: CandidateMerchant[] = [];
+    const seen = new Set<string>();
+
+    for (const s of (shops ?? [])) {
+      if (adminUserIds.has(s.owner_id)) continue;
+      if (seen.has(s.owner_id)) continue;
+
+      const prof = profileMap.get(s.owner_id);
+      if (prof?.status === "suspended") continue;
+
+      let email = prof?.email;
+      if (!email || !email.includes("@")) {
+        try {
+          const { data: authUser } = await sb.auth.admin.getUserById(s.owner_id);
+          email = authUser?.user?.email ?? "";
+        } catch {}
+      }
+      if (!email || !email.includes("@")) continue;
+
+      seen.add(s.owner_id);
+      candidates.push({
+        id: s.owner_id,
+        email,
+        full_name: prof?.full_name ?? null,
+        shop_id: s.id,
+        shop_name: s.name,
+        shop_slug: s.slug,
+        plan_id: s.plan_id || "free",
+      });
+    }
+
+    return candidates;
+  });
+
+export const adminCreateBroadcast = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: {
+    titre: string;
+    message: string;
+    cible: "tous" | "selection";
+    target_merchant_ids?: string[];
+  }) => d)
+  .handler(async ({ data, context }) => {
+    const sb = supabaseAdmin;
+    const adminId = (context as any).userId;
+    const { data: isAdminData } = await sb.rpc("has_role", { _user_id: adminId, _role: "admin" });
+    if (!isAdminData) throw new Error("Accès refusé");
+
+    const titre = data.titre.trim();
+    const message = data.message.trim();
+    if (titre.length < 3 || titre.length > 200) {
+      throw new Error("Le titre doit contenir entre 3 et 200 caractères.");
+    }
+    if (message.length < 5 || message.length > 10000) {
+      throw new Error("Le message doit contenir entre 5 et 10 000 caractères.");
+    }
+
+    const { data: shops } = await sb
+      .from("shops")
+      .select("id, name, slug, plan_id, owner_id, is_suspended")
+      .eq("is_suspended", false);
+
+    const { data: profiles } = await sb
+      .from("profiles")
+      .select("id, email, full_name, status");
+
+    const { data: adminRoles } = await sb
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    const adminUserIds = new Set((adminRoles ?? []).map((r: any) => r.user_id));
+    const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    const selectedSet = data.target_merchant_ids ? new Set(data.target_merchant_ids) : null;
+
+    const targets: { merchant_id: string; shop_id: string; email: string }[] = [];
+    const seenMerchants = new Set<string>();
+
+    for (const s of (shops ?? [])) {
+      if (adminUserIds.has(s.owner_id)) continue;
+      if (seenMerchants.has(s.owner_id)) continue;
+      if (selectedSet && !selectedSet.has(s.owner_id)) continue;
+
+      const prof = profileMap.get(s.owner_id);
+      if (prof?.status === "suspended") continue;
+
+      let email = prof?.email;
+      if (!email || !email.includes("@")) {
+        try {
+          const { data: authUser } = await sb.auth.admin.getUserById(s.owner_id);
+          email = authUser?.user?.email ?? "";
+        } catch {}
+      }
+      if (!email || !email.includes("@")) continue;
+
+      seenMerchants.add(s.owner_id);
+      targets.push({
+        merchant_id: s.owner_id,
+        shop_id: s.id,
+        email,
+      });
+    }
+
+    if (targets.length === 0) {
+      throw new Error("Aucun commerçant éligible trouvé pour cette cible.");
+    }
+
+    const { data: broadcast, error: bErr } = await sb
+      .from("support_broadcasts")
+      .insert({
+        admin_id: adminId,
+        titre,
+        message,
+        cible: data.cible,
+        destinataires_count: targets.length,
+        envoyes_count: 0,
+        echoues_count: 0,
+        lus_count: 0,
+        statut: "en_cours",
+      })
+      .select()
+      .single();
+
+    if (bErr || !broadcast) throw new Error(bErr?.message || "Erreur création diffusion");
+
+    const recipientRows = targets.map((t) => ({
+      broadcast_id: broadcast.id,
+      merchant_id: t.merchant_id,
+      shop_id: t.shop_id,
+      email: t.email,
+      email_statut: "en_attente",
+    }));
+
+    await sb.from("support_broadcast_recipients").insert(recipientRows);
+
+    let dailyLimit = 200;
+    try {
+      const { data: setting } = await sb
+        .from("app_settings")
+        .select("value")
+        .eq("key", "broadcast_daily_limit")
+        .maybeSingle();
+      if (setting?.value) {
+        const parsed = Number(typeof setting.value === "string" ? setting.value.replace(/"/g, "") : setting.value);
+        if (!isNaN(parsed) && parsed > 0) dailyLimit = parsed;
+      }
+    } catch {}
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const { count: sentTodayCount } = await sb
+      .from("notification_outbox")
+      .select("*", { count: "exact", head: true })
+      .eq("type", "support_broadcast")
+      .gte("cree_le", todayStart.toISOString());
+
+    const remainingQuota = Math.max(0, dailyLimit - (sentTodayCount ?? 0));
+
+    let sentCount = 0;
+    let failedCount = 0;
+
+    for (const t of targets) {
+      if (sentCount >= remainingQuota) {
+        await sb
+          .from("support_broadcast_recipients")
+          .update({
+            email_statut: "échoué",
+            email_erreur: `Quota quotidien atteint (${dailyLimit}/jour)`,
+          })
+          .eq("broadcast_id", broadcast.id)
+          .eq("merchant_id", t.merchant_id);
+        failedCount++;
+        continue;
+      }
+
+      try {
+        const res = await sendBroadcastEmailNotification({
+          broadcastId: broadcast.id,
+          recipientEmail: t.email,
+          titre,
+          message,
+          merchantId: t.merchant_id,
+        });
+
+        if (res.success) {
+          sentCount++;
+          await sb
+            .from("support_broadcast_recipients")
+            .update({ email_statut: "envoyé" })
+            .eq("broadcast_id", broadcast.id)
+            .eq("merchant_id", t.merchant_id);
+        } else {
+          failedCount++;
+          await sb
+            .from("support_broadcast_recipients")
+            .update({
+              email_statut: "échoué",
+              email_erreur: res.error ?? "Échec d'envoi SMTP",
+            })
+            .eq("broadcast_id", broadcast.id)
+            .eq("merchant_id", t.merchant_id);
+        }
+      } catch (err) {
+        failedCount++;
+        await sb
+          .from("support_broadcast_recipients")
+          .update({
+            email_statut: "échoué",
+            email_erreur: err instanceof Error ? err.message : "Erreur inconnue",
+          })
+          .eq("broadcast_id", broadcast.id)
+          .eq("merchant_id", t.merchant_id);
+      }
+    }
+
+    await sb
+      .from("support_broadcasts")
+      .update({
+        envoyes_count: sentCount,
+        echoues_count: failedCount,
+        statut: "terminee",
+      })
+      .eq("id", broadcast.id);
+
+    return {
+      success: true,
+      broadcast_id: broadcast.id,
+      destinataires_count: targets.length,
+      envoyes_count: sentCount,
+      echoues_count: failedCount,
+    };
+  });
+
+export const adminSendTestBroadcast = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: { titre: string; message: string }) => d)
+  .handler(async ({ data, context }) => {
+    const sb = supabaseAdmin;
+    const adminId = (context as any).userId;
+    const { data: isAdminData } = await sb.rpc("has_role", { _user_id: adminId, _role: "admin" });
+    if (!isAdminData) throw new Error("Accès refusé");
+
+    const { data: authUser } = await sb.auth.admin.getUserById(adminId);
+    const adminEmail = authUser?.user?.email;
+    if (!adminEmail) throw new Error("Adresse email administrateur introuvable");
+
+    const res = await sendBroadcastEmailNotification({
+      broadcastId: "test-preview",
+      recipientEmail: adminEmail,
+      titre: `[TEST] ${data.titre}`,
+      message: data.message,
+    });
+
+    if (!res.success) {
+      throw new Error(res.error || "Échec d'envoi de l'e-mail test.");
+    }
+
+    return { success: true, email: adminEmail };
+  });
+
+export const adminListBroadcasts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<SupportBroadcast[]> => {
+    const sb = supabaseAdmin;
+    const { data: isAdminData } = await sb.rpc("has_role", { _user_id: (context as any).userId, _role: "admin" });
+    if (!isAdminData) throw new Error("Accès refusé");
+
+    const { data: broadcasts, error } = await sb
+      .from("support_broadcasts")
+      .select("*")
+      .order("cree_le", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    // Synchronisation en temps réel du nombre de lectures
+    const { data: recips } = await sb
+      .from("support_broadcast_recipients")
+      .select("broadcast_id, lu_le");
+
+    const readMap = new Map<string, number>();
+    for (const r of (recips ?? [])) {
+      if (r.lu_le) {
+        readMap.set(r.broadcast_id, (readMap.get(r.broadcast_id) ?? 0) + 1);
+      }
+    }
+
+    const items = (broadcasts ?? []).map((b: any) => ({
+      ...b,
+      lus_count: readMap.get(b.id) ?? b.lus_count ?? 0,
+    }));
+
+    return items as SupportBroadcast[];
+  });
+
+export const listMyBroadcasts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<SupportBroadcastItem[]> => {
+    const sb = supabaseAdmin;
+    const userId = (context as any).userId;
+
+    const { data: recips, error: rErr } = await sb
+      .from("support_broadcast_recipients")
+      .select("broadcast_id, lu_le, cree_le, support_broadcasts(id, titre, message, cree_le)")
+      .eq("merchant_id", userId)
+      .order("cree_le", { ascending: false });
+
+    if (rErr) throw new Error(rErr.message);
+
+    const items: SupportBroadcastItem[] = [];
+    for (const r of (recips ?? [])) {
+      const b = (r as any).support_broadcasts;
+      if (b) {
+        items.push({
+          id: b.id,
+          titre: b.titre,
+          message: b.message,
+          cree_le: b.cree_le,
+          lu_le: r.lu_le,
+        });
+      }
+    }
+    return items;
+  });
+
+export const markBroadcastRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: { broadcast_id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const sb = supabaseAdmin;
+    const userId = (context as any).userId;
+
+    const { data: recip } = await sb
+      .from("support_broadcast_recipients")
+      .select("id, lu_le")
+      .eq("broadcast_id", data.broadcast_id)
+      .eq("merchant_id", userId)
+      .maybeSingle();
+
+    if (recip && !recip.lu_le) {
+      await sb
+        .from("support_broadcast_recipients")
+        .update({ lu_le: new Date().toISOString() })
+        .eq("id", recip.id);
+
+      const { data: b } = await sb
+        .from("support_broadcasts")
+        .select("lus_count")
+        .eq("id", data.broadcast_id)
+        .maybeSingle();
+
+      if (b) {
+        await sb
+          .from("support_broadcasts")
+          .update({ lus_count: (b.lus_count ?? 0) + 1 })
+          .eq("id", data.broadcast_id);
+      }
+    }
+
+    return { success: true };
+  });
+

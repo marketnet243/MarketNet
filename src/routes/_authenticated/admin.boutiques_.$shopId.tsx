@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { logAction } from "@/hooks/useIsAdmin";
-import { mediaUrl } from "@/lib/marketnet";
+import { mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -207,6 +207,12 @@ function ShopDetail() {
                 <span className="text-muted-foreground">Plan actuel</span>
                 <span className="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-primary/10 text-primary border border-primary/20 shadow-sm">
                   {shop.plan_id}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-3 pt-1 items-center">
+                <span className="text-muted-foreground">Catégorie</span>
+                <span className="font-semibold text-foreground">
+                  {getShopCategoryLabel(shop) || "Non renseignée"}
                 </span>
               </div>
               <div className="flex justify-between border-b pb-3 pt-1 items-center">

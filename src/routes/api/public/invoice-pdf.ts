@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getInvoiceData, generateInvoicePdf } from "@/lib/invoices.server";
+import {
+  getInvoiceData,
+  generateInvoicePdf,
+  getAssignmentLetterData,
+  generateAssignmentLetterPdf,
+} from "@/lib/invoices.server";
 
 export const Route = createFileRoute("/api/public/invoice-pdf")({
   server: {
@@ -16,23 +21,37 @@ export const Route = createFileRoute("/api/public/invoice-pdf")({
             });
           }
 
+          // 1. Facture commerciale SasPay
           const inv = await getInvoiceData(paymentId);
-          if (!inv) {
-            return new Response(JSON.stringify({ error: "Facture introuvable pour ce paiement" }), {
-              status: 404,
-              headers: { "Content-Type": "application/json" },
+          if (inv) {
+            const pdfBuffer = await generateInvoicePdf(inv);
+            return new Response(pdfBuffer, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="facture-${inv.invoiceNumber}.pdf"`,
+                "Cache-Control": "private, max-age=3600",
+              },
             });
           }
 
-          const pdfBuffer = await generateInvoicePdf(inv);
+          // 2. Lettre d'attribution officielle (Admin)
+          const letter = await getAssignmentLetterData(paymentId);
+          if (letter) {
+            const pdfBuffer = await generateAssignmentLetterPdf(letter);
+            return new Response(pdfBuffer, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="lettre-attribution-${letter.letterNumber}.pdf"`,
+                "Cache-Control": "private, max-age=3600",
+              },
+            });
+          }
 
-          return new Response(pdfBuffer, {
-            status: 200,
-            headers: {
-              "Content-Type": "application/pdf",
-              "Content-Disposition": `attachment; filename="facture-${inv.invoiceNumber}.pdf"`,
-              "Cache-Control": "private, max-age=3600",
-            },
+          return new Response(JSON.stringify({ error: "Document introuvable pour ce paiement" }), {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
           });
         } catch (error) {
           console.error("[Invoice-PDF] Erreur lors de la génération du PDF:", error);

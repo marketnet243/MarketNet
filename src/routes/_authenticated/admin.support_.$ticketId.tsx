@@ -43,7 +43,6 @@ const STATUT_COLOR: Record<string, string> = {
 
 const CATEGORIE_LABELS: Record<string, string> = {
   paiement_abonnement: "Paiement & abonnement",
-  connexion_facebook: "Connexion Facebook",
   boutique_produits: "Boutique & produits",
   commandes: "Commandes",
   autre: "Autre",
@@ -134,6 +133,13 @@ function AdminTicketDetailPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data?.messages]);
+
+  useEffect(() => {
+    if (data) {
+      qc.invalidateQueries({ queryKey: ["adminPendingTicketsCount"] });
+      qc.invalidateQueries({ queryKey: ["adminTickets"] });
+    }
+  }, [data, qc]);
 
   const statusMutation = useMutation({
     mutationFn: (s: SupportTicketStatut) => updateStatusFn({ data: { ticket_id: ticketId, statut: s } }),

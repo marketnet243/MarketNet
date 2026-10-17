@@ -837,147 +837,189 @@ function AdminPaymentsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* ── MODAL : DÉTAIL DU PAIEMENT ────────────────────────────────────── */}
+      {/* ── MODAL : DÉTAIL DU PAIEMENT / ATTRIBUTION ────────────────────── */}
       <Dialog open={!!selectedPayment} onOpenChange={(o) => !o && setSelectedPayment(null)}>
         <DialogContent className="w-[calc(100%-2rem)] sm:w-full max-w-lg rounded-3xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" /> Détails du paiement
-            </DialogTitle>
-            <DialogDescription>
-              Identifiant de transaction : <span className="font-mono text-xs">{selectedPayment?.id}</span>
-            </DialogDescription>
-          </DialogHeader>
+          {(() => {
+            const isModalAttributed = selectedPayment ? isPaymentAttributed(selectedPayment) : false;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                    {isModalAttributed ? (
+                      <>
+                        <ShieldCheck className="h-5 w-5 text-blue-600" /> Attribution manuelle de plan
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="h-5 w-5 text-primary" /> Détails du paiement
+                      </>
+                    )}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {isModalAttributed ? "Identifiant d'attribution" : "Identifiant de transaction"} :{" "}
+                    <span className="font-mono text-xs">{selectedPayment?.id}</span>
+                  </DialogDescription>
+                </DialogHeader>
 
-          {selectedPayment && (
-            <div className="space-y-3 py-2 text-xs overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3.5 rounded-2xl bg-muted/40 border">
-                <div>
-                  <span className="text-muted-foreground">Boutique</span>
-                  <p className="font-bold text-sm text-foreground">{selectedPayment.shops?.name || "N/A"}</p>
-                  {selectedPayment.merchant_profile && (
-                    <div className="mt-1 text-[11px] text-muted-foreground">
-                      <p className="font-medium text-foreground">{selectedPayment.merchant_profile.full_name}</p>
-                      <p>{selectedPayment.merchant_profile.email}</p>
-                      {selectedPayment.merchant_profile.phone && <p>{selectedPayment.merchant_profile.phone}</p>}
+                {selectedPayment && (
+                  <div className="space-y-3 py-2 text-xs overflow-y-auto flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3.5 rounded-2xl bg-muted/40 border">
+                      <div>
+                        <span className="text-muted-foreground">Boutique</span>
+                        <p className="font-bold text-sm text-foreground">{selectedPayment.shops?.name || "N/A"}</p>
+                        {selectedPayment.merchant_profile && (
+                          <div className="mt-1 text-[11px] text-muted-foreground">
+                            <p className="font-medium text-foreground">{selectedPayment.merchant_profile.full_name}</p>
+                            <p>{selectedPayment.merchant_profile.email}</p>
+                            {selectedPayment.merchant_profile.phone && <p>{selectedPayment.merchant_profile.phone}</p>}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">{isModalAttributed ? "Plan attribué" : "Plan demandé"}</span>
+                        <p className="font-bold text-sm text-foreground uppercase">
+                          {selectedPayment.plan_id} ({selectedPayment.period || "mensuel"})
+                        </p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          Créé le : {new Date(selectedPayment.cree_le || selectedPayment.created_at).toLocaleString("fr-FR")}
+                        </p>
+                        {selectedPayment.paye_le && (
+                          <p className={cn("text-[11px] font-medium", isModalAttributed ? "text-blue-600 font-semibold" : "text-emerald-600")}>
+                            {isModalAttributed ? "Attribué le :" : "Payé le :"} {new Date(selectedPayment.paye_le).toLocaleString("fr-FR")}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Plan demandé</span>
-                  <p className="font-bold text-sm text-foreground uppercase">
-                    {selectedPayment.plan_id} ({selectedPayment.period || "mensuel"})
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Créé le : {new Date(selectedPayment.cree_le || selectedPayment.created_at).toLocaleString("fr-FR")}
-                  </p>
-                  {selectedPayment.paye_le && (
-                    <p className="text-[11px] text-emerald-600 font-medium">
-                      Payé le : {new Date(selectedPayment.paye_le).toLocaleString("fr-FR")}
-                    </p>
-                  )}
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3.5 rounded-2xl bg-muted/40 border">
-                <div>
-                  <span className="text-muted-foreground">Montant total</span>
-                  <p className="font-bold text-base text-primary">
-                    {formatCDF(Number(selectedPayment.montant_cdf ?? selectedPayment.amount ?? 0))}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Statut</span>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    {(() => {
-                      const isModalAttributed =
-                        (selectedPayment.methode === "manuel" || selectedPayment.method === "manuel" || selectedPayment.method === "cash" || selectedPayment.admin_note?.includes("Attribution")) &&
-                        getNormalizedStatus(selectedPayment) === "payé";
-                      if (isModalAttributed) {
-                        return (
-                          <span className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold text-sm">
-                            <span className="h-2 w-2 rounded-full bg-blue-500" /> Attribué (Validé)
-                          </span>
-                        );
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3.5 rounded-2xl bg-muted/40 border">
+                      <div>
+                        <span className="text-muted-foreground">Valeur équivalente</span>
+                        <p className="font-bold text-base text-primary">
+                          {formatCDF(Number(selectedPayment.montant_cdf ?? selectedPayment.amount ?? 0))}
+                        </p>
+                        {isModalAttributed && (
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Offert (non encaissé)</p>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Statut</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {isModalAttributed ? (
+                            <span className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold text-sm">
+                              <span className="h-2 w-2 rounded-full bg-blue-500" /> Attribué (Actif)
+                            </span>
+                          ) : (
+                            <p className="font-bold text-sm capitalize">{selectedPayment.statut || selectedPayment.status}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedPayment.admin_note && (
+                      <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs">
+                        <span className="font-bold text-blue-700 dark:text-blue-300">Note d'attribution / Motif :</span>
+                        <p className="text-muted-foreground mt-0.5">{selectedPayment.admin_note}</p>
+                      </div>
+                    )}
+
+                    {isModalAttributed ? (
+                      <div className="space-y-2 p-3.5 rounded-2xl border bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/40">
+                        <p className="font-bold text-blue-700 dark:text-blue-300 uppercase text-[10px] tracking-wider">
+                          Type d'attribution
+                        </p>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Mode :</span>
+                          <span className="font-semibold text-blue-700 dark:text-blue-300">Attribution manuelle (Admin)</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Passerelle financière :</span>
+                          <span className="text-muted-foreground">Aucune (non encaissé en ligne)</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Attestation :</span>
+                          <span className="font-semibold text-blue-700 dark:text-blue-300">Lettre d'attribution envoyée par email (PDF)</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 p-3.5 rounded-2xl border">
+                        <p className="font-bold text-muted-foreground uppercase text-[10px] tracking-wider">Passerelle de paiement</p>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Méthode :</span>
+                          <span className="font-semibold">{selectedPayment.methode === "saspay" ? "SasPay (Mobile Money)" : selectedPayment.methode || "saspay"}</span>
+                        </div>
+                        {selectedPayment.saspay_session_id && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Session ID :</span>
+                            <span className="font-mono text-[11px] truncate max-w-[240px]">{selectedPayment.saspay_session_id}</span>
+                          </div>
+                        )}
+                        {selectedPayment.saspay_transaction_id && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Transaction ID :</span>
+                            <span className="font-mono text-[11px] truncate max-w-[240px]">{selectedPayment.saspay_transaction_id}</span>
+                          </div>
+                        )}
+                        {selectedPayment.checkout_url && (
+                          <div className="flex justify-between items-center pt-1.5 border-t">
+                            <span className="text-muted-foreground">Page de paiement :</span>
+                            <a
+                              href={selectedPayment.checkout_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline font-semibold flex items-center gap-1 text-[11px]"
+                            >
+                              Ouvrir la session SasPay <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        )}
+                        {selectedPayment.frais != null && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Frais :</span>
+                            <span>{formatCDF(selectedPayment.frais)}</span>
+                          </div>
+                        )}
+                        {selectedPayment.montant_net != null && (
+                          <div className="flex justify-between font-bold">
+                            <span>Montant net :</span>
+                            <span>{formatCDF(selectedPayment.montant_net)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
+                  {selectedPayment && getNormalizedStatus(selectedPayment) === "payé" && !isModalAttributed && (
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        window.open(`/api/public/invoice-pdf?paymentId=${selectedPayment.id}`, "_blank")
                       }
-                      return (
-                        <p className="font-bold text-sm capitalize">{selectedPayment.statut || selectedPayment.status}</p>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-
-              {selectedPayment.admin_note && (
-                <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs">
-                  <span className="font-bold text-blue-700 dark:text-blue-300">Note d'attribution / Motif :</span>
-                  <p className="text-muted-foreground mt-0.5">{selectedPayment.admin_note}</p>
-                </div>
-              )}
-
-              <div className="space-y-2 p-3.5 rounded-2xl border">
-                <p className="font-bold text-muted-foreground uppercase text-[10px] tracking-wider">Passerelle de paiement</p>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Méthode :</span>
-                  <span className="font-semibold">{selectedPayment.methode === "saspay" ? "SasPay (Mobile Money)" : selectedPayment.methode || "saspay"}</span>
-                </div>
-                {selectedPayment.saspay_session_id && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Session ID :</span>
-                    <span className="font-mono text-[11px] truncate max-w-[240px]">{selectedPayment.saspay_session_id}</span>
-                  </div>
-                )}
-                {selectedPayment.saspay_transaction_id && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Transaction ID :</span>
-                    <span className="font-mono text-[11px] truncate max-w-[240px]">{selectedPayment.saspay_transaction_id}</span>
-                  </div>
-                )}
-                {selectedPayment.checkout_url && (
-                  <div className="flex justify-between items-center pt-1.5 border-t">
-                    <span className="text-muted-foreground">Page de paiement :</span>
-                    <a
-                      href={selectedPayment.checkout_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline font-semibold flex items-center gap-1 text-[11px]"
+                      className="rounded-xl font-semibold text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
                     >
-                      Ouvrir la session SasPay <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                )}
-                {selectedPayment.frais != null && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Frais :</span>
-                    <span>{formatCDF(selectedPayment.frais)}</span>
-                  </div>
-                )}
-                {selectedPayment.montant_net != null && (
-                  <div className="flex justify-between font-bold">
-                    <span>Montant net :</span>
-                    <span>{formatCDF(selectedPayment.montant_net)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
-            {selectedPayment && getNormalizedStatus(selectedPayment) === "payé" && (
-              <Button
-                variant="outline"
-                onClick={() =>
-                  window.open(`/api/public/invoice-pdf?paymentId=${selectedPayment.id}`, "_blank")
-                }
-                className="rounded-xl font-semibold text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
-              >
-                <FileDown className="h-3.5 w-3.5" /> Télécharger la facture PDF
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => setSelectedPayment(null)} className="rounded-xl">
-              Fermer
-            </Button>
-          </DialogFooter>
+                      <FileDown className="h-3.5 w-3.5" /> Télécharger la facture PDF
+                    </Button>
+                  )}
+                  {selectedPayment && isModalAttributed && (
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        window.open(`/api/public/invoice-pdf?paymentId=${selectedPayment.id}`, "_blank")
+                      }
+                      className="rounded-xl font-semibold text-xs gap-1.5 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                    >
+                      <FileDown className="h-3.5 w-3.5" /> Télécharger la lettre d'attribution PDF
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setSelectedPayment(null)} className="rounded-xl">
+                    Fermer
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 

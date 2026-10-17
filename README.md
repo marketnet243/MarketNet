@@ -62,24 +62,15 @@ L'ensemble de l'interface est pensée **mobile-first** pour garantir une fluidit
 - **Tableau de bord global (`/admin`)** : Nombre de commerçants, boutiques actives, produits en ligne, volume encaissé SasPay réel en Franc Congolais (FC), volume des attributions manuelles et courbe d'évolution des revenus.
 - **Gestion des commerçants (`/admin/commercants`)** : Liste complète, recherche, validation, suspension, réinitialisation de mot de passe, suppression sécurisée avec confirmation par mot de passe admin.
 - **Gestion des boutiques (`/admin/boutiques`)** : Modération, signalement de contenu, inspection des catalogues.
-- **Gestion des plans d'abonnement (`/admin/plans`)** : Création et modification dynamique des tarifs en Franc Congolais (FC) et des limites (nombre de produits, nombre de photos, promotions actives, accès Meta) avec synchronisation en temps réel.
-- **Suivi des paiements (`/admin/paiements`)** : Liste détaillée des transactions SasPay réelles vs attributions manuelles, filtrage par statut (`payé`, `en_attente`, `échoué`, `à_vérifier`), réconciliation et attribution de plans.
+- **Gestion des plans d'abonnement (`/admin/plans`)** : Création et modification dynamique des tarifs en Franc Congolais (FC) et des limites (nombre de produits, nombre de photos, promotions actives, support prioritaire) avec synchronisation en temps réel.
+- **Suivi des paiements (`/admin/paiements`)** : Liste détaillée des transactions SasPay réelles vs attributions manuelles, filtrage par statut (`payé`, `en_attente`, `échoué`, `à_vérifier`), réconciliation et attribution de plans avec génération de lettre d'attribution PDF.
+- **Support & Diffusions (`/admin/support`)** : Gestion des tickets d'assistance et envoi d'annonces officielles ciblées (tous les commerçants ou par sélection de forfaits) avec statistiques de délivrabilité et lectures en temps réel.
 - **Journal d'activité (Audit log)** : Traçabilité immuable des actions sensibles.
 - **Paramètres globaux (`/admin/parametres`)** : Catégories de boutiques, passerelle SasPay en CDF, textes légaux.
 
 ---
 
-## 6. Intégration Meta (Facebook & Instagram)
-
-Connexion de la page Facebook / compte Instagram professionnel du commerçant via Meta Login (OAuth) :
-- **Phase 1** : Publication d'un produit en un clic sur Facebook et Instagram (image, description, prix, lien direct boutique).
-- **Phase 2** : Synchronisation du catalogue produits avec Meta Commerce Manager.
-- **Phase 3** : Création de campagnes publicitaires sponsorisées.
-- Gestion robuste des tokens de session, expiration automatique et déconnexion propre.
-
----
-
-## 7. Système d'Abonnements & Paiements SasPay (Strictement en Franc Congolais — FC / CDF)
+## 6. Système d'Abonnements & Paiements SasPay (Strictement en Franc Congolais — FC / CDF)
 
 MarketNet intègre un système d'abonnement multi-formules (Gratuit, Pro, Business) couplé à la passerelle de paiement **SasPay** (Mobile Money RDC : M-Pesa, Orange Money, Airtel Money, et Cartes bancaires).
 
@@ -132,9 +123,9 @@ L'ensemble de la tarification des abonnements MarketNet et des flux SasPay fonct
 
 ---
 
-## 8. SEO & Balises Open Graph Dynamiques (Partage Réseaux Sociaux)
+## 7. SEO & Balises Open Graph Dynamiques (Partage Réseaux Sociaux)
 
-Le système injecte dynamiquement les balises Meta et Open Graph (`og:title`, `og:description`, `og:image`, `twitter:card`) pour garantir un aperçu visuel parfait lors des partages sur WhatsApp, Facebook, LinkedIn, Twitter et Telegram :
+Le système injecte dynamiquement les balises Open Graph et Twitter Cards (`og:title`, `og:description`, `og:image`, `twitter:card`) pour garantir un aperçu visuel parfait lors des partages sur WhatsApp, Facebook, LinkedIn, Twitter et Telegram :
 - **Produits (`/b/:slug/p/:productId`)** : L'image principale du produit est définie comme couverture Open Graph, complétée par le nom, le prix dans la devise de la boutique et la description.
 - **Boutiques (`/b/:slug`)** : La bannière officielle ou le logo de la boutique est injecté en image de prévisualisation.
 - **Promotions (`/b/:slug/promo/:promoId`)** : L'affiche promotionnelle ou le logo de l'enseigne est mis en avant avec le titre de la remise et sa période de validité.
@@ -142,7 +133,7 @@ Le système injecte dynamiquement les balises Meta et Open Graph (`og:title`, `o
 
 ---
 
-## 9. Module Promotions (Ventes Flash & Campagnes)
+## 8. Module Promotions (Ventes Flash & Campagnes)
 
 Permet aux commerçants de lancer des campagnes marketing ciblées :
 - **5 Modèles Graphiques Modernes (`PromoTemplate`)** :
@@ -157,7 +148,7 @@ Permet aux commerçants de lancer des campagnes marketing ciblées :
 
 ---
 
-## 10. Améliorations de l'Expérience Storefront & Panier
+## 9. Améliorations de l'Expérience Storefront & Panier
 
 - **Gestion des Paniers Mixtes** : Prise en charge native des devises multiples. Le `CartSheet` enregistre la devise exacte de chaque ligne de commande et calcule la somme détaillée.
 - **Filtres Avancés** : Sélecteur de dates Popover natif (`react-day-picker` / Shadcn) permettant de filtrer par date ou plage de dates.
@@ -166,7 +157,7 @@ Permet aux commerçants de lancer des campagnes marketing ciblées :
 
 ---
 
-## 11. Notifications par E-mail (Nodemailer SMTP)
+## 10. Notifications par E-mail (Nodemailer SMTP)
 
 Variables requises : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MARKETNET_ADMIN_EMAIL`, `MARKETNET_SITE_URL`.
 
@@ -181,7 +172,7 @@ Variables requises : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MA
 
 ---
 
-## 12. Développement Local & Commandes
+## 11. Développement Local & Commandes
 
 ### Installation
 
@@ -204,7 +195,7 @@ L'application est accessible localement sur `http://localhost:8080`.
 ### Exécution des tests automatisés
 
 ```bash
-# Exécute l'ensemble de la suite Vitest (32 tests automatisés)
+# Exécute l'ensemble de la suite Vitest (26 tests automatisés)
 npm run test
 ```
 
@@ -219,7 +210,7 @@ npm run db:migrate
 
 ---
 
-## 13. Déploiement en Production (Vercel)
+## 12. Déploiement en Production (Vercel)
 
 1. **Build Command** : `NITRO_PRESET=vercel npm run build` (configuré dans `vercel.json`).
 2. **Pré-build automatique** : `node scripts/deploy-prebuild.mjs` exécute les migrations SQL non appliquées et vérifie le compte administrateur initial.

@@ -37,6 +37,16 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
     return null;
   }
 
+  // Une attribution manuelle ne génère pas de facture de paiement (uniquement SasPay réel)
+  const isManual =
+    payment.methode === "manuel" ||
+    payment.method === "manuel" ||
+    payment.method === "cash" ||
+    payment.admin_note?.includes("Attribution");
+  if (isManual) {
+    return null;
+  }
+
   const shop = payment.shops as any;
   const merchantId = payment.merchant_id || shop?.owner_id;
 
@@ -520,6 +530,81 @@ export interface AssignmentLetterData {
   adminNote: string;
   adminEmail: string;
   dashboardUrl: string;
+}
+
+/**
+ * Récupère les données d'une lettre d'attribution pour un paiement manuel/attribué
+ */
+export async function getAssignmentLetterData(paymentId: string): Promise<AssignmentLetterData | null> {
+  const sb = supabaseAdmin;
+  const { data: payment, error } = await sb
+    .from("subscription_payments")
+    .select("*, shops(*)")
+    .eq("id", paymentId)
+    .single();
+
+  if (error || !payment) return null;
+
+  const isManual =
+    payment.methode === "manuel" ||
+    payment.method === "manuel" ||
+    payment.method === "cash" ||
+    payment.admin_note?.includes("Attribution");
+
+  if (!isManual) return null;
+
+  const shop = payment.shops as any;
+  const merchantId = payment.merchant_id || shop?.owner_id;
+  let merchantEmail = "client@marketnet.cd";
+  let merchantName = shop?.name || "Commerçant";
+
+  if (merchantId) {
+    try {
+      const { data: userRecord } = await sb.auth.admin.getUserById(merchantId);
+      if (userRecord?.user?.email) merchantEmail = userRecord.user.email;
+      if (userRecord?.user?.user_metadata?.full_name) merchantName = userRecord.user.user_metadata.full_name;
+    } catch {}
+  }
+
+  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const letterNumber = `ATT-${payment.id.slice(-8).toUpperCase()}`;
+
+  const assignmentDate = new Date(payment.cree_le || payment.created_at).toLocaleString("fr-FR", {
+    day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+
+  const planName = `Plan ${(payment.plan_id || "pro").toUpperCase()}`;
+  const period = payment.period === "annuel" ? "Annuel (1 an)" : "Mensuel (30 jours)";
+
+  let validUntilFormatted = "30 jours après activation";
+  if (shop?.id) {
+    const { data: sub } = await sb
+      .from("merchant_subscriptions")
+      .select("fin")
+      .eq("shop_id", shop.id)
+      .order("fin", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (sub?.fin) {
+      validUntilFormatted = new Date(sub.fin).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    }
+  }
+
+  const adminEmail = process.env.MARKETNET_ADMIN_EMAIL || "admin@marketnet.cd";
+
+  return {
+    letterNumber,
+    assignmentDate,
+    shopName: shop?.name || "Boutique",
+    merchantEmail,
+    merchantName,
+    planName,
+    period,
+    validUntil: validUntilFormatted,
+    adminNote: payment.admin_note || "Attribution administrative",
+    adminEmail,
+    dashboardUrl: `${siteUrl}/dashboard/abonnement`,
+  };
 }
 
 /**

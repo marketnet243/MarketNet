@@ -93,6 +93,7 @@ export interface ComputedPlanLimits {
   meta_access: boolean;
   advanced_stats: boolean;
   advanced_themes: boolean;
+  is_attributed?: boolean;
 }
 
 const GRACE_PERIOD_DAYS = 7;

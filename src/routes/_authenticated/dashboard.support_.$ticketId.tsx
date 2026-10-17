@@ -112,6 +112,13 @@ function TicketDetailPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [data?.messages]);
 
+  useEffect(() => {
+    if (data) {
+      qc.invalidateQueries({ queryKey: ["mySupportUnread"] });
+      qc.invalidateQueries({ queryKey: ["myTickets"] });
+    }
+  }, [data, qc]);
+
   const replyMutation = useMutation({
     mutationFn: async () => {
       if (!replyText.trim()) throw new Error("Le message ne peut pas être vide.");

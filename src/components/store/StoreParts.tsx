@@ -1,9 +1,9 @@
 import { Clock, MapPin, Facebook, Instagram, MessageCircle, Plus, Star, ShoppingBag, Package, BadgeCheck, Share2, Sparkles } from "lucide-react";
 import type { Shop, Product } from "@/hooks/useMyShop";
-import { formatPrice, mediaUrl } from "@/lib/marketnet";
+import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
 
-type ShopLike = Pick<Shop, "name" | "description" | "logo_url" | "banner_url" | "category" | "city" | "hours" | "whatsapp" | "facebook" | "instagram">;
+type ShopLike = Pick<Shop, "name" | "description" | "logo_url" | "banner_url" | "category" | "category_custom" | "city" | "hours" | "whatsapp" | "facebook" | "instagram">;
 
 export function StoreHeader({ shop, compact }: { shop: ShopLike; compact?: boolean }) {
   const banner = mediaUrl(shop.banner_url);
@@ -103,9 +103,9 @@ export function StoreHeader({ shop, compact }: { shop: ShopLike; compact?: boole
         {/* Détails de la boutique */}
         <div className="mt-3.5 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
-            {shop.category && (
+            {getShopCategoryLabel(shop) && (
               <span className="inline-flex items-center rounded-lg bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase">
-                {shop.category}
+                {getShopCategoryLabel(shop)}
               </span>
             )}
             {/* Statut ouvert */}

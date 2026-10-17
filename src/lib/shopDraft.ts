@@ -15,6 +15,12 @@ export function validateDraft(d: ShopDraft): string | null {
   if (d.name.trim().length < 2) return "Le nom de la boutique est trop court";
   if (!SLUG_RE.test(d.slug)) return "Lien invalide : 3 à 42 caractères, lettres minuscules, chiffres et tirets";
   if (!WHATSAPP_RE.test(d.whatsapp)) return "Numéro WhatsApp invalide (ex. +243812345678)";
+  if (d.category === "Autre") {
+    const custom = d.category_custom?.trim() || "";
+    if (custom.length < 3 || custom.length > 40) {
+      return "Veuillez préciser la catégorie de votre boutique (entre 3 et 40 caractères)";
+    }
+  }
   for (const k of ["facebook", "instagram", "tiktok"] as const) {
     if (d[k] && !/^https?:\/\//.test(d[k])) return `Le lien ${k} doit commencer par https://`;
   }
@@ -22,12 +28,26 @@ export function validateDraft(d: ShopDraft): string | null {
 }
 
 export function draftToRow(d: ShopDraft) {
-  const nul = (s: string) => (s.trim() ? s.trim() : null);
+  const nul = (s?: string | null) => (s && s.trim() ? s.trim() : null);
+  const isAutre = d.category === "Autre";
   return {
-    name: d.name.trim(), slug: d.slug, description: nul(d.description), category: nul(d.category),
-    logo_url: d.logo_url, banner_url: d.banner_url, city: nul(d.city), address: nul(d.address),
-    whatsapp: d.whatsapp, hours: nul(d.hours), facebook: nul(d.facebook), instagram: nul(d.instagram),
-    tiktok: nul(d.tiktok), theme: d.theme, primary_color: d.primary_color, currency: d.currency,
+    name: d.name.trim(),
+    slug: d.slug,
+    description: nul(d.description),
+    category: nul(d.category),
+    category_custom: isAutre ? nul(d.category_custom) : null,
+    logo_url: d.logo_url,
+    banner_url: d.banner_url,
+    city: nul(d.city),
+    address: nul(d.address),
+    whatsapp: d.whatsapp,
+    hours: nul(d.hours),
+    facebook: nul(d.facebook),
+    instagram: nul(d.instagram),
+    tiktok: nul(d.tiktok),
+    theme: d.theme,
+    primary_color: d.primary_color,
+    currency: d.currency,
   };
 }
 

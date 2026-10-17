@@ -15,10 +15,10 @@ describe("App routing", () => {
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
 
-  it("matches /dashboard/meta and redirects to /dashboard without throwing 404", () => {
+  it("matches /dashboard/abonnement correctly", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
-    const matches = router.matchRoutes("/dashboard/meta");
-    expect(matches.at(-1)?.routeId).toBe("/_authenticated/dashboard/meta");
+    const matches = router.matchRoutes("/dashboard/abonnement");
+    expect(matches.at(-1)?.routeId).toBe("/_authenticated/dashboard/abonnement");
   });
 
   it("matches legal and public pages correctly", () => {

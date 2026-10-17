@@ -32,12 +32,12 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardAbonnementRouteImport } from './routes/_authenticated/dashboard.abonnement'
 import { Route as AuthenticatedDashboardBoutiqueRouteImport } from './routes/_authenticated/dashboard.boutique'
 import { Route as AuthenticatedDashboardCommandesRouteImport } from './routes/_authenticated/dashboard.commandes'
-import { Route as AuthenticatedDashboardMetaRouteImport } from './routes/_authenticated/dashboard.meta'
 import { Route as AuthenticatedDashboardProduitsRouteImport } from './routes/_authenticated/dashboard.produits'
 import { Route as AuthenticatedDashboardPromotionsRouteImport } from './routes/_authenticated/dashboard.promotions'
 import { Route as AuthenticatedDashboardReglagesRouteImport } from './routes/_authenticated/dashboard.reglages'
 import { Route as AuthenticatedDashboardSupportRouteImport } from './routes/_authenticated/dashboard.support'
 import { Route as ApiCronSubscriptionRemindersRouteImport } from './routes/api/cron/subscription-reminders'
+import { Route as ApiPublicBroadcastTrackRouteImport } from './routes/api/public/broadcast-track'
 import { Route as ApiPublicInvoicePdfRouteImport } from './routes/api/public/invoice-pdf'
 import { Route as ApiPublicWebhookSaspayRouteImport } from './routes/api/public/webhook-saspay'
 import { Route as BSlugIndexRouteImport } from './routes/b.$slug.index'
@@ -173,12 +173,6 @@ const AuthenticatedDashboardCommandesRoute =
     path: '/commandes',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardMetaRoute =
-  AuthenticatedDashboardMetaRouteImport.update({
-    id: '/meta',
-    path: '/meta',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
 const AuthenticatedDashboardProduitsRoute =
   AuthenticatedDashboardProduitsRouteImport.update({
     id: '/produits',
@@ -209,6 +203,11 @@ const ApiCronSubscriptionRemindersRoute =
     path: '/api/cron/subscription-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicBroadcastTrackRoute = ApiPublicBroadcastTrackRouteImport.update({
+  id: '/api/public/broadcast-track',
+  path: '/api/public/broadcast-track',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicInvoicePdfRoute = ApiPublicInvoicePdfRouteImport.update({
   id: '/api/public/invoice-pdf',
   path: '/api/public/invoice-pdf',
@@ -291,12 +290,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/abonnement': typeof AuthenticatedDashboardAbonnementRoute
   '/dashboard/boutique': typeof AuthenticatedDashboardBoutiqueRoute
   '/dashboard/commandes': typeof AuthenticatedDashboardCommandesRoute
-  '/dashboard/meta': typeof AuthenticatedDashboardMetaRoute
   '/dashboard/produits': typeof AuthenticatedDashboardProduitsRoute
   '/dashboard/promotions': typeof AuthenticatedDashboardPromotionsRoute
   '/dashboard/reglages': typeof AuthenticatedDashboardReglagesRoute
   '/dashboard/support': typeof AuthenticatedDashboardSupportRouteWithChildren
   '/api/cron/subscription-reminders': typeof ApiCronSubscriptionRemindersRoute
+  '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
   '/api/public/webhook-saspay': typeof ApiPublicWebhookSaspayRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -329,12 +328,12 @@ export interface FileRoutesByTo {
   '/dashboard/abonnement': typeof AuthenticatedDashboardAbonnementRoute
   '/dashboard/boutique': typeof AuthenticatedDashboardBoutiqueRoute
   '/dashboard/commandes': typeof AuthenticatedDashboardCommandesRoute
-  '/dashboard/meta': typeof AuthenticatedDashboardMetaRoute
   '/dashboard/produits': typeof AuthenticatedDashboardProduitsRoute
   '/dashboard/promotions': typeof AuthenticatedDashboardPromotionsRoute
   '/dashboard/reglages': typeof AuthenticatedDashboardReglagesRoute
   '/dashboard/support': typeof AuthenticatedDashboardSupportRouteWithChildren
   '/api/cron/subscription-reminders': typeof ApiCronSubscriptionRemindersRoute
+  '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
   '/api/public/webhook-saspay': typeof ApiPublicWebhookSaspayRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -372,12 +371,12 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/abonnement': typeof AuthenticatedDashboardAbonnementRoute
   '/_authenticated/dashboard/boutique': typeof AuthenticatedDashboardBoutiqueRoute
   '/_authenticated/dashboard/commandes': typeof AuthenticatedDashboardCommandesRoute
-  '/_authenticated/dashboard/meta': typeof AuthenticatedDashboardMetaRoute
   '/_authenticated/dashboard/produits': typeof AuthenticatedDashboardProduitsRoute
   '/_authenticated/dashboard/promotions': typeof AuthenticatedDashboardPromotionsRoute
   '/_authenticated/dashboard/reglages': typeof AuthenticatedDashboardReglagesRoute
   '/_authenticated/dashboard/support': typeof AuthenticatedDashboardSupportRouteWithChildren
   '/api/cron/subscription-reminders': typeof ApiCronSubscriptionRemindersRoute
+  '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
   '/api/public/webhook-saspay': typeof ApiPublicWebhookSaspayRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -415,12 +414,12 @@ export interface FileRouteTypes {
     | '/dashboard/abonnement'
     | '/dashboard/boutique'
     | '/dashboard/commandes'
-    | '/dashboard/meta'
     | '/dashboard/produits'
     | '/dashboard/promotions'
     | '/dashboard/reglages'
     | '/dashboard/support'
     | '/api/cron/subscription-reminders'
+    | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
     | '/api/public/webhook-saspay'
     | '/admin/'
@@ -453,12 +452,12 @@ export interface FileRouteTypes {
     | '/dashboard/abonnement'
     | '/dashboard/boutique'
     | '/dashboard/commandes'
-    | '/dashboard/meta'
     | '/dashboard/produits'
     | '/dashboard/promotions'
     | '/dashboard/reglages'
     | '/dashboard/support'
     | '/api/cron/subscription-reminders'
+    | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
     | '/api/public/webhook-saspay'
     | '/admin'
@@ -495,12 +494,12 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/abonnement'
     | '/_authenticated/dashboard/boutique'
     | '/_authenticated/dashboard/commandes'
-    | '/_authenticated/dashboard/meta'
     | '/_authenticated/dashboard/produits'
     | '/_authenticated/dashboard/promotions'
     | '/_authenticated/dashboard/reglages'
     | '/_authenticated/dashboard/support'
     | '/api/cron/subscription-reminders'
+    | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
     | '/api/public/webhook-saspay'
     | '/_authenticated/admin/'
@@ -527,6 +526,7 @@ export interface RootRouteChildren {
   AbonnementRetourRoute: typeof AbonnementRetourRoute
   BSlugRoute: typeof BSlugRouteWithChildren
   ApiCronSubscriptionRemindersRoute: typeof ApiCronSubscriptionRemindersRoute
+  ApiPublicBroadcastTrackRoute: typeof ApiPublicBroadcastTrackRoute
   ApiPublicInvoicePdfRoute: typeof ApiPublicInvoicePdfRoute
   ApiPublicWebhookSaspayRoute: typeof ApiPublicWebhookSaspayRoute
   ApiPublicMediaSplatRoute: typeof ApiPublicMediaSplatRoute
@@ -695,13 +695,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardCommandesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/meta': {
-      id: '/_authenticated/dashboard/meta'
-      path: '/meta'
-      fullPath: '/dashboard/meta'
-      preLoaderRoute: typeof AuthenticatedDashboardMetaRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
     '/_authenticated/dashboard/produits': {
       id: '/_authenticated/dashboard/produits'
       path: '/produits'
@@ -735,6 +728,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cron/subscription-reminders'
       fullPath: '/api/cron/subscription-reminders'
       preLoaderRoute: typeof ApiCronSubscriptionRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/broadcast-track': {
+      id: '/api/public/broadcast-track'
+      path: '/api/public/broadcast-track'
+      fullPath: '/api/public/broadcast-track'
+      preLoaderRoute: typeof ApiPublicBroadcastTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/invoice-pdf': {
@@ -865,7 +865,6 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAbonnementRoute: typeof AuthenticatedDashboardAbonnementRoute
   AuthenticatedDashboardBoutiqueRoute: typeof AuthenticatedDashboardBoutiqueRoute
   AuthenticatedDashboardCommandesRoute: typeof AuthenticatedDashboardCommandesRoute
-  AuthenticatedDashboardMetaRoute: typeof AuthenticatedDashboardMetaRoute
   AuthenticatedDashboardProduitsRoute: typeof AuthenticatedDashboardProduitsRoute
   AuthenticatedDashboardPromotionsRoute: typeof AuthenticatedDashboardPromotionsRoute
   AuthenticatedDashboardReglagesRoute: typeof AuthenticatedDashboardReglagesRoute
@@ -881,7 +880,6 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardAbonnementRoute,
     AuthenticatedDashboardBoutiqueRoute: AuthenticatedDashboardBoutiqueRoute,
     AuthenticatedDashboardCommandesRoute: AuthenticatedDashboardCommandesRoute,
-    AuthenticatedDashboardMetaRoute: AuthenticatedDashboardMetaRoute,
     AuthenticatedDashboardProduitsRoute: AuthenticatedDashboardProduitsRoute,
     AuthenticatedDashboardPromotionsRoute:
       AuthenticatedDashboardPromotionsRoute,
@@ -940,6 +938,7 @@ const rootRouteChildren: RootRouteChildren = {
   AbonnementRetourRoute: AbonnementRetourRoute,
   BSlugRoute: BSlugRouteWithChildren,
   ApiCronSubscriptionRemindersRoute: ApiCronSubscriptionRemindersRoute,
+  ApiPublicBroadcastTrackRoute: ApiPublicBroadcastTrackRoute,
   ApiPublicInvoicePdfRoute: ApiPublicInvoicePdfRoute,
   ApiPublicWebhookSaspayRoute: ApiPublicWebhookSaspayRoute,
   ApiPublicMediaSplatRoute: ApiPublicMediaSplatRoute,

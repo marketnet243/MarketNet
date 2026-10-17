@@ -121,6 +121,7 @@ export const getMerchantSubscription = createServerFn({ method: "GET" })
     let startsAt = now.toISOString();
     let endsAt = new Date(now.getTime() + 365 * 100 * 24 * 3600 * 1000).toISOString(); // infini par défaut pour gratuit
 
+    let isAttributed = false;
     if (sub) {
       status = determineSubscriptionStatus({ endDate: sub.fin, now });
       startsAt = sub.debut;
@@ -128,6 +129,22 @@ export const getMerchantSubscription = createServerFn({ method: "GET" })
       // Pendant la période de grâce ou actif, le commerçant conserve son plan payant
       if (status === "actif" || status === "grâce") {
         currentPlanId = sub.plan_id;
+        if (sub.payment_id) {
+          const { data: pay } = await sb
+            .from("subscription_payments")
+            .select("methode, method, admin_note")
+            .eq("id", sub.payment_id)
+            .maybeSingle();
+          if (
+            pay &&
+            (pay.methode === "manuel" ||
+              pay.method === "manuel" ||
+              pay.method === "cash" ||
+              pay.admin_note?.includes("Attribution"))
+          ) {
+            isAttributed = true;
+          }
+        }
       } else {
         currentPlanId = "free";
       }
@@ -177,6 +194,7 @@ export const getMerchantSubscription = createServerFn({ method: "GET" })
       meta_access: plan.meta_access ?? false,
       advanced_stats: plan.advanced_stats ?? false,
       advanced_themes: plan.advanced_themes ?? false,
+      is_attributed: isAttributed,
     };
   });
 

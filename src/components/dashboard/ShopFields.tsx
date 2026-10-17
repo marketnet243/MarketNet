@@ -12,7 +12,7 @@ import { cloudinaryUploadSignature } from "@/lib/cloudinary.functions";
 import { cn } from "@/lib/utils";
 
 export type ShopDraft = {
-  name: string; slug: string; description: string; category: string;
+  name: string; slug: string; description: string; category: string; category_custom: string;
   logo_url: string | null; banner_url: string | null;
   city: string; address: string; whatsapp: string; hours: string;
   facebook: string; instagram: string; tiktok: string;
@@ -20,7 +20,7 @@ export type ShopDraft = {
 };
 
 export const emptyDraft: ShopDraft = {
-  name: "", slug: "", description: "", category: "", logo_url: null, banner_url: null,
+  name: "", slug: "", description: "", category: "", category_custom: "", logo_url: null, banner_url: null,
   city: "", address: "", whatsapp: "+243", hours: "", facebook: "", instagram: "", tiktok: "",
   theme: "savane", primary_color: "#E8590C", currency: "USD",
 };
@@ -80,7 +80,18 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
         <div className={cn("flex h-12 items-center overflow-hidden rounded-xl border bg-card text-sm",
           isCurrentSlug ? "border-input bg-muted/40" :
           slugState === "taken" || slugState === "error" ? "border-destructive" : slugState === "free" ? "border-green-600" : "border-input")}>
-          <span className="pl-3 text-muted-foreground">marketnet.com/b/</span>
+          {(() => {
+            const host =
+              typeof window !== "undefined" && window.location?.host
+                ? window.location.host
+                : ((import.meta.env.VITE_PUBLIC_URL as string | undefined) ||
+                   (import.meta.env.VITE_MARKETNET_SITE_URL as string | undefined) ||
+                   "appmarketnet.vercel.app"
+                  )
+                    .replace(/^https?:\/\//, "")
+                    .replace(/\/+$/, "");
+            return <span className="pl-3 text-muted-foreground">{host}/b/</span>;
+          })()}
           <input
             className="h-full flex-1 bg-transparent pr-3 outline-none disabled:opacity-75 disabled:cursor-not-allowed font-medium"
             value={draft.slug}
@@ -97,11 +108,36 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
         {!isLocked && slugState === "error" && <p className="text-xs font-medium text-destructive">Impossible de vérifier la disponibilité du lien pour le moment.</p>}
       </Field>
       <Field label="Catégorie">
-        <select className={sel} value={draft.category} onChange={(e) => set({ category: e.target.value })}>
+        <select
+          className={sel}
+          value={draft.category}
+          onChange={(e) => {
+            const nextCat = e.target.value;
+            set({
+              category: nextCat,
+              ...(nextCat !== "Autre" ? { category_custom: "" } : {}),
+            });
+          }}
+        >
           <option value="">Choisir…</option>
           {SHOP_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
         </select>
       </Field>
+      {draft.category === "Autre" && (
+        <Field
+          label="Décrivez la catégorie de votre boutique"
+          hint="Obligatoire (3 à 40 caractères)"
+        >
+          <Input
+            className="h-12"
+            maxLength={40}
+            placeholder="Ex. Papeterie, Fleuriste, Animalerie…"
+            value={draft.category_custom}
+            onChange={(e) => set({ category_custom: e.target.value.slice(0, 40) })}
+            required
+          />
+        </Field>
+      )}
       <Field label="Description"><Textarea rows={3} maxLength={1000} value={draft.description} onChange={(e) => set({ description: e.target.value })} placeholder="Ce que vous vendez, ce qui vous rend unique…" /></Field>
     </div>
   );

@@ -3,10 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { logAction } from "@/hooks/useIsAdmin";
-import { Store, ShieldAlert, Eye, Search, X } from "lucide-react";
+import { Store, ShieldAlert, Eye, Search, X, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SHOP_CATEGORIES, getShopCategoryLabel } from "@/lib/marketnet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,12 +25,13 @@ export const Route = createFileRoute("/_authenticated/admin/boutiques")({ compon
 function Shops() {
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data, isLoading } = useQuery({
     queryKey: ["adminShops"],
     queryFn: async () => {
       const [{ data: shops }, { data: reports }] = await Promise.all([
-        supabase.from("shops").select("id,name,slug,city,plan_id,is_suspended,views,created_at").order("created_at", { ascending: false }),
+        supabase.from("shops").select("id,name,slug,city,plan_id,is_suspended,views,created_at,category,category_custom").order("created_at", { ascending: false }),
         supabase.from("shop_reports").select("*").eq("resolved", false).order("created_at", { ascending: false }),
       ]);
       return { shops: shops ?? [], reports: reports ?? [] };
@@ -39,11 +41,22 @@ function Shops() {
   if (isLoading) return <div className="p-8 text-center text-muted-foreground">Chargement des boutiques...</div>;
 
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredShops = data?.shops.filter((s) => 
-    s.name.toLowerCase().includes(normalizedQuery) ||
-    s.slug.toLowerCase().includes(normalizedQuery) ||
-    (s.city && s.city.toLowerCase().includes(normalizedQuery))
-  ) ?? [];
+  const filteredShops = data?.shops.filter((s) => {
+    const catLabel = getShopCategoryLabel(s).toLowerCase();
+    const matchQuery =
+      !normalizedQuery ||
+      s.name.toLowerCase().includes(normalizedQuery) ||
+      s.slug.toLowerCase().includes(normalizedQuery) ||
+      (s.city && s.city.toLowerCase().includes(normalizedQuery)) ||
+      catLabel.includes(normalizedQuery) ||
+      (s.category && s.category.toLowerCase().includes(normalizedQuery));
+
+    const matchCat =
+      categoryFilter === "all" ||
+      (categoryFilter === "Autre" ? s.category === "Autre" : s.category === categoryFilter);
+
+    return matchQuery && matchCat;
+  }) ?? [];
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -77,12 +90,12 @@ function Shops() {
         </div>
         
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <div className="border-b p-4 sm:p-5 bg-muted/10">
-            <div className="relative max-w-md">
+          <div className="border-b p-4 sm:p-5 bg-muted/10 flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="h-10 pl-9 pr-9 bg-background"
-                placeholder="Rechercher une boutique par nom, lien ou ville..."
+                placeholder="Rechercher par nom, lien, ville, catégorie..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -91,6 +104,22 @@ function Shops() {
                   <X className="h-4 w-4" />
                 </button>
               )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+              <select
+                className="h-10 rounded-xl border border-input bg-background px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="all">Toutes les catégories</option>
+                {SHOP_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c === "Autre" ? "Autre (personnalisé)" : c}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -163,8 +192,12 @@ function ShopRow({ shop: s }: { shop: any }) {
             <span className="font-semibold truncate group-hover:text-primary transition-colors">{s.name}</span>
             {s.is_suspended && <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-bold text-destructive uppercase">Suspendue</span>}
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            <span className="truncate">{s.city ?? "Ville non renseignee"}</span>
+          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
+            <span className="truncate">{s.city ?? "Ville non renseignée"}</span>
+            <span>&bull;</span>
+            <span className="font-semibold text-foreground/90 bg-muted/50 px-2 py-0.5 rounded">
+              {getShopCategoryLabel(s) || "Sans catégorie"}
+            </span>
             <span>&bull;</span>
             <span className="uppercase font-medium text-primary/80">{s.plan_id}</span>
             <span>&bull;</span>

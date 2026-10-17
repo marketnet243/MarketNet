@@ -43,7 +43,7 @@ function ShopLayout() {
     const pMatch = typeof window !== "undefined" ? window.location.pathname.match(/\/p\/([0-9a-f-]{36})/i) : null;
     const productId = pMatch ? pMatch[1] : null;
 
-    if (!sessionStorage.getItem(k) || src === "facebook") {
+    if (!sessionStorage.getItem(k)) {
       sessionStorage.setItem(k, "1");
       visitFn({ data: { slug, src, productId } }).catch(() => null);
     }

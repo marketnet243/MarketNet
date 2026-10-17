@@ -13,7 +13,7 @@ export const getPublicShop = createServerFn({ method: "GET" })
     });
     const { data: shop } = await sb
       .from("shops")
-      .select("id,name,slug,description,category,logo_url,banner_url,city,address,whatsapp,hours,facebook,instagram,tiktok,theme,primary_color,currency")
+      .select("id,name,slug,description,category,category_custom,logo_url,banner_url,city,address,whatsapp,hours,facebook,instagram,tiktok,theme,primary_color,currency")
       .eq("slug", data.slug)
       .maybeSingle();
     if (!shop) throw notFound();

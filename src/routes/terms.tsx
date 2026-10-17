@@ -92,7 +92,7 @@ function TermsPage() {
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
                   <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span><strong>Réseaux sociaux :</strong> La publication automatique sur les réseaux sociaux n'est pas disponible et aucun jeton Meta n'est conservé sur nos serveurs. Vous partagez librement vos offres via vos propres liens et visuels prêts à diffuser.</span>
+                  <span><strong>Partage sur les réseaux sociaux :</strong> Vous partagez librement vos offres via vos propres liens et visuels de boutique. MarketNet ne se connecte à aucun compte externe.</span>
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
                   <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />

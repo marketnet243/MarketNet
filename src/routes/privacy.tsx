@@ -92,16 +92,13 @@ function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">2. Réseaux sociaux et données Meta</h2>
+              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">2. Réseaux sociaux et liens publics</h2>
               <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
-                La publication automatique sur les réseaux sociaux (Facebook & Instagram) n'est pas disponible sur MarketNet.
+                MarketNet permet aux commerçants de renseigner les liens publics de leurs profils sociaux sur leur vitrine afin que leurs clients puissent facilement les retrouver.
               </p>
               <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5 space-y-2">
                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  Tous les jetons d'accès et identifiants Meta précédemment enregistrés ont été <strong>définitivement supprimés</strong> de nos serveurs. MarketNet ne conserve, ne collecte et n'utilise aucun jeton ni donnée d'authentification liée à des comptes Facebook ou Instagram.
-                </p>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  Les commerçants peuvent librement renseigner les liens publics de leurs profils sociaux (Facebook, Instagram, TikTok) sur leur vitrine pour permettre à leurs clients de les suivre, sans aucune connexion d'API ni échange de jetons.
+                  MarketNet ne se connecte à aucun compte de réseau social externe, n'utilise aucune API d'authentification tierce et ne collecte aucun jeton ni donnée d'accès. La diffusion des produits s'effectue librement via le partage direct des liens de votre boutique.
                 </p>
               </div>
             </section>

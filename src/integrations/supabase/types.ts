@@ -570,6 +570,7 @@ export type Database = {
           address: string | null
           banner_url: string | null
           category: string | null
+          category_custom: string | null
           city: string | null
           created_at: string
           currency: string
@@ -599,6 +600,7 @@ export type Database = {
           address?: string | null
           banner_url?: string | null
           category?: string | null
+          category_custom?: string | null
           city?: string | null
           created_at?: string
           currency?: string
@@ -628,6 +630,7 @@ export type Database = {
           address?: string | null
           banner_url?: string | null
           category?: string | null
+          category_custom?: string | null
           city?: string | null
           created_at?: string
           currency?: string
@@ -776,6 +779,99 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      support_broadcasts: {
+        Row: {
+          admin_id: string
+          cible: string
+          cree_le: string
+          destinataires_count: number
+          echoues_count: number
+          envoyes_count: number
+          id: string
+          lus_count: number
+          message: string
+          statut: string
+          titre: string
+        }
+        Insert: {
+          admin_id: string
+          cible: string
+          cree_le?: string
+          destinataires_count?: number
+          echoues_count?: number
+          envoyes_count?: number
+          id?: string
+          lus_count?: number
+          message: string
+          statut?: string
+          titre: string
+        }
+        Update: {
+          admin_id?: string
+          cible?: string
+          cree_le?: string
+          destinataires_count?: number
+          echoues_count?: number
+          envoyes_count?: number
+          id?: string
+          lus_count?: number
+          message?: string
+          statut?: string
+          titre?: string
+        }
+        Relationships: []
+      }
+      support_broadcast_recipients: {
+        Row: {
+          broadcast_id: string
+          cree_le: string
+          email: string
+          email_erreur: string | null
+          email_statut: string
+          id: string
+          lu_le: string | null
+          merchant_id: string
+          shop_id: string | null
+        }
+        Insert: {
+          broadcast_id: string
+          cree_le?: string
+          email: string
+          email_erreur?: string | null
+          email_statut?: string
+          id?: string
+          lu_le?: string | null
+          merchant_id: string
+          shop_id?: string | null
+        }
+        Update: {
+          broadcast_id?: string
+          cree_le?: string
+          email?: string
+          email_erreur?: string | null
+          email_statut?: string
+          id?: string
+          lu_le?: string | null
+          merchant_id?: string
+          shop_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_broadcast_recipients_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "support_broadcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_broadcast_recipients_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

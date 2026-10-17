@@ -168,7 +168,18 @@ export const Route = createFileRoute("/_authenticated/dashboard/abonnement")({
 
 const ITEMS_PER_PAGE = 5;
 
-type HistoryFilter = "all" | "payé" | "en_attente" | "échoué";
+type HistoryFilter = "all" | "payé" | "attribué" | "en_attente" | "échoué";
+
+function isPaymentAttributed(p: any): boolean {
+  if (!p) return false;
+  const isPaid = p.statut === "payé" || p.status === "approved";
+  const isManual =
+    p.methode === "manuel" ||
+    p.method === "manuel" ||
+    p.method === "cash" ||
+    p.admin_note?.includes("Attribution");
+  return isPaid && isManual;
+}
 
 function DashboardAbonnementPage() {
   const { data: shop } = useMyShop();
@@ -265,8 +276,9 @@ function DashboardAbonnementPage() {
   const isGrace = subLimits?.is_grace_period;
   const isExpired = subLimits?.status === "expiré";
 
-  // Résolution précise et robuste du statut (priorité à statut sur le legacy status)
-  function resolvePaymentStatus(pay: any): "payé" | "en_attente" | "échoué" | "annulé" {
+  // Résolution précise et robuste du statut (priorité à l'attribution manuelle par admin)
+  function resolvePaymentStatus(pay: any): "payé" | "attribué" | "en_attente" | "échoué" | "annulé" {
+    if (isPaymentAttributed(pay)) return "attribué";
     if (pay.statut === "payé" || pay.status === "approved") return "payé";
     if (pay.statut === "échoué" || pay.status === "rejected") return "échoué";
     if (pay.statut === "annulé") return "annulé";
@@ -281,12 +293,14 @@ function DashboardAbonnementPage() {
 
   const historyCounts = useMemo(() => {
     let paye = 0;
+    let attribue = 0;
     let enAttente = 0;
     let echoue = 0;
 
     for (const p of allHistory) {
       const st = resolvePaymentStatus(p);
-      if (st === "payé") paye++;
+      if (st === "attribué") attribue++;
+      else if (st === "payé") paye++;
       else if (st === "en_attente") enAttente++;
       else echoue++;
     }
@@ -294,6 +308,7 @@ function DashboardAbonnementPage() {
     return {
       all: allHistory.length,
       payé: paye,
+      attribué: attribue,
       en_attente: enAttente,
       échoué: echoue,
     };
@@ -303,6 +318,7 @@ function DashboardAbonnementPage() {
     return allHistory.filter((pay) => {
       if (historyFilter === "all") return true;
       const st = resolvePaymentStatus(pay);
+      if (historyFilter === "attribué") return st === "attribué";
       if (historyFilter === "payé") return st === "payé";
       if (historyFilter === "en_attente") return st === "en_attente";
       if (historyFilter === "échoué") return st === "échoué" || st === "annulé";
@@ -416,10 +432,18 @@ function DashboardAbonnementPage() {
                         ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
                         : isExpired
                           ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30"
-                          : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                          : subLimits?.is_attributed
+                            ? "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30"
+                            : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                     )}
                   >
-                    {isGrace ? "Période de grâce" : isExpired ? "Expiré" : "Actif"}
+                    {isGrace
+                      ? "Période de grâce"
+                      : isExpired
+                        ? "Expiré"
+                        : subLimits?.is_attributed
+                          ? "Attribué par l'administrateur"
+                          : "Actif"}
                   </span>
                 </div>
               </div>
@@ -666,7 +690,10 @@ function DashboardAbonnementPage() {
             {(
               [
                 { id: "all", label: "Toutes", count: historyCounts.all },
-                { id: "payé", label: "Payées", count: historyCounts.payé },
+                { id: "payé", label: "Payées (SasPay)", count: historyCounts.payé },
+                ...(historyCounts.attribué > 0
+                  ? [{ id: "attribué", label: "Attribuées", count: historyCounts.attribué }]
+                  : []),
                 { id: "en_attente", label: "En attente", count: historyCounts.en_attente },
                 { id: "échoué", label: "Échouées", count: historyCounts.échoué },
               ] as { id: HistoryFilter; label: string; count: number }[]
@@ -727,6 +754,7 @@ function DashboardAbonnementPage() {
 
                 const statusDot = {
                   payé: "bg-emerald-500",
+                  attribué: "bg-blue-500",
                   en_attente: "bg-amber-500 animate-pulse",
                   annulé: "bg-muted-foreground/40",
                   échoué: "bg-rose-500",
@@ -734,6 +762,7 @@ function DashboardAbonnementPage() {
 
                 const statusLabel = {
                   payé: "Payé",
+                  attribué: "Attribué",
                   en_attente: "En attente",
                   annulé: "Annulé",
                   échoué: "Échoué",
@@ -741,6 +770,7 @@ function DashboardAbonnementPage() {
 
                 const statusColor = {
                   payé: "text-emerald-600 dark:text-emerald-400 font-semibold",
+                  attribué: "text-blue-600 dark:text-blue-400 font-semibold",
                   en_attente: "text-amber-600 dark:text-amber-400 font-semibold",
                   annulé: "text-muted-foreground",
                   échoué: "text-muted-foreground",
@@ -763,6 +793,11 @@ function DashboardAbonnementPage() {
                           </span>
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
+                          {status === "attribué" && (
+                            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                              Plan attribué par l'administrateur ·{" "}
+                            </span>
+                          )}
                           {new Date(pay.cree_le ?? "").toLocaleDateString("fr-FR", {
                             day: "numeric",
                             month: "short",
@@ -776,8 +811,17 @@ function DashboardAbonnementPage() {
 
                     <div className="flex items-center gap-3 shrink-0 text-right">
                       <div>
-                        <p className="font-black text-sm text-foreground">{formatCDF(amountCDF)}</p>
-                        <p className={cn("text-[11px]", statusColor)}>{statusLabel}</p>
+                        {status === "attribué" ? (
+                          <>
+                            <p className="font-bold text-sm text-blue-600 dark:text-blue-400">Attribué</p>
+                            <p className="text-[11px] text-muted-foreground">Par l'admin</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-black text-sm text-foreground">{formatCDF(amountCDF)}</p>
+                            <p className={cn("text-[11px]", statusColor)}>{statusLabel}</p>
+                          </>
+                        )}
                       </div>
 
                       <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
@@ -881,20 +925,12 @@ function DashboardAbonnementPage() {
         </Accordion>
       </section>
 
-      {/* ── Modale Reçu de Paiement (Design Ticket Épuré & Élégant) ────────── */}
+      {/* ── Modale Reçu de Paiement / Attribution (Design Épuré & Élégant) ────────── */}
       <Dialog open={!!selectedReceipt} onOpenChange={(o) => !o && setSelectedReceipt(null)}>
         <DialogContent className="max-w-sm rounded-3xl p-6 sm:p-7 shadow-2xl border bg-background/98 backdrop-blur-xl space-y-0">
-          <DialogHeader className="space-y-1 text-center sm:text-center pb-3">
-            <DialogTitle className="text-base font-bold text-foreground">
-              Reçu de paiement
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Règlement sécurisé SasPay · MarketNet
-            </DialogDescription>
-          </DialogHeader>
-
           {selectedReceipt && (() => {
             const status = resolvePaymentStatus(selectedReceipt);
+            const isAttributed = status === "attribué";
             const amountCDF = Number(
               selectedReceipt.montant_cdf ?? selectedReceipt.amount ?? 0
             );
@@ -904,6 +940,11 @@ function DashboardAbonnementPage() {
                 label: "Paiement réussi",
                 badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
                 icon: CheckCircle2,
+              },
+              attribué: {
+                label: "Plan attribué par l'administrateur",
+                badgeClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+                icon: Sparkles,
               },
               en_attente: {
                 label: "En attente de paiement",
@@ -925,119 +966,157 @@ function DashboardAbonnementPage() {
             const StatusIcon = statusConfig.icon;
 
             return (
-              <div className="space-y-5 pt-2">
-                {/* Montant & Statut */}
-                <div className="text-center space-y-1.5 py-4 rounded-2xl bg-muted/30 border border-border/50">
-                  <p className="text-3xl sm:text-4xl font-black text-foreground tracking-tight">
-                    {formatCDF(amountCDF)}
-                  </p>
-                  <div className="flex items-center justify-center">
-                    <span className={cn("inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border", statusConfig.badgeClass)}>
-                      <StatusIcon className="h-3.5 w-3.5" />
-                      <span>{statusConfig.label}</span>
-                    </span>
-                  </div>
-                </div>
+              <>
+                <DialogHeader className="space-y-1 text-center sm:text-center pb-3">
+                  <DialogTitle className="text-base font-bold text-foreground">
+                    {isAttributed ? "Attribution de plan" : "Reçu de paiement"}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    {isAttributed
+                      ? "Attribué par l'administrateur · MarketNet"
+                      : "Règlement sécurisé SasPay · MarketNet"}
+                  </DialogDescription>
+                </DialogHeader>
 
-                {/* Détails du paiement en lignes discrètes */}
-                <div className="space-y-3 text-xs">
-                  <div className="flex justify-between items-center text-muted-foreground">
-                    <span>Formule</span>
-                    <span className="font-bold text-foreground capitalize">
-                      Plan {selectedReceipt.plan_id} ({selectedReceipt.period || "mensuel"})
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-muted-foreground">
-                    <span>Date</span>
-                    <span className="font-medium text-foreground">
-                      {new Date(selectedReceipt.paye_le || selectedReceipt.cree_le).toLocaleString("fr-FR", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-muted-foreground">
-                    <span>Moyen</span>
-                    <span className="font-medium text-foreground">
-                      SasPay (Mobile Money)
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center text-muted-foreground">
-                    <span>Boutique</span>
-                    <span className="font-medium text-foreground">
-                      {shop?.name || "Votre boutique"}
-                    </span>
-                  </div>
-
-                  {selectedReceipt.saspay_transaction_id && (
-                    <div className="pt-2 border-t flex justify-between items-center text-muted-foreground">
-                      <span>Réf.</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyRef(selectedReceipt.saspay_transaction_id)}
-                        className="inline-flex items-center gap-1.5 font-mono text-[11px] text-foreground hover:text-primary transition-colors max-w-[200px]"
-                        title="Cliquer pour copier la référence"
-                      >
-                        <span className="truncate">{selectedReceipt.saspay_transaction_id}</span>
-                        {copiedRef ? (
-                          <Check className="h-3 w-3 text-emerald-500 shrink-0" />
-                        ) : (
-                          <Copy className="h-3 w-3 text-muted-foreground shrink-0" />
-                        )}
-                      </button>
+                <div className="space-y-5 pt-2">
+                  {/* Montant & Statut */}
+                  <div className={cn(
+                    "text-center space-y-1.5 py-4 rounded-2xl border",
+                    isAttributed
+                      ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-900/30"
+                      : "bg-muted/30 border-border/50"
+                  )}>
+                    <p className="text-2xl sm:text-3xl font-black text-foreground tracking-tight capitalize">
+                      {isAttributed ? `Plan ${selectedReceipt.plan_id}` : formatCDF(amountCDF)}
+                    </p>
+                    <div className="flex items-center justify-center">
+                      <span className={cn("inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border", statusConfig.badgeClass)}>
+                        <StatusIcon className="h-3.5 w-3.5" />
+                        <span>{statusConfig.label}</span>
+                      </span>
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                {/* Bouton reprendre si en attente */}
-                {selectedReceipt.checkout_url && status === "en_attente" && (
-                  <Button
-                    className="w-full rounded-2xl font-bold h-11 gap-2 shadow-sm text-xs"
-                    onClick={() => {
-                      window.location.href = selectedReceipt.checkout_url;
-                    }}
-                  >
-                    Reprendre le paiement SasPay <ExternalLink className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-
-                {/* Actions si paiement réussi */}
-                {status === "payé" && (
-                  <div className="space-y-2.5">
-                    {/* Notice envoi automatique email */}
-                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-[11px] leading-tight">
-                      <Mail className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-                      <span>Facture PDF transmise automatiquement sur votre email de compte.</span>
+                  {/* Détails du paiement en lignes discrètes */}
+                  <div className="space-y-3 text-xs">
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span>Formule</span>
+                      <span className="font-bold text-foreground capitalize">
+                        Plan {selectedReceipt.plan_id} ({selectedReceipt.period || "mensuel"})
+                      </span>
                     </div>
 
-                    {/* Bouton Télécharger la facture PDF */}
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span>Date</span>
+                      <span className="font-medium text-foreground">
+                        {new Date(selectedReceipt.paye_le || selectedReceipt.cree_le).toLocaleString("fr-FR", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span>Moyen</span>
+                      <span className="font-medium text-foreground">
+                        {isAttributed ? "Attribution administrative" : "SasPay (Mobile Money)"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span>Boutique</span>
+                      <span className="font-medium text-foreground">
+                        {shop?.name || "Votre boutique"}
+                      </span>
+                    </div>
+
+                    {!isAttributed && selectedReceipt.saspay_transaction_id && (
+                      <div className="pt-2 border-t flex justify-between items-center text-muted-foreground">
+                        <span>Réf.</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyRef(selectedReceipt.saspay_transaction_id)}
+                          className="inline-flex items-center gap-1.5 font-mono text-[11px] text-foreground hover:text-primary transition-colors max-w-[200px]"
+                          title="Cliquer pour copier la référence"
+                        >
+                          <span className="truncate">{selectedReceipt.saspay_transaction_id}</span>
+                          {copiedRef ? (
+                            <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                          ) : (
+                            <Copy className="h-3 w-3 text-muted-foreground shrink-0" />
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bouton reprendre si en attente */}
+                  {selectedReceipt.checkout_url && status === "en_attente" && (
                     <Button
-                      variant="outline"
-                      className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-primary/25 text-primary hover:bg-primary/10 transition-colors"
+                      className="w-full rounded-2xl font-bold h-11 gap-2 shadow-sm text-xs"
                       onClick={() => {
-                        window.open(`/api/public/invoice-pdf?paymentId=${selectedReceipt.id}`, "_blank");
+                        window.location.href = selectedReceipt.checkout_url;
                       }}
                     >
-                      <FileDown className="h-4 w-4" />
-                      Télécharger la facture PDF
+                      Reprendre le paiement SasPay <ExternalLink className="h-3.5 w-3.5" />
                     </Button>
-                  </div>
-                )}
+                  )}
 
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedReceipt(null)}
-                  className="w-full rounded-2xl h-10 font-semibold text-xs border-muted-foreground/20 hover:bg-muted"
-                >
-                  Fermer
-                </Button>
-              </div>
+                  {/* Actions si attribué */}
+                  {isAttributed && (
+                    <div className="space-y-2.5">
+                      <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-xs leading-relaxed">
+                        <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                        <span>Ce plan vous a été accordé par l'administrateur MarketNet. Votre lettre d'attribution officielle est disponible en téléchargement ci-dessous.</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40 transition-colors"
+                        onClick={() => {
+                          window.open(`/api/public/invoice-pdf?paymentId=${selectedReceipt.id}`, "_blank");
+                        }}
+                      >
+                        <FileDown className="h-4 w-4" />
+                        Télécharger la lettre d'attribution PDF
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Actions si paiement réussi SasPay réel */}
+                  {status === "payé" && (
+                    <div className="space-y-2.5">
+                      {/* Notice envoi automatique email */}
+                      <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-[11px] leading-tight">
+                        <Mail className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <span>Facture PDF transmise automatiquement sur votre email de compte.</span>
+                      </div>
+
+                      {/* Bouton Télécharger la facture PDF */}
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-primary/25 text-primary hover:bg-primary/10 transition-colors"
+                        onClick={() => {
+                          window.open(`/api/public/invoice-pdf?paymentId=${selectedReceipt.id}`, "_blank");
+                        }}
+                      >
+                        <FileDown className="h-4 w-4" />
+                        Télécharger la facture PDF
+                      </Button>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedReceipt(null)}
+                    className="w-full rounded-2xl h-10 font-semibold text-xs border-muted-foreground/20 hover:bg-muted"
+                  >
+                    Fermer
+                  </Button>
+                </div>
+              </>
             );
           })()}
         </DialogContent>

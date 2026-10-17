@@ -74,19 +74,6 @@ function DataDeletionPage() {
           </div>
 
           <div className="space-y-10">
-            {/* ── Note réseaux sociaux & jetons Meta ── */}
-            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6 sm:p-8">
-              <div className="flex items-center gap-3 mb-3">
-                <ShieldAlert className="h-5 w-5 text-blue-600 shrink-0" />
-                <h3 className="font-bold text-foreground text-base sm:text-lg">
-                  Information sur les réseaux sociaux et jetons Meta
-                </h3>
-              </div>
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                La publication automatique sur les réseaux sociaux (Facebook & Instagram) n'est pas disponible sur MarketNet. Tous les jetons d'accès et identifiants Meta précédemment enregistrés ont été <strong>définitivement supprimés</strong> de nos serveurs. Notre plateforme ne conserve aucun jeton ni accès à vos comptes de réseaux sociaux.
-              </p>
-            </div>
-
             {/* ── Méthode 1 : Dans l'application ── */}
             <section className="rounded-2xl border bg-muted/30 p-6 sm:p-8">
               <div className="flex items-center gap-4 mb-5">
