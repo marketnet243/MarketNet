@@ -307,6 +307,7 @@ function InteractiveHeroDemo() {
   const [isVisible, setIsVisible] = useState(true);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [progress, setProgress] = useState(0);
+  const demoScrollRef = useRef<HTMLDivElement | null>(null);
 
   // Product state
   const [selectedProductId, setSelectedProductId] = useState<string>("wax");
@@ -331,31 +332,62 @@ function InteractiveHeroDemo() {
   useEffect(() => {
     if (!isAutoPlay) return;
 
-    const STEP_DURATION = 4800; // 4.8s par étape
-    const INTERVAL = 80;
-    const increment = (INTERVAL / STEP_DURATION) * 100;
+    const STEP_DURATION = 4800;
+    const STEP_ORDER: Record<1 | 2 | 3, 1 | 2 | 3> = { 1: 2, 2: 3, 3: 1 };
+    const startedAt = Date.now() - (progress / 100) * STEP_DURATION;
+    let transitionTimer: number | undefined;
 
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setCurrentStep((step) => {
-            const next = step === 1 ? 2 : step === 2 ? 3 : 1;
-            // Transition fade via isVisible
-            setIsVisible(false);
-            setTimeout(() => {
-              setDisplayStep(next);
-              setIsVisible(true);
-            }, 220);
-            return next;
-          });
-          return 0;
-        }
-        return prev + increment;
+    const timer = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < STEP_DURATION) {
+        setProgress((elapsed / STEP_DURATION) * 100);
+        return;
+      }
+
+      window.clearInterval(timer);
+      const nextStep = STEP_ORDER[currentStep];
+      setProgress(0);
+      setIsVisible(false);
+      transitionTimer = window.setTimeout(() => {
+        setCurrentStep(nextStep);
+        setDisplayStep(nextStep);
+        setIsVisible(true);
+      }, 220);
+    }, 50);
+
+    return () => {
+      window.clearInterval(timer);
+      if (transitionTimer !== undefined) window.clearTimeout(transitionTimer);
+    };
+  }, [currentStep, isAutoPlay]);
+
+  // Petit défilement automatique de la zone visible, comme lors d'une vraie navigation mobile.
+  useEffect(() => {
+    const scrollArea = demoScrollRef.current;
+    if (!scrollArea) return;
+
+    scrollArea.scrollTop = 0;
+    if (!isAutoPlay || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let returnTimer: number | undefined;
+    const startTimer = window.setTimeout(() => {
+      const maxScroll = scrollArea.scrollHeight - scrollArea.clientHeight;
+      if (maxScroll < 32) return;
+
+      scrollArea.scrollTo({
+        top: Math.min(maxScroll, Math.max(48, scrollArea.clientHeight * 0.38)),
+        behavior: "smooth",
       });
-    }, INTERVAL);
+      returnTimer = window.setTimeout(() => {
+        scrollArea.scrollTo({ top: 0, behavior: "smooth" });
+      }, 1900);
+    }, 900);
 
-    return () => clearInterval(timer);
-  }, [isAutoPlay]);
+    return () => {
+      window.clearTimeout(startTimer);
+      if (returnTimer !== undefined) window.clearTimeout(returnTimer);
+    };
+  }, [displayStep, isAutoPlay]);
 
   // Navigation manuelle : met en pause et fait une transition fluide
   const goToStep = (step: 1 | 2 | 3) => {
@@ -374,64 +406,6 @@ function InteractiveHeroDemo() {
 
   return (
     <div className="relative mx-auto w-full max-w-[340px] sm:max-w-sm select-none">
-      {/* ── STEPPER + BARRE DE PROGRESSION ── */}
-      <div className="mb-3">
-        {/* Stepper interactif */}
-        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-muted/80 backdrop-blur-sm border shadow-inner">
-          {[
-            { step: 1 as const, label: "1. Vitrine", icon: ShoppingBag },
-            { step: 2 as const, label: "2. Variantes", icon: Tag },
-            { step: 3 as const, label: "3. WhatsApp", icon: MessageCircle },
-          ].map(({ step, label, icon: Icon }) => {
-            const isActive = currentStep === step;
-            return (
-              <button
-                key={step}
-                type="button"
-                onClick={() => goToStep(step)}
-                className={cn(
-                  "relative flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer overflow-hidden",
-                  isActive
-                    ? step === 3
-                      ? "bg-green-600 text-white shadow-sm"
-                      : "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className={cn("h-3 w-3 shrink-0", isActive && step === 3 ? "text-white" : "text-primary")} />
-                <span className="truncate">{label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Barre de progression globale — fine, discrète, sous le stepper */}
-        <div className="mt-1.5 h-0.5 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{
-              width: `${((currentStep - 1) * 100) / 3 + (isAutoPlay ? progress / 3 : 0)}%`,
-              transition: isAutoPlay ? "width 80ms linear" : "width 350ms ease",
-            }}
-          />
-        </div>
-
-        {/* Indicateur live discret */}
-        <div className="mt-1.5 flex items-center justify-between px-1">
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Démo en direct</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsAutoPlay(!isAutoPlay)}
-            className="text-[10px] font-semibold text-primary hover:underline cursor-pointer"
-          >
-            {isAutoPlay ? "⏸ Pause" : "▶ Reprendre"}
-          </button>
-        </div>
-      </div>
-
       {/* ── CADRE SMARTPHONE ── */}
       <div className="relative rounded-[2.5rem] border-4 border-foreground/15 bg-background shadow-2xl overflow-hidden">
         {/* Status bar simplifiée */}
@@ -441,6 +415,32 @@ function InteractiveHeroDemo() {
             <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
             <div className="h-1.5 w-3 rounded-full bg-muted-foreground/60" />
             <div className="h-1.5 w-4 rounded-full bg-foreground/80" />
+          </div>
+        </div>
+
+        {/* Navigation de la démo intégrée au téléphone */}
+        <div className="border-b border-[#eee7df] bg-[#fffdfa] px-3 pt-2 pb-2">
+          <div className="h-0.5 w-full overflow-hidden rounded-full bg-[#e9dfd4]">
+            <div
+              className="h-full bg-primary transition-all"
+              style={{
+                width: `${((currentStep - 1) * 100) / 3 + (isAutoPlay ? progress / 3 : 0)}%`,
+                transition: isAutoPlay ? "width 50ms linear" : "width 350ms ease",
+              }}
+            />
+          </div>
+          <div className="mt-1 flex items-center justify-between px-1">
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Démo en direct</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAutoPlay(!isAutoPlay)}
+              className="text-[10px] font-semibold text-primary hover:underline cursor-pointer"
+            >
+              {isAutoPlay ? "⏸ Pause" : "▶ Reprendre"}
+            </button>
           </div>
         </div>
 
@@ -454,9 +454,9 @@ function InteractiveHeroDemo() {
 
         {/* ── ÉTAPE 1 : VITRINE BOUTIQUE ÉLÉGANTE ── */}
         {displayStep === 1 && (
-          <div className="flex flex-col h-[445px] bg-background">
+          <div className="flex flex-col h-[445px] bg-[#fffdfa]">
             {/* Header boutique soigné */}
-            <div className="bg-gradient-to-r from-orange-600 via-primary to-amber-500 px-3.5 py-2.5 text-white shadow-sm">
+            <div className="bg-gradient-to-r from-orange-500 via-primary to-amber-500 px-3.5 py-2.5 text-white shadow-sm shadow-orange-900/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="relative">
@@ -482,7 +482,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Hint animé */}
-            <div className="bg-primary/5 border-b px-3 py-1.5 flex items-center justify-between text-[10px]">
+            <div className="bg-orange-50/80 border-b border-orange-100/80 px-3 py-1.5 flex items-center justify-between text-[10px]">
               <span className="font-bold text-primary flex items-center gap-1 truncate">
                 <Sparkles className="h-3 w-3 shrink-0" /> Étape 1 : Le client explore la vitrine
               </span>
@@ -490,7 +490,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Liste des produits de la vitrine */}
-            <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
+            <div ref={demoScrollRef} className="no-scrollbar overscroll-contain flex-1 p-2.5 space-y-2 overflow-y-auto">
               {DEMO_PRODUCTS.map((p) => {
                 const isSelected = p.id === activeProduct.id;
                 return (
@@ -500,8 +500,8 @@ function InteractiveHeroDemo() {
                     className={cn(
                       "group flex items-center gap-2.5 rounded-2xl border p-2 transition-all cursor-pointer select-none",
                       isSelected
-                        ? "bg-primary/8 border-primary/50 shadow-sm ring-1 ring-primary/20"
-                        : "bg-card border-border/70 hover:border-border hover:bg-muted/40"
+                        ? "bg-orange-50/80 border-orange-200 shadow-sm ring-1 ring-orange-100"
+                        : "bg-white border-[#eee7df] hover:border-orange-200 hover:bg-[#fffaf5]"
                     )}
                   >
                     <img
@@ -542,8 +542,8 @@ function InteractiveHeroDemo() {
                       className={cn(
                         "h-7 px-2.5 rounded-xl flex items-center justify-center gap-1 text-[10px] font-bold shrink-0 transition-transform active:scale-95 cursor-pointer",
                         isSelected
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-primary/10 text-primary hover:bg-primary/20"
+                          ? "bg-primary text-primary-foreground shadow-sm shadow-orange-900/10"
+                          : "bg-orange-50 text-orange-700 hover:bg-orange-100"
                       )}
                     >
                       <span>Variantes</span>
@@ -555,7 +555,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Bottom action bar */}
-            <div className="p-3 pb-3.5 border-t bg-card/95">
+            <div className="p-3 pb-3.5 border-t border-[#eee7df] bg-white/95">
               <button
                 type="button"
                 onClick={() => goToStep(2)}
@@ -570,9 +570,9 @@ function InteractiveHeroDemo() {
 
         {/* ── ÉTAPE 2 : FICHE PRODUIT & CHOIX DES VARIANTES ── */}
         {displayStep === 2 && (
-          <div className="flex flex-col h-[445px] bg-background">
+          <div className="flex flex-col h-[445px] bg-[#fffdfa]">
             {/* Header fiche */}
-            <div className="px-3.5 py-2 border-b flex items-center justify-between bg-card">
+            <div className="px-3.5 py-2 border-b border-[#eee7df] flex items-center justify-between bg-white">
               <button
                 type="button"
                 onClick={() => goToStep(1)}
@@ -581,14 +581,14 @@ function InteractiveHeroDemo() {
                 <ArrowRight className="h-3.5 w-3.5 rotate-180" />
                 <span>Catalogue</span>
               </button>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-2.5 py-0.5 rounded-full">
                 Étape 2 : Variantes
               </span>
             </div>
 
             {/* Body fiche produit */}
-            <div className="flex-1 p-3 overflow-y-auto space-y-2.5">
-              <div className="relative h-28 w-full rounded-2xl overflow-hidden bg-muted shadow-sm">
+            <div ref={demoScrollRef} className="no-scrollbar overscroll-contain flex-1 p-3 overflow-y-auto space-y-2.5">
+              <div className="relative h-28 w-full rounded-2xl overflow-hidden bg-[#f4eee7] shadow-sm ring-1 ring-black/5">
                 <img
                   src={activeProduct.image}
                   alt={activeProduct.name}
@@ -703,11 +703,11 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Actions fiche avec bouton WhatsApp aéré et ajusté */}
-            <div className="p-3 pb-3.5 border-t bg-card/95 backdrop-blur-sm">
+            <div className="p-3 pb-3.5 border-t border-[#eee7df] bg-white/95 backdrop-blur-sm">
               <button
                 type="button"
                 onClick={() => goToStep(3)}
-                className="w-full h-11 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-[0.98] text-white font-bold shadow-lg shadow-emerald-600/25 flex items-center justify-between px-3.5 transition-all cursor-pointer"
+                className="w-full h-11 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-[0.98] text-white font-bold shadow-md shadow-emerald-700/20 flex items-center justify-between px-3.5 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="h-7 w-7 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
@@ -731,7 +731,7 @@ function InteractiveHeroDemo() {
 
         {/* ── ÉTAPE 3 : MESSAGE WHATSAPP REÇU EN TEMPS RÉEL ── */}
         {displayStep === 3 && (
-          <div className="flex flex-col h-[445px] bg-[#EFEAE2] dark:bg-[#0c1317]">
+          <div className="flex flex-col h-[445px] bg-[#f5f3ee] dark:bg-[#0c1317]">
             {/* Header WhatsApp */}
             <div className="bg-[#008069] dark:bg-[#202c33] px-3.5 py-2.5 text-white flex items-center gap-2.5 shadow-sm">
               <div className="relative">
@@ -750,15 +750,15 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Chat WhatsApp */}
-            <div className="flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+            <div ref={demoScrollRef} className="no-scrollbar overscroll-contain flex-1 p-3 overflow-y-auto space-y-2 text-xs">
               <div className="text-center my-0.5">
-                <span className="bg-[#E1D9CE] dark:bg-[#182229] text-[9px] text-[#54656f] dark:text-[#8696a0] px-2.5 py-0.5 rounded-lg shadow-sm font-medium">
+                <span className="bg-white/85 dark:bg-[#182229] text-[9px] text-[#68736f] dark:text-[#8696a0] px-2.5 py-0.5 rounded-lg shadow-sm font-medium">
                   Aujourd'hui
                 </span>
               </div>
 
               {/* Bulle de commande structurée */}
-              <div className="relative ml-auto max-w-[96%] rounded-2xl rounded-tr-none bg-[#D9FDD3] dark:bg-[#005c4b] p-3 text-[#111b21] dark:text-[#e9edef] shadow-sm animate-in zoom-in-95 duration-200">
+              <div className="relative ml-auto max-w-[96%] rounded-2xl rounded-tr-none bg-[#edf8e9] dark:bg-[#005c4b] p-3 text-[#26332e] dark:text-[#e9edef] shadow-sm ring-1 ring-emerald-900/5 animate-in zoom-in-95 duration-200">
                 <p className="font-bold text-[11px] text-[#008069] dark:text-[#25D366] mb-1">
                   🛍️ Nouvelle commande via MarketNet !
                 </p>
@@ -798,7 +798,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Back action */}
-            <div className="p-3 pb-3.5 border-t bg-card/95">
+            <div className="p-3 pb-3.5 border-t border-[#e7e3dc] bg-white/95">
               <button
                 type="button"
                 onClick={() => goToStep(1)}
@@ -966,11 +966,6 @@ function Index() {
                 </Button>
               </FadeIn>
 
-              <FadeIn className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground lg:justify-start delay-500">
-                <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Sans engagement</span>
-                <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Prêt en 5 min</span>
-                <span className="flex items-center gap-1.5"><Megaphone className="h-4 w-4 text-primary" /> Promos incluses</span>
-              </FadeIn>
             </div>
 
             <FadeIn className="delay-500 relative">
