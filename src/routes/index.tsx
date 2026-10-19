@@ -307,6 +307,7 @@ function InteractiveHeroDemo() {
   const [isVisible, setIsVisible] = useState(true);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [localTime, setLocalTime] = useState("--:--");
   const demoScrollRef = useRef<HTMLDivElement | null>(null);
 
   // Product state
@@ -316,6 +317,20 @@ function InteractiveHeroDemo() {
   const [selectedQty, setSelectedQty] = useState<number>(1);
 
   const activeProduct = DEMO_PRODUCTS.find((p) => p.id === selectedProductId) || DEMO_PRODUCTS[0];
+
+  // Afficher l'heure réelle du visiteur selon le fuseau horaire de son appareil.
+  useEffect(() => {
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
+    const updateLocalTime = () => setLocalTime(formatter.format(new Date()));
+
+    updateLocalTime();
+    const timer = window.setInterval(updateLocalTime, 15_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // Transition fluide entre étapes
   const transitionToStep = (step: 1 | 2 | 3) => {
@@ -410,7 +425,7 @@ function InteractiveHeroDemo() {
       <div className="relative rounded-[2.5rem] border-4 border-foreground/15 bg-background shadow-2xl overflow-hidden">
         {/* Status bar simplifiée */}
         <div className="bg-muted/70 px-5 pt-3 pb-2 flex items-center justify-between border-b border-border/40">
-          <span className="text-[10px] font-semibold text-muted-foreground">09:41</span>
+          <time className="text-[10px] font-semibold text-muted-foreground">{localTime}</time>
           <div className="flex items-center gap-1">
             <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
             <div className="h-1.5 w-3 rounded-full bg-muted-foreground/60" />
