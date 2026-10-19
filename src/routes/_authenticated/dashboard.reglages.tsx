@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,55 +8,40 @@ import {
   CreditCard,
   LogOut,
   CheckCircle2,
-  Shield,
-  Sparkles,
   Trash2,
   AlertTriangle,
-  Lock,
-  Eye,
-  EyeOff,
   Loader2,
   Clock,
   ArrowRight,
-  ChevronRight,
+  Info,
   Package,
   Camera,
   Tag,
-  Share2,
+  Sparkles,
+  Shield,
   Store,
+  Mail,
+  ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMerchantSubscription } from "@/lib/subscriptions.functions";
-import { notifyMerchantAccountDeletion } from "@/lib/admin.functions";
+import {
+  requestAccountDeletion,
+  cancelAccountDeletion,
+  getMyDeletionRequest,
+  DELETION_REASONS,
+} from "@/lib/account-deletion.functions";
 import { useMyShop } from "@/hooks/useMyShop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard/reglages")({
   head: () => ({
     meta: [
-      { title: "Réglages du compte — MarketNet" },
-      { name: "description", content: "Paramètres de votre profil commerçant et sécurité." },
+      { title: "Paramètres du compte — MarketNet" },
+      { name: "description", content: "Paramètres de votre profil commerçant, sécurité et abonnement." },
     ],
   }),
   component: SettingsPage,
@@ -65,18 +50,21 @@ export const Route = createFileRoute("/_authenticated/dashboard/reglages")({
 function SettingsPage() {
   const { data: shop } = useMyShop();
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteStep, setDeleteStep] = useState<"closed" | "password" | "confirm">("closed");
-  const [deletePassword, setDeletePassword] = useState("");
-  const [showDeletePassword, setShowDeletePassword] = useState(false);
-  const [verifyingPassword, setVerifyingPassword] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [confirmShopName, setConfirmShopName] = useState("");
-  const notifyDeletionFn = useServerFn(notifyMerchantAccountDeletion);
+
+  // Demande de suppression
+  const [showDeletionForm, setShowDeletionForm] = useState(false);
+  const [deletionReason, setDeletionReason] = useState<string>("plus_besoin");
+  const [deletionReasonOther, setDeletionReasonOther] = useState("");
+  const [deletionComment, setDeletionComment] = useState("");
+  const [submittingDeletion, setSubmittingDeletion] = useState(false);
+  const [cancellingDeletion, setCancellingDeletion] = useState(false);
+
+  const requestDeletionFn = useServerFn(requestAccountDeletion);
+  const cancelDeletionFn = useServerFn(cancelAccountDeletion);
+  const getMyRequestFn = useServerFn(getMyDeletionRequest);
 
   const { data: user } = useQuery({
     queryKey: ["auth-user"],
@@ -94,6 +82,12 @@ function SettingsPage() {
     queryFn: () => getSubFn({ data: { shopId: shop!.id } }),
   });
 
+  const { data: activeDeletionRequest, refetch: refetchDeletionRequest } = useQuery({
+    queryKey: ["my-deletion-request"],
+    queryFn: () => getMyRequestFn(),
+    staleTime: 30_000,
+  });
+
   useEffect(() => {
     if (user) {
       setFullName(user.user_metadata?.full_name || "");
@@ -101,88 +95,42 @@ function SettingsPage() {
     }
   }, [user]);
 
-  function closeDeleteModal() {
-    setDeleteStep("closed");
-    setDeletePassword("");
-    setShowDeletePassword(false);
-    setConfirmText("");
-    setConfirmShopName("");
-    setVerifyingPassword(false);
-  }
-
-  async function handleVerifyPassword(e: React.FormEvent) {
+  async function handleRequestDeletion(e: React.FormEvent) {
     e.preventDefault();
-    if (!deletePassword) {
-      toast.error("Veuillez saisir votre mot de passe");
+    if (deletionReason === "autre" && !deletionReasonOther.trim()) {
+      toast.error("Veuillez préciser la raison dans le champ 'Autre'.");
       return;
     }
-    if (!email) {
-      toast.error("Adresse e-mail introuvable");
-      return;
-    }
-
-    setVerifyingPassword(true);
+    setSubmittingDeletion(true);
     try {
-      // Vérifier le mot de passe actuel auprès de Supabase Auth
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password: deletePassword,
+      await requestDeletionFn({
+        data: {
+          reason: deletionReason as any,
+          reason_other: deletionReason === "autre" ? deletionReasonOther.trim() : undefined,
+          comment: deletionComment.trim() || undefined,
+        },
       });
-
-      if (error) {
-        toast.error("Mot de passe incorrect");
-        return;
-      }
-
-      // Mot de passe validé avec succès -> passage à l'étape de confirmation finale
-      setDeleteStep("confirm");
-    } catch (err) {
-      toast.error("Erreur lors de la vérification du mot de passe");
+      toast.success("Votre demande a été soumise. Vous recevrez un e-mail de confirmation.");
+      setShowDeletionForm(false);
+      setDeletionComment("");
+      refetchDeletionRequest();
+    } catch (err: any) {
+      toast.error(err?.message || "Impossible de soumettre la demande.");
     } finally {
-      setVerifyingPassword(false);
+      setSubmittingDeletion(false);
     }
   }
 
-  async function deleteAccount() {
-    setDeleting(true);
+  async function handleCancelDeletion() {
+    setCancellingDeletion(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const userEmail = userData?.user?.email || email || "";
-      const userFullName = userData?.user?.user_metadata?.full_name || fullName || "Cher commerçant";
-      const shopNameVal = shop?.name || "";
-
-      // 1. Envoyer l'e-mail de confirmation AVANT la suppression (session encore valide)
-      if (userEmail) {
-        console.log("[deleteAccount] Envoi email de confirmation suppression à:", userEmail);
-        try {
-          const result = await notifyDeletionFn({
-            data: {
-              email: userEmail,
-              fullName: userFullName,
-              shopName: shopNameVal,
-            },
-          });
-          console.log("[deleteAccount] Email envoyé:", result);
-        } catch (emailErr) {
-          console.error("[deleteAccount] Échec envoi e-mail (non bloquant):", emailErr);
-        }
-      } else {
-        console.warn("[deleteAccount] Pas d'email trouvé pour la notification.");
-      }
-
-      // 2. Suppression côté serveur : RPC qui cascade sur shops, products, orders…
-      const { error } = await (supabase as any).rpc("delete_my_account");
-      if (error) throw error;
-
-      toast.success("Votre compte a été supprimé. Un e-mail de confirmation vous a été envoyé.");
-
-      // 3. Déconnexion et redirection
-      await supabase.auth.signOut();
-      window.location.href = "/";
-    } catch (err) {
-      console.error("Erreur lors de la suppression:", err);
-      toast.error("Impossible de supprimer le compte. Veuillez réessayer.");
-      setDeleting(false);
+      await cancelDeletionFn();
+      toast.success("Votre demande de suppression a été annulée.");
+      refetchDeletionRequest();
+    } catch (err: any) {
+      toast.error(err?.message || "Impossible d'annuler la demande.");
+    } finally {
+      setCancellingDeletion(false);
     }
   }
 
@@ -194,78 +142,122 @@ function SettingsPage() {
     });
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Profil mis à jour");
+    toast.success("Profil mis à jour avec succès");
     qc.invalidateQueries({ queryKey: ["auth-user"] });
   }
 
+  const currentPlanId = subLimits?.plan_id || shop?.plan_id || "free";
+  const isGrace = subLimits?.is_grace_period;
+  const isExpired = subLimits?.status === "expiré";
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8 pb-12">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Réglages du compte</h1>
-        <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-          Gérez votre profil personnel, votre formule d'abonnement et la sécurité de votre session.
-        </p>
+    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8 pb-16">
+      {/* ── En-tête de la page ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-5">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+              Espace Commerçant
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+            Réglages &amp; Compte
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+            Gérez votre identité, votre formule d'abonnement et la sécurité de votre compte.
+          </p>
+        </div>
+
+        {shop?.slug && (
+          <Link
+            to="/b/$slug"
+            params={{ slug: shop.slug }}
+            target="_blank"
+            className="inline-flex items-center gap-2 self-start sm:self-auto rounded-xl border bg-card hover:bg-muted/50 px-3.5 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-all shadow-xs"
+          >
+            <Store className="h-3.5 w-3.5 text-primary" />
+            <span>Voir ma boutique</span>
+            <ExternalLink className="h-3 w-3 opacity-60" />
+          </Link>
+        )}
       </div>
 
-      {/* Profil */}
-      <section className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm space-y-5">
-        <div className="flex items-center justify-between border-b pb-4 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary font-black text-base shrink-0 shadow-xs">
+      {/* ══════════════════════════════════════════════════════════════════════
+          1. PROFIL & IDENTITÉ
+         ══════════════════════════════════════════════════════════════════════ */}
+      <section className="rounded-3xl border bg-card shadow-sm overflow-hidden">
+        {/* En-tête de la carte profil */}
+        <div className="p-5 sm:p-6 border-b bg-muted/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 text-primary font-black text-xl shrink-0 border border-primary/20 shadow-xs">
               {(fullName || shop?.name || "M").charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-bold text-sm sm:text-base">{fullName || "Commerçant MarketNet"}</h2>
-                <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
-                  Commerçant
+                <h2 className="font-extrabold text-base sm:text-lg text-foreground">
+                  {fullName || "Commerçant MarketNet"}
+                </h2>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  <CheckCircle2 className="h-3 w-3" /> Vérifié
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Boutique associée : <strong className="text-foreground">{shop?.name || "Ma boutique"}</strong>
               </p>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="fullname" className="text-xs sm:text-sm font-semibold">Nom complet</Label>
-            <Input
-              id="fullname"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Ex: Landry Kayoyo"
-              className="h-10 sm:h-9 rounded-xl"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="email" className="text-xs sm:text-sm font-semibold">Adresse e-mail</Label>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                <CheckCircle2 className="h-3 w-3" /> E-mail vérifié
-              </span>
+        {/* Corps des champs */}
+        <div className="p-5 sm:p-6 space-y-5">
+          <div className="grid sm:grid-cols-2 gap-5">
+            {/* Nom complet */}
+            <div className="space-y-1.5">
+              <Label htmlFor="fullname" className="text-xs font-bold text-foreground/80 flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-muted-foreground" />
+                Nom complet
+              </Label>
+              <Input
+                id="fullname"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Ex: Landry Kayoyo"
+                className="h-10 rounded-xl bg-background border-border focus-visible:ring-primary"
+              />
             </div>
-            <Input
-              id="email"
-              value={email}
-              disabled
-              className="h-10 sm:h-9 bg-muted text-muted-foreground cursor-not-allowed rounded-xl"
-            />
-            <p className="text-[11px] text-muted-foreground">
-              L'adresse e-mail de connexion est liée à votre compte Supabase et ne peut pas être modifiée ici.
-            </p>
+
+            {/* Email de connexion */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="email" className="text-xs font-bold text-foreground/80 flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                  Adresse e-mail
+                </Label>
+                <span className="text-[10px] text-muted-foreground font-medium">Lecture seule</span>
+              </div>
+              <Input
+                id="email"
+                value={email}
+                disabled
+                className="h-10 bg-muted/50 text-muted-foreground cursor-not-allowed rounded-xl border-dashed"
+              />
+            </div>
           </div>
 
-          <div className="pt-2">
+          <p className="text-[11px] text-muted-foreground">
+            L'adresse e-mail correspond à vos identifiants Supabase sécurisés. Pour toute modification d'adresse, contactez l'assistance.
+          </p>
+
+          <div className="flex justify-end pt-2 border-t">
             <Button
               onClick={updateProfile}
               disabled={saving}
-              className="w-full sm:w-auto rounded-xl h-10 sm:h-9 font-bold px-5"
+              className="w-full sm:w-auto rounded-xl h-10 font-bold px-6 shadow-xs"
             >
               {saving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enregistrement…</>
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Enregistrement…
+                </>
               ) : (
                 "Enregistrer les modifications"
               )}
@@ -274,288 +266,376 @@ function SettingsPage() {
         </div>
       </section>
 
-      {/* Carte Résumé Abonnement */}
-      <section className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between border-b pb-3 sm:pb-4 flex-wrap gap-2">
+      {/* ══════════════════════════════════════════════════════════════════════
+          2. ABONNEMENT & FORMULE
+         ══════════════════════════════════════════════════════════════════════ */}
+      <section className="rounded-3xl border bg-card shadow-sm overflow-hidden space-y-0">
+        {/* Header */}
+        <div className="p-5 sm:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/15">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500 shrink-0">
-              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500 shrink-0">
+              <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-bold text-sm sm:text-base">Abonnement &amp; Facturation</h2>
-              <p className="text-[11px] sm:text-xs text-muted-foreground">Formule active et gestion de vos limites.</p>
+              <h2 className="font-extrabold text-base sm:text-lg text-foreground">
+                Abonnement &amp; Limites
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Statut de votre formule active et quotas actuels de votre catalogue.
+              </p>
             </div>
           </div>
-          <span className={cn(
-            "rounded-full px-3 py-1 text-xs font-bold border",
-            subLimits?.status === "grâce"
-              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
-              : subLimits?.status === "expiré"
-              ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30"
-              : "bg-primary/15 text-primary border-primary/20"
-          )}>
-            {subLimits?.status === "grâce" ? "Période de grâce" : subLimits?.status === "expiré" ? "Expiré" : "Actif"}
+
+          <span
+            className={cn(
+              "self-start sm:self-auto rounded-full px-3 py-1 text-xs font-bold border",
+              isGrace
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                : isExpired
+                ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30"
+                : "bg-primary/15 text-primary border-primary/25"
+            )}
+          >
+            {isGrace ? "Période de grâce" : isExpired ? "Expiré" : "Formule active"}
           </span>
         </div>
 
-        {/* Rappel d'alerte si applicable */}
-        {subLimits?.reminder_level === "7_days" && (
-          <div className="flex items-center gap-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-amber-800 dark:text-amber-200 text-xs">
-            <Clock className="h-4 w-4 shrink-0 text-amber-600" />
-            <p>Votre abonnement expire dans {subLimits.days_remaining} jour(s). Pensez à renouveler.</p>
-          </div>
-        )}
-        {subLimits?.reminder_level === "3_days" && (
-          <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-red-800 dark:text-red-200 text-xs">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 animate-bounce" />
-            <p className="font-bold">Urgent : expire dans {subLimits.days_remaining} jour(s). Renouvelez dès maintenant.</p>
-          </div>
-        )}
-        {subLimits?.is_grace_period && (
-          <div className="flex items-center gap-3 rounded-xl bg-amber-500/15 border border-amber-500/30 p-3 text-amber-900 dark:text-amber-200 text-xs">
-            <Clock className="h-4 w-4 shrink-0 text-amber-600 animate-pulse" />
-            <p className="font-bold">Période de grâce de 7 jours active. Renouvelez pour conserver vos fonctionnalités.</p>
-          </div>
-        )}
-
-        <div className="rounded-xl bg-muted/30 border p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <span className="text-xs text-muted-foreground">Formule souscrite :</span>
-            <p className="font-black text-lg capitalize">
-              Plan {subLimits?.plan_name || shop?.plan_id || "Gratuit"}
-            </p>
-            {subLimits?.ends_at && subLimits.plan_id !== "free" && (
-              <p className="text-[11px] text-muted-foreground">
-                Échéance le {new Date(subLimits.ends_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+        <div className="p-5 sm:p-6 space-y-5">
+          {/* Alertes d'expiration */}
+          {subLimits?.reminder_level === "7_days" && (
+            <div className="flex items-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 p-3.5 text-amber-900 dark:text-amber-200 text-xs">
+              <Clock className="h-4 w-4 shrink-0 text-amber-600" />
+              <p>
+                Votre formule expire dans <strong>{subLimits.days_remaining} jour(s)</strong>.
+                Pensez à renouveler dès maintenant pour éviter l'interruption des fonctionnalités.
               </p>
-            )}
+            </div>
+          )}
+          {subLimits?.reminder_level === "3_days" && (
+            <div className="flex items-center gap-3 rounded-2xl bg-red-500/10 border border-red-500/25 p-3.5 text-red-900 dark:text-red-200 text-xs">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 animate-bounce" />
+              <p className="font-bold">
+                Attention : votre formule expire dans {subLimits.days_remaining} jour(s).
+              </p>
+            </div>
+          )}
+          {isGrace && (
+            <div className="flex items-center gap-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 p-3.5 text-amber-900 dark:text-amber-200 text-xs">
+              <Clock className="h-4 w-4 shrink-0 text-amber-600 animate-pulse" />
+              <p className="font-bold">
+                Période de grâce de 7 jours active. Renouvelez votre plan sans tarder.
+              </p>
+            </div>
+          )}
+
+          {/* Disposition en 2 blocs équilibrés */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* Bloc gauche : Nom du plan et date */}
+            <div className="rounded-2xl border bg-muted/20 p-4 sm:p-5 flex flex-col justify-between space-y-3">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Formule souscrite
+                </span>
+                <p className="text-2xl font-black text-foreground capitalize mt-1">
+                  Plan {subLimits?.plan_name || shop?.plan_id || "Gratuit"}
+                </p>
+              </div>
+
+              {subLimits?.ends_at && currentPlanId !== "free" ? (
+                <div className="pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                  <span>Date d'échéance : </span>
+                  <strong className="text-foreground">
+                    {new Date(subLimits.ends_at).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </strong>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
+                  Formule permanente sans engagement
+                </p>
+              )}
+            </div>
+
+            {/* Bloc droit : Quotas clés */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border bg-muted/20 p-3.5 flex flex-col justify-center space-y-1">
+                <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Package className="h-3.5 w-3.5 text-primary" /> Produits
+                </span>
+                <p className="text-base sm:text-lg font-black text-foreground">
+                  {subLimits?.max_products != null ? `${subLimits.max_products} max` : "Illimité"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border bg-muted/20 p-3.5 flex flex-col justify-center space-y-1">
+                <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Camera className="h-3.5 w-3.5 text-primary" /> Photos / prod.
+                </span>
+                <p className="text-base sm:text-lg font-black text-foreground">
+                  {subLimits?.max_photos ?? 3} photos
+                </p>
+              </div>
+
+              <div className="rounded-2xl border bg-muted/20 p-3.5 flex flex-col justify-center space-y-1">
+                <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Tag className="h-3.5 w-3.5 text-primary" /> Promotions
+                </span>
+                <p className="text-base sm:text-lg font-black text-foreground">
+                  {subLimits?.max_active_promotions != null
+                    ? `${subLimits.max_active_promotions} max`
+                    : "Illimitées"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border bg-muted/20 p-3.5 flex flex-col justify-center space-y-1">
+                <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" /> Fonctions
+                </span>
+                <p className="text-base sm:text-lg font-black text-foreground">
+                  {subLimits?.advanced_stats ? "Pro & Stats" : "Standard"}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span className="bg-background px-2.5 py-1 rounded-lg border font-medium">
-              {subLimits?.max_products != null ? `${subLimits.max_products} produits max` : "Produits illimités"}
-            </span>
-            <span className="bg-background px-2.5 py-1 rounded-lg border font-medium">
-              {subLimits?.max_photos ? `${subLimits.max_photos} photos/produit` : "3 photos/produit"}
-            </span>
-          </div>
+          {/* Lien d'action direct vers la page complète des formules */}
+          <Link
+            to="/dashboard/abonnement"
+            className="flex items-center justify-between w-full rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent hover:from-primary/15 hover:via-primary/10 border border-primary/25 p-4 text-xs sm:text-sm font-bold text-primary transition-all group shadow-2xs"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs shrink-0">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="text-left">
+                <span className="text-foreground font-extrabold block">
+                  Changer de formule, renouveler ou voir les tarifs
+                </span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  Consultez la grille des plans et gérez vos factures et reçus
+                </span>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 shrink-0 ml-3" />
+          </Link>
         </div>
-
-        <Link
-          to="/dashboard/abonnement"
-          className="flex items-center justify-between w-full rounded-xl bg-primary/10 hover:bg-primary/15 text-primary border border-primary/20 p-3.5 font-bold text-xs sm:text-sm transition-all group"
-        >
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
-            <span>Gérer mon abonnement, changer de plan &amp; voir l'historique</span>
-          </div>
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-        </Link>
       </section>
 
-      {/* Déconnexion */}
-      <section className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <div>
-          <h2 className="font-bold text-sm sm:text-base">Session</h2>
-          <p className="text-[11px] sm:text-xs text-muted-foreground">Se déconnecter de votre espace commerçant.</p>
+      {/* ══════════════════════════════════════════════════════════════════════
+          3. SÉCURITÉ & SESSION
+         ══════════════════════════════════════════════════════════════════════ */}
+      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 shrink-0">
+            <Shield className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="font-extrabold text-base text-foreground">Sécurité de la session</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Connecté en tant que <strong className="text-foreground">{email}</strong>. Déconnectez votre session en toute sécurité.
+            </p>
+          </div>
         </div>
+
         <Button
           variant="outline"
           onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/auth"))}
-          className="w-full sm:w-auto text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl justify-center h-10 sm:h-9"
+          className="w-full sm:w-auto text-muted-foreground hover:text-red-600 hover:bg-red-500/10 rounded-xl justify-center h-10 font-bold shrink-0"
         >
           <LogOut className="h-4 w-4 mr-2" /> Déconnexion
         </Button>
       </section>
 
-      {/* Supprimer mon compte */}
-      <section className="rounded-2xl border border-red-200 dark:border-red-900/40 bg-red-500/5 p-4 sm:p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
-              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <h2 className="font-bold text-sm sm:text-base text-red-600 dark:text-red-400">Supprimer mon compte</h2>
-              <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Supprime définitivement votre compte, votre boutique, vos produits et vos commandes. Cette action est <strong>irréversible</strong>.
+      {/* ══════════════════════════════════════════════════════════════════════
+          4. ZONE DE DANGER (Demande de suppression de compte)
+         ══════════════════════════════════════════════════════════════════════ */}
+      <section className="rounded-3xl border border-red-200 dark:border-red-950 bg-red-500/[0.02] p-5 sm:p-6 shadow-sm space-y-4">
+        {/* Demande en cours */}
+        {activeDeletionRequest && activeDeletionRequest.status === "pending" && (
+          <div className="flex items-start gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4">
+            <Clock className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-amber-800 dark:text-amber-300">
+                Demande de suppression en cours d'examen
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Votre demande soumise le{" "}
+                <strong>
+                  {new Date(activeDeletionRequest.requested_at).toLocaleDateString("fr-FR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </strong>{" "}
+                est en attente de traitement par l'administration.
               </p>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancelDeletion}
+              disabled={cancellingDeletion}
+              className="shrink-0 text-amber-700 hover:text-amber-900 hover:bg-amber-500/20 text-xs font-bold rounded-xl"
+            >
+              {cancellingDeletion ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Annuler la demande"
+              )}
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            disabled={deleting}
-            onClick={() => setDeleteStep("password")}
-            className="w-full sm:w-auto text-red-500 hover:text-red-600 hover:bg-red-500/10 border-red-300 dark:border-red-800 rounded-xl shrink-0 h-10 sm:h-9 justify-center"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {deleting ? "Suppression…" : "Supprimer"}
-          </Button>
-        </div>
+        )}
 
-          {/* Étape 1 : Vérification du mot de passe */}
-          <Dialog
-            open={deleteStep === "password"}
-            onOpenChange={(open) => {
-              if (!open) closeDeleteModal();
-            }}
-          >
-            <DialogContent className="w-[calc(100vw-2rem)] max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-2xl sm:rounded-2xl">
-              <DialogHeader className="text-left">
-                <DialogTitle className="flex items-center gap-2 text-red-600 text-lg sm:text-xl">
-                  <Lock className="h-5 w-5 shrink-0" /> Confirmation d'identité
-                </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-left">
-                  Pour des raisons de sécurité, veuillez saisir votre mot de passe de compte pour continuer.
-                </DialogDescription>
-              </DialogHeader>
-
-              <form onSubmit={handleVerifyPassword} className="space-y-4 py-1">
-                <div className="space-y-1.5">
-                  <Label htmlFor="delete-account-password" className="text-xs font-medium">Mot de passe de votre compte</Label>
-                  <div className="relative">
-                    <Input
-                      id="delete-account-password"
-                      type={showDeletePassword ? "text" : "password"}
-                      value={deletePassword}
-                      onChange={(e) => setDeletePassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoFocus
-                      disabled={verifyingPassword}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowDeletePassword(!showDeletePassword)}
-                      tabIndex={-1}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showDeletePassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={closeDeleteModal}
-                    disabled={verifyingPassword}
-                    className="w-full sm:w-auto"
-                  >
-                    Annuler
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={!deletePassword.trim() || verifyingPassword}
-                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    {verifyingPassword ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Vérification…
-                      </>
-                    ) : (
-                      "Vérifier mon mot de passe"
+        {/* Compte suspendu / suppression programmée */}
+        {activeDeletionRequest && activeDeletionRequest.status === "processed" && (
+          <div className="flex items-start gap-3 rounded-2xl bg-red-500/10 border border-red-500/30 p-4">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-red-700 dark:text-red-400">
+                Compte suspendu — suppression programmée
+              </p>
+              {activeDeletionRequest.scheduled_deletion_at && (
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Suppression définitive prévue le{" "}
+                  <strong>
+                    {new Date(activeDeletionRequest.scheduled_deletion_at).toLocaleDateString(
+                      "fr-FR",
+                      { day: "numeric", month: "long", year: "numeric" }
                     )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  </strong>
+                  . Pour toute restauration de votre compte ou de votre boutique, contactez le support avant cette date.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
-          {/* Étape 2 : Confirmation irréversible avec vérification boutique et phrase */}
-          <AlertDialog
-            open={deleteStep === "confirm"}
-            onOpenChange={(open) => {
-              if (!open && !deleting) closeDeleteModal();
-            }}
-          >
-            <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-lg max-h-[90vh] overflow-y-auto p-5 sm:p-6 rounded-2xl sm:rounded-2xl">
-              <AlertDialogHeader className="text-left">
-                <AlertDialogTitle className="flex items-center gap-2 text-red-600 text-lg sm:text-xl">
-                  <AlertTriangle className="h-5 w-5 shrink-0" /> Supprimer mon compte définitivement
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-xs sm:text-sm text-left">
-                  Cette action est <strong>définitive et irréversible</strong>. Votre boutique,
-                  vos produits et vos commandes seront supprimés
-                  immédiatement. Vous serez déconnecté automatiquement.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-
-              <div className="space-y-4 py-1">
-                {/* Vérification 1 : Nom de la boutique si elle existe */}
-                {shop?.name && (
-                  <div className="space-y-1.5 rounded-xl border border-red-200/80 dark:border-red-900/40 bg-red-500/5 p-3">
-                    <Label htmlFor="confirm-shop-name" className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                      <Store className="h-3.5 w-3.5 text-red-600 shrink-0" />
-                      1. Tapez le nom de votre boutique : <span className="font-bold text-red-600 select-all">{shop.name}</span>
-                    </Label>
-                    <Input
-                      id="confirm-shop-name"
-                      value={confirmShopName}
-                      onChange={(e) => setConfirmShopName(e.target.value)}
-                      placeholder={shop.name}
-                      autoComplete="off"
-                      disabled={deleting}
-                      className="border-red-200 focus-visible:ring-red-500 text-sm bg-background"
-                    />
-                    {confirmShopName.trim() && confirmShopName.trim() !== shop.name && (
-                      <p className="text-[11px] text-red-500">Le nom ne correspond pas exactement.</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Vérification 2 : Phrase de confirmation */}
-                <div className="space-y-1.5 rounded-xl border border-red-200/80 dark:border-red-900/40 bg-red-500/5 p-3">
-                  <Label htmlFor="confirm-delete" className="text-xs font-medium text-foreground block">
-                    {shop?.name ? "2. Tapez exactement :" : "Pour confirmer, tapez exactement :"}{" "}
-                    <span className="font-bold text-red-600 select-all tracking-wider">Je supprime mon compte</span>
-                  </Label>
-                  <Input
-                    id="confirm-delete"
-                    value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder="Je supprime mon compte"
-                    autoComplete="off"
-                    disabled={deleting}
-                    className="border-red-200 focus-visible:ring-red-500 text-sm bg-background"
-                  />
-                  {confirmText.trim() && confirmText.trim() !== "Je supprime mon compte" && (
-                    <p className="text-[11px] text-red-500">La phrase ne correspond pas exactement.</p>
-                  )}
-                </div>
+        {/* Formulaire & Déclencheur */}
+        {!activeDeletionRequest && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                <Trash2 className="h-5 w-5" />
               </div>
+              <div>
+                <h2 className="font-bold text-sm sm:text-base text-red-600 dark:text-red-400">
+                  Demander la suppression du compte
+                </h2>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Votre demande est examinée par notre équipe avec un délai de grâce pouvant aller jusqu'à 30 jours pour restaurer vos données.
+                </p>
+              </div>
+            </div>
 
-              <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-2 pt-1">
-                <AlertDialogCancel
-                  disabled={deleting}
-                  onClick={closeDeleteModal}
-                  className="w-full sm:w-auto mt-0"
-                >
-                  Annuler
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  disabled={
-                    (!!shop?.name && confirmShopName.trim() !== shop.name) ||
-                    confirmText.trim() !== "Je supprime mon compte" ||
-                    deleting
-                  }
-                  onClick={deleteAccount}
-                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {deleting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Suppression en cours…
-                    </>
-                  ) : (
-                    "Oui, supprimer définitivement"
-                  )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            {!showDeletionForm && (
+              <Button
+                variant="outline"
+                onClick={() => setShowDeletionForm(true)}
+                className="w-full sm:w-auto text-red-500 hover:text-red-600 hover:bg-red-500/10 border-red-200 dark:border-red-900 rounded-xl shrink-0 h-10 font-bold"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Faire une demande
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Formulaire de suppression ouvert */}
+        {showDeletionForm && !activeDeletionRequest && (
+          <form
+            onSubmit={handleRequestDeletion}
+            className="space-y-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 bg-background p-4 sm:p-5 mt-2 shadow-xs"
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="deletion-reason" className="text-xs font-bold text-foreground">
+                Motif principal de votre départ
+              </Label>
+              <select
+                id="deletion-reason"
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                disabled={submittingDeletion}
+                className="w-full rounded-xl border border-input bg-background px-3 h-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {DELETION_REASONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {deletionReason === "autre" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="deletion-reason-other" className="text-xs font-bold text-foreground">
+                  Préciser la raison
+                </Label>
+                <Input
+                  id="deletion-reason-other"
+                  value={deletionReasonOther}
+                  onChange={(e) => setDeletionReasonOther(e.target.value)}
+                  placeholder="Précisez la raison de votre départ"
+                  disabled={submittingDeletion}
+                  className="rounded-xl h-10"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="deletion-comment" className="text-xs font-bold text-foreground">
+                Commentaire libre (optionnel)
+              </Label>
+              <textarea
+                id="deletion-comment"
+                value={deletionComment}
+                onChange={(e) => setDeletionComment(e.target.value)}
+                placeholder="Partagez vos remarques ou suggestions avec notre équipe..."
+                disabled={submittingDeletion}
+                rows={3}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              />
+            </div>
+
+            <div className="flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3.5">
+              <Info className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+              <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                Après validation par notre équipe, votre boutique sera suspendue. Vous disposerez
+                d'un délai de grâce (jusqu'à 30 jours) pour contacter le support et annuler la suppression si vous changez d'avis.
+              </p>
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDeletionForm(false)}
+                disabled={submittingDeletion}
+                className="w-full sm:w-auto rounded-xl h-10"
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  submittingDeletion ||
+                  (deletionReason === "autre" && !deletionReasonOther.trim())
+                }
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold h-10 shadow-xs"
+              >
+                {submittingDeletion ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi en cours…
+                  </>
+                ) : (
+                  "Soumettre la demande"
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
       </section>
     </div>
   );

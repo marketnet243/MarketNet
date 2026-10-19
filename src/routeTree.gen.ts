@@ -24,6 +24,7 @@ import { Route as BSlugRouteImport } from './routes/b.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminBoutiquesRouteImport } from './routes/_authenticated/admin.boutiques'
 import { Route as AuthenticatedAdminCommercantsRouteImport } from './routes/_authenticated/admin.commercants'
+import { Route as AuthenticatedAdminDemandesSuppressionRouteImport } from './routes/_authenticated/admin.demandes-suppression'
 import { Route as AuthenticatedAdminPaiementsRouteImport } from './routes/_authenticated/admin.paiements'
 import { Route as AuthenticatedAdminParametresRouteImport } from './routes/_authenticated/admin.parametres'
 import { Route as AuthenticatedAdminPlansRouteImport } from './routes/_authenticated/admin.plans'
@@ -36,6 +37,7 @@ import { Route as AuthenticatedDashboardProduitsRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardPromotionsRouteImport } from './routes/_authenticated/dashboard.promotions'
 import { Route as AuthenticatedDashboardReglagesRouteImport } from './routes/_authenticated/dashboard.reglages'
 import { Route as AuthenticatedDashboardSupportRouteImport } from './routes/_authenticated/dashboard.support'
+import { Route as ApiCronProcessAccountDeletionsRouteImport } from './routes/api/cron/process-account-deletions'
 import { Route as ApiCronSubscriptionRemindersRouteImport } from './routes/api/cron/subscription-reminders'
 import { Route as ApiPublicBroadcastTrackRouteImport } from './routes/api/public/broadcast-track'
 import { Route as ApiPublicInvoicePdfRouteImport } from './routes/api/public/invoice-pdf'
@@ -126,6 +128,12 @@ const AuthenticatedAdminCommercantsRoute =
     path: '/commercants',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminDemandesSuppressionRoute =
+  AuthenticatedAdminDemandesSuppressionRouteImport.update({
+    id: '/demandes-suppression',
+    path: '/demandes-suppression',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminPaiementsRoute =
   AuthenticatedAdminPaiementsRouteImport.update({
     id: '/paiements',
@@ -196,6 +204,12 @@ const AuthenticatedDashboardSupportRoute =
     id: '/support',
     path: '/support',
     getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const ApiCronProcessAccountDeletionsRoute =
+  ApiCronProcessAccountDeletionsRouteImport.update({
+    id: '/api/cron/process-account-deletions',
+    path: '/api/cron/process-account-deletions',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiCronSubscriptionRemindersRoute =
   ApiCronSubscriptionRemindersRouteImport.update({
@@ -283,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/b/$slug': typeof BSlugRouteWithChildren
   '/admin/boutiques': typeof AuthenticatedAdminBoutiquesRoute
   '/admin/commercants': typeof AuthenticatedAdminCommercantsRoute
+  '/admin/demandes-suppression': typeof AuthenticatedAdminDemandesSuppressionRoute
   '/admin/paiements': typeof AuthenticatedAdminPaiementsRoute
   '/admin/parametres': typeof AuthenticatedAdminParametresRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
@@ -294,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/promotions': typeof AuthenticatedDashboardPromotionsRoute
   '/dashboard/reglages': typeof AuthenticatedDashboardReglagesRoute
   '/dashboard/support': typeof AuthenticatedDashboardSupportRouteWithChildren
+  '/api/cron/process-account-deletions': typeof ApiCronProcessAccountDeletionsRoute
   '/api/cron/subscription-reminders': typeof ApiCronSubscriptionRemindersRoute
   '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
@@ -321,6 +337,7 @@ export interface FileRoutesByTo {
   '/abonnement/retour': typeof AbonnementRetourRoute
   '/admin/boutiques': typeof AuthenticatedAdminBoutiquesRoute
   '/admin/commercants': typeof AuthenticatedAdminCommercantsRoute
+  '/admin/demandes-suppression': typeof AuthenticatedAdminDemandesSuppressionRoute
   '/admin/paiements': typeof AuthenticatedAdminPaiementsRoute
   '/admin/parametres': typeof AuthenticatedAdminParametresRoute
   '/admin/plans': typeof AuthenticatedAdminPlansRoute
@@ -332,6 +349,7 @@ export interface FileRoutesByTo {
   '/dashboard/promotions': typeof AuthenticatedDashboardPromotionsRoute
   '/dashboard/reglages': typeof AuthenticatedDashboardReglagesRoute
   '/dashboard/support': typeof AuthenticatedDashboardSupportRouteWithChildren
+  '/api/cron/process-account-deletions': typeof ApiCronProcessAccountDeletionsRoute
   '/api/cron/subscription-reminders': typeof ApiCronSubscriptionRemindersRoute
   '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
@@ -364,6 +382,7 @@ export interface FileRoutesById {
   '/b/$slug': typeof BSlugRouteWithChildren
   '/_authenticated/admin/boutiques': typeof AuthenticatedAdminBoutiquesRoute
   '/_authenticated/admin/commercants': typeof AuthenticatedAdminCommercantsRoute
+  '/_authenticated/admin/demandes-suppression': typeof AuthenticatedAdminDemandesSuppressionRoute
   '/_authenticated/admin/paiements': typeof AuthenticatedAdminPaiementsRoute
   '/_authenticated/admin/parametres': typeof AuthenticatedAdminParametresRoute
   '/_authenticated/admin/plans': typeof AuthenticatedAdminPlansRoute
@@ -375,6 +394,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/promotions': typeof AuthenticatedDashboardPromotionsRoute
   '/_authenticated/dashboard/reglages': typeof AuthenticatedDashboardReglagesRoute
   '/_authenticated/dashboard/support': typeof AuthenticatedDashboardSupportRouteWithChildren
+  '/api/cron/process-account-deletions': typeof ApiCronProcessAccountDeletionsRoute
   '/api/cron/subscription-reminders': typeof ApiCronSubscriptionRemindersRoute
   '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
@@ -407,6 +427,7 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/admin/boutiques'
     | '/admin/commercants'
+    | '/admin/demandes-suppression'
     | '/admin/paiements'
     | '/admin/parametres'
     | '/admin/plans'
@@ -418,6 +439,7 @@ export interface FileRouteTypes {
     | '/dashboard/promotions'
     | '/dashboard/reglages'
     | '/dashboard/support'
+    | '/api/cron/process-account-deletions'
     | '/api/cron/subscription-reminders'
     | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
@@ -445,6 +467,7 @@ export interface FileRouteTypes {
     | '/abonnement/retour'
     | '/admin/boutiques'
     | '/admin/commercants'
+    | '/admin/demandes-suppression'
     | '/admin/paiements'
     | '/admin/parametres'
     | '/admin/plans'
@@ -456,6 +479,7 @@ export interface FileRouteTypes {
     | '/dashboard/promotions'
     | '/dashboard/reglages'
     | '/dashboard/support'
+    | '/api/cron/process-account-deletions'
     | '/api/cron/subscription-reminders'
     | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
@@ -487,6 +511,7 @@ export interface FileRouteTypes {
     | '/b/$slug'
     | '/_authenticated/admin/boutiques'
     | '/_authenticated/admin/commercants'
+    | '/_authenticated/admin/demandes-suppression'
     | '/_authenticated/admin/paiements'
     | '/_authenticated/admin/parametres'
     | '/_authenticated/admin/plans'
@@ -498,6 +523,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/promotions'
     | '/_authenticated/dashboard/reglages'
     | '/_authenticated/dashboard/support'
+    | '/api/cron/process-account-deletions'
     | '/api/cron/subscription-reminders'
     | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
@@ -525,6 +551,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AbonnementRetourRoute: typeof AbonnementRetourRoute
   BSlugRoute: typeof BSlugRouteWithChildren
+  ApiCronProcessAccountDeletionsRoute: typeof ApiCronProcessAccountDeletionsRoute
   ApiCronSubscriptionRemindersRoute: typeof ApiCronSubscriptionRemindersRoute
   ApiPublicBroadcastTrackRoute: typeof ApiPublicBroadcastTrackRoute
   ApiPublicInvoicePdfRoute: typeof ApiPublicInvoicePdfRoute
@@ -639,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCommercantsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/demandes-suppression': {
+      id: '/_authenticated/admin/demandes-suppression'
+      path: '/demandes-suppression'
+      fullPath: '/admin/demandes-suppression'
+      preLoaderRoute: typeof AuthenticatedAdminDemandesSuppressionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/paiements': {
       id: '/_authenticated/admin/paiements'
       path: '/paiements'
@@ -722,6 +756,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/support'
       preLoaderRoute: typeof AuthenticatedDashboardSupportRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/api/cron/process-account-deletions': {
+      id: '/api/cron/process-account-deletions'
+      path: '/api/cron/process-account-deletions'
+      fullPath: '/api/cron/process-account-deletions'
+      preLoaderRoute: typeof ApiCronProcessAccountDeletionsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/cron/subscription-reminders': {
       id: '/api/cron/subscription-reminders'
@@ -820,6 +861,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBoutiquesRoute: typeof AuthenticatedAdminBoutiquesRoute
   AuthenticatedAdminCommercantsRoute: typeof AuthenticatedAdminCommercantsRoute
+  AuthenticatedAdminDemandesSuppressionRoute: typeof AuthenticatedAdminDemandesSuppressionRoute
   AuthenticatedAdminPaiementsRoute: typeof AuthenticatedAdminPaiementsRoute
   AuthenticatedAdminParametresRoute: typeof AuthenticatedAdminParametresRoute
   AuthenticatedAdminPlansRoute: typeof AuthenticatedAdminPlansRoute
@@ -832,6 +874,8 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBoutiquesRoute: AuthenticatedAdminBoutiquesRoute,
   AuthenticatedAdminCommercantsRoute: AuthenticatedAdminCommercantsRoute,
+  AuthenticatedAdminDemandesSuppressionRoute:
+    AuthenticatedAdminDemandesSuppressionRoute,
   AuthenticatedAdminPaiementsRoute: AuthenticatedAdminPaiementsRoute,
   AuthenticatedAdminParametresRoute: AuthenticatedAdminParametresRoute,
   AuthenticatedAdminPlansRoute: AuthenticatedAdminPlansRoute,
@@ -937,6 +981,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AbonnementRetourRoute: AbonnementRetourRoute,
   BSlugRoute: BSlugRouteWithChildren,
+  ApiCronProcessAccountDeletionsRoute: ApiCronProcessAccountDeletionsRoute,
   ApiCronSubscriptionRemindersRoute: ApiCronSubscriptionRemindersRoute,
   ApiPublicBroadcastTrackRoute: ApiPublicBroadcastTrackRoute,
   ApiPublicInvoicePdfRoute: ApiPublicInvoicePdfRoute,

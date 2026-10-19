@@ -313,12 +313,19 @@ function AuthPage() {
               {/* Conditions on signup */}
               {mode === "signup" && (
                 <p className="pt-3 text-center text-xs text-muted-foreground leading-relaxed">
-                  En créant un compte, tu acceptes nos{" "}
+                  En créant un compte, vous acceptez nos{" "}
                   <Link
                     to="/terms"
                     className="font-bold text-primary hover:underline transition-colors"
                   >
                     conditions d'utilisation
+                  </Link>{" "}
+                  et notre{" "}
+                  <Link
+                    to="/privacy"
+                    className="font-bold text-primary hover:underline transition-colors"
+                  >
+                    politique de confidentialité
                   </Link>
                   .
                 </p>

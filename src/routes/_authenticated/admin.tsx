@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
-import { Menu, LayoutDashboard, Users, Store, CreditCard, Layers, Settings, ArrowLeft, ChevronLeft, LifeBuoy } from "lucide-react";
+import { Menu, LayoutDashboard, Users, Store, CreditCard, Layers, Settings, ArrowLeft, ChevronLeft, LifeBuoy, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { adminPendingTicketsCount } from "@/lib/support.functions";
+import { adminListDeletionRequests } from "@/lib/account-deletion.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async ({ context }) => {
@@ -26,17 +27,26 @@ const NAV = [
   { to: "/admin/paiements", label: "Paiements", icon: CreditCard },
   { to: "/admin/plans", label: "Plans", icon: Layers },
   { to: "/admin/support", label: "Support", icon: LifeBuoy },
+  { to: "/admin/demandes-suppression", label: "Suppressions", icon: Trash2 },
   { to: "/admin/parametres", label: "Paramètres", icon: Settings },
 ] as const;
 
 function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: () => void; collapsed?: boolean; onToggle?: () => void }) {
   const pendingTicketsFn = useServerFn(adminPendingTicketsCount);
+  const listDeletionsFn  = useServerFn(adminListDeletionRequests);
   const { data: pendingData } = useQuery({
     queryKey: ["adminPendingTicketsCount"],
     queryFn: () => pendingTicketsFn(),
     refetchInterval: 30000,
   });
   const pendingCount = pendingData?.count ?? 0;
+
+  const { data: deletionData } = useQuery({
+    queryKey: ["adminPendingDeletionsCount"],
+    queryFn: () => listDeletionsFn({ data: { statusFilter: "pending" } }),
+    refetchInterval: 60000,
+  });
+  const pendingDeletionCount = deletionData?.length ?? 0;
 
   return (
     <div className={cn("flex h-full flex-col bg-card border-r transition-all duration-300 overflow-hidden", collapsed ? "items-center" : "")}>
@@ -62,7 +72,8 @@ function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: ()
       <nav className={cn("flex-1 overflow-y-auto no-scrollbar px-3 py-4", collapsed ? "space-y-2" : "space-y-1.5")}>
         {NAV.map((n) => {
           const Icon = n.icon;
-          const isSupport = n.to === "/admin/support";
+          const isSupport   = n.to === "/admin/support";
+          const isSuppression = n.to === "/admin/demandes-suppression";
           return (
             <Link
               key={n.to}
@@ -83,13 +94,22 @@ function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: ()
                   {pendingCount > 99 ? "99+" : pendingCount}
                 </span>
               )}
+              {!collapsed && isSuppression && pendingDeletionCount > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  {pendingDeletionCount > 99 ? "99+" : pendingDeletionCount}
+                </span>
+              )}
               {collapsed && isSupport && pendingCount > 0 && (
                 <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-card" />
+              )}
+              {collapsed && isSuppression && pendingDeletionCount > 0 && (
+                <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-card" />
               )}
               {collapsed && (
                 <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                   {n.label}
                   {isSupport && pendingCount > 0 ? ` (${pendingCount})` : ""}
+                  {isSuppression && pendingDeletionCount > 0 ? ` (${pendingDeletionCount})` : ""}
                 </span>
               )}
             </Link>

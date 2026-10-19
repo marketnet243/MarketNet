@@ -113,6 +113,49 @@ function DashboardLayout() {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Chargement…</div>;
   }
 
+  // Écran de blocage si le compte est suspendu pour suppression
+  if ((shop as any).account_status === "suspended_for_deletion") {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background p-6">
+        <div className="w-full max-w-md space-y-6 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Compte suspendu</h1>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Votre compte est actuellement suspendu suite a une demande de suppression en cours de traitement.
+              Votre boutique n'est plus accessible en ligne.
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Si vous pensez que c'est une erreur ou si vous souhaitez annuler cette suppression,
+              contactez notre support avant la date de suppression definititive.
+            </p>
+          </div>
+          <div className="rounded-xl border border-border bg-muted/30 p-4 text-left space-y-2">
+            <p className="text-xs font-semibold text-foreground">Contacter le support</p>
+            <a
+              href={`mailto:${process.env.MARKETNET_ADMIN_EMAIL || "support@marketnet.cd"}`}
+              className="text-sm text-primary font-medium hover:underline block"
+            >
+              support@marketnet.cd
+            </a>
+          </div>
+          <button
+            onClick={() => supabase.auth.signOut().then(() => { window.location.href = "/auth"; })}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          >
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Active status helpers for mobile nav
   const isHomeActive = currentPath === "/dashboard";
   const isProductsActive = currentPath.startsWith("/dashboard/produits");

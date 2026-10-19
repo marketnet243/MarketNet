@@ -27,7 +27,7 @@ function PrivacyPage() {
         .select("value")
         .eq("key", "contact_email")
         .maybeSingle();
-      return data?.value ? String(data.value) : "support@marketnet.com";
+      return data?.value ? String(data.value) : "support@marketnet.cd";
     },
   });
 
@@ -50,7 +50,7 @@ function PrivacyPage() {
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">Politique de Confidentialité</h1>
             <p className="mt-3 text-muted-foreground text-lg">Protection et transparence de vos données personnelles.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 17 octobre 2026</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 19 octobre 2026</p>
           </div>
 
           <div className="space-y-12">
@@ -204,11 +204,13 @@ function PrivacyPage() {
         </div>
 
         <div className="mt-12 text-center text-sm text-muted-foreground flex flex-col sm:flex-row justify-center items-center gap-4">
-          <span>&copy; {new Date().getFullYear()} MarketNet. Tous droits reserves.</span>
+          <span>&copy; {new Date().getFullYear()} MarketNet. Tous droits réservés.</span>
           <span className="hidden sm:inline">&bull;</span>
           <Link to="/terms" className="hover:text-foreground underline underline-offset-4">Conditions d'utilisation (CGU)</Link>
           <span className="hidden sm:inline">&bull;</span>
           <Link to="/privacy" className="hover:text-foreground underline underline-offset-4 font-semibold text-foreground">Politique de confidentialité</Link>
+          <span className="hidden sm:inline">&bull;</span>
+          <Link to="/data-deletion" className="hover:text-foreground underline underline-offset-4">Suppression des données</Link>
         </div>
       </div>
     </div>

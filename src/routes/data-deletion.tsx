@@ -35,7 +35,7 @@ function DataDeletionPage() {
         .select("value")
         .eq("key", "contact_email")
         .maybeSingle();
-      return data?.value ? String(data.value) : "support@marketnet.com";
+      return data?.value ? String(data.value) : "support@marketnet.cd";
     },
   });
 
@@ -69,7 +69,7 @@ function DataDeletionPage() {
               Vous avez le droit à l'oubli. Voici comment supprimer vos données.
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Dernière mise à jour : 17 octobre 2026
+              Dernière mise à jour : 19 octobre 2026
             </p>
           </div>
 
@@ -81,13 +81,13 @@ function DataDeletionPage() {
                   <LogIn className="h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground">
-                  1. Supprimer votre compte depuis MarketNet
+                  1. Demander la suppression depuis votre espace MarketNet
                 </h2>
               </div>
 
               <p className="text-muted-foreground text-base sm:text-lg mb-4">
-                Si vous avez accès à votre compte, c'est la méthode la plus rapide et la plus
-                complète. La suppression est <strong>immédiate et définitive</strong>.
+                Si vous avez accès à votre compte, vous pouvez soumettre une demande de suppression directement depuis vos paramètres.
+                Afin de protéger vos données et d'éviter toute suppression accidentelle, le processus se déroule avec une période de grâce sécurisée de <strong>30 jours maximum</strong>.
               </p>
 
               <ol className="space-y-3 mb-5">
@@ -97,25 +97,28 @@ function DataDeletionPage() {
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold mt-0.5">2</span>
-                  <span>Dans le menu de navigation, accédez à <strong>Réglages</strong>.</span>
+                  <span>Dans le menu de navigation, accédez à <strong>Réglages</strong> puis faites défiler jusqu'à la section <strong>« Zone de danger »</strong>.</span>
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold mt-0.5">3</span>
-                  <span>Faites défiler jusqu'à la section <strong>« Supprimer mon compte »</strong> et cliquez sur le bouton rouge.</span>
+                  <span>Cliquez sur <strong>« Faire une demande »</strong>, sélectionnez le motif de votre départ et validez. Vous pouvez annuler votre demande tant qu'elle est en attente.</span>
                 </li>
                 <li className="flex items-start gap-3 text-muted-foreground text-base">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold mt-0.5">4</span>
-                  <span>Confirmez la suppression dans la fenêtre de dialogue. L'action est <strong>irréversible</strong>.</span>
+                  <span>Après traitement par notre équipe, votre boutique est suspendue et une date de suppression définitive est programmée (délai de grâce jusqu'à 30 jours). Vous recevrez un e-mail de notification.</span>
                 </li>
               </ol>
 
-              <div className="flex items-start gap-3 rounded-xl bg-red-500/10 border border-red-500/20 p-4">
-                <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700 dark:text-red-400">
-                  <strong>Suppression immédiate et définitive.</strong> Votre compte, vos boutiques,
-                  vos produits, vos commandes et toutes vos données personnelles
-                  sont effacés de façon permanente et ne peuvent pas être récupérés.
-                </p>
+              <div className="flex items-start gap-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-4">
+                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800 dark:text-amber-300 space-y-1">
+                  <p>
+                    <strong>Délai de réflexion et restauration :</strong> Pendant le délai de grâce (jusqu'à 30 jours), vous pouvez contacter notre support pour annuler la suppression et réactiver immédiatement votre boutique.
+                  </p>
+                  <p className="text-xs opacity-90">
+                    Un rappel vous sera automatiquement envoyé par e-mail 7 jours avant l'échéance définitive. Une fois cette date passée, la suppression devient totale et irréversible.
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -126,21 +129,19 @@ function DataDeletionPage() {
                   <Mail className="h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground">
-                  2. Demande par e-mail
+                  2. Demande par e-mail (sans accès au compte)
                 </h2>
               </div>
 
               <p className="text-muted-foreground text-base sm:text-lg mb-4">
-                Si vous n'avez plus accès à votre compte, vous pouvez envoyer une demande de
-                suppression par e-mail. Nous traiterons votre demande dans un délai maximal de{" "}
-                <strong>30 jours</strong>.
+                Si vous avez perdu l'accès à vos identifiants de connexion, notre équipe d'assistance peut traiter votre demande manuellement.
               </p>
 
               <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-5">
                 <p className="text-sm text-muted-foreground mb-3">
-                  Envoyez un e-mail à l'adresse suivante en précisant :{" "}
+                  Envoyez un message depuis votre adresse e-mail d'inscription en précisant :{" "}
                   <strong>votre adresse e-mail de connexion MarketNet</strong>, le nom de votre
-                  boutique (si vous en avez une), et la mention{" "}
+                  boutique (si applicable), et la mention{" "}
                   <em>« Demande de suppression de compte et de données »</em>.
                 </p>
                 <a
@@ -214,6 +215,10 @@ function DataDeletionPage() {
           <span className="hidden sm:inline">&bull;</span>
           <Link to="/privacy" className="hover:text-foreground underline underline-offset-4">
             Politique de confidentialité
+          </Link>
+          <span className="hidden sm:inline">&bull;</span>
+          <Link to="/data-deletion" className="hover:text-foreground underline underline-offset-4 font-semibold text-foreground">
+            Suppression des données
           </Link>
         </div>
       </div>

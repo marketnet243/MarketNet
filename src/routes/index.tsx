@@ -61,15 +61,15 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { icon: Store, title: "Créez votre boutique", desc: "Ajoutez vos produits, vos prix et vos photos depuis votre téléphone en moins de 5 minutes." },
-  { icon: Share2, title: "Partagez votre lien", desc: "Mettez le lien sur WhatsApp, Facebook, TikTok ou Instagram. Vos abonnés deviennent des clients." },
-  { icon: MessageCircle, title: "Recevez les commandes", desc: "Discutez directement avec vos clients sur WhatsApp pour conclure la vente et organiser la livraison." },
+  { title: "Créez votre boutique", desc: "Ajoutez vos produits, vos prix et vos photos depuis votre téléphone en moins de 5 minutes." },
+  { title: "Partagez votre lien", desc: "Mettez le lien sur WhatsApp, Facebook, TikTok ou Instagram. Vos abonnés deviennent des clients." },
+  { title: "Recevez les commandes", desc: "Discutez directement avec vos clients sur WhatsApp pour conclure la vente et organiser la livraison." },
 ];
 
 const PROMO_FEATURES = [
-  { icon: BadgePercent, title: "Réductions en %", desc: "Définissez un pourcentage de réduction sur n'importe quel produit ou catégorie." },
+  { icon: BadgePercent, title: "Réductions sur mesure", desc: "Définissez un pourcentage ou un montant de réduction sur n'importe quel produit." },
   { icon: Clock, title: "Promotions temporaires", desc: "Activez des offres avec une date de début et de fin. Elles s'arrêtent automatiquement." },
-  { icon: Gift, title: "Codes promo", desc: "Créez des codes que vos clients saisissent au moment de commander." },
+  { icon: Flame, title: "Bannières interactives", desc: "Affichez de superbes bannières visuelles en tête de boutique pour capter l'attention." },
   { icon: Star, title: "Mise en avant", desc: "Les produits en promotion s'affichent en premier dans votre boutique avec un badge visible." },
 ];
 
@@ -831,6 +831,25 @@ function InteractiveHeroDemo() {
   );
 }
 
+function FloatingWhatsAppSupport() {
+  const message = "Bonjour MarketNet, je souhaite avoir des renseignements pour créer ma boutique en ligne.";
+  const url = `https://wa.me/243906619747?text=${encodeURIComponent(message)}`;
+
+  return (
+    <aside aria-label="Assistance WhatsApp MarketNet" className="fixed bottom-5 right-5 z-40">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Discuter sur WhatsApp"
+        aria-label="Contacter le support MarketNet sur WhatsApp"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-xl shadow-emerald-950/30 transition-all hover:scale-110 active:scale-95 border-2 border-white/30 select-none cursor-pointer"
+      >
+        <MessageCircle className="h-7 w-7 fill-white text-white" />
+      </a>
+    </aside>
+  );
+}
 
 function Index() {
   const { data: plans } = useQuery({
@@ -903,20 +922,19 @@ function Index() {
           <div className="lg:hidden border-b bg-background/98 backdrop-blur-lg px-4 pt-2 pb-6 space-y-1 shadow-xl animate-in slide-in-from-top-4 duration-200">
             <nav className="flex flex-col space-y-1 pt-2">
               {[
-                { href: "#features", icon: Sparkles, label: "Fonctionnalités", color: "text-primary" },
-                { href: "#promotions", icon: BadgePercent, label: "Promotions", color: "text-rose-500" },
-                { href: "#temoignages", icon: Quote, label: "Témoignages réels", color: "text-amber-500" },
-                { href: "#how-it-works", icon: Layers, label: "Comment ça marche", color: "text-blue-500" },
-                { href: "#pricing", icon: CreditCard, label: "Tarifs", color: "text-cyan-500" },
-                { href: "#faq", icon: HelpCircle, label: "FAQ", color: "text-purple-500" },
-              ].map(({ href, icon: Icon, label, color }) => (
+                { href: "#features", label: "Fonctionnalités" },
+                { href: "#promotions", label: "Promotions" },
+                { href: "#temoignages", label: "Témoignages" },
+                { href: "#how-it-works", label: "Comment ça marche" },
+                { href: "#pricing", label: "Tarifs" },
+                { href: "#faq", label: "FAQ" },
+              ].map(({ href, label }) => (
                 <a
                   key={href}
                   href={href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-foreground hover:bg-muted transition-colors"
+                  className="flex items-center px-3 py-2.5 rounded-xl font-semibold text-sm text-foreground hover:bg-muted transition-colors"
                 >
-                  <Icon className={cn("h-4 w-4 shrink-0", color)} />
                   {label}
                 </a>
               ))}
@@ -1159,7 +1177,7 @@ function Index() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal direction="up" className="text-center">
             <SectionBadge>
-              <Quote className="h-3.5 w-3.5 text-primary" /> Témoignages réels
+              <Quote className="h-3.5 w-3.5 text-primary" /> Témoignages
             </SectionBadge>
             <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
               Ils développent leur commerce avec MarketNet
@@ -1224,17 +1242,14 @@ function Index() {
           <div className="mt-16 grid gap-8 lg:grid-cols-3">
             {STEPS.map((s, i) => (
               <ScrollReveal key={s.title} delay={i * 120} direction="up">
-                <div className="relative h-full rounded-3xl bg-card p-8 shadow-sm transition-transform hover:-translate-y-1.5 border hover:border-primary/20 hover:shadow-xl">
-                  <div className="flex items-center gap-4 mb-6">
+                <div className="relative h-full rounded-3xl bg-card p-7 sm:p-8 shadow-sm transition-transform hover:-translate-y-1.5 border hover:border-primary/20 hover:shadow-xl">
+                  <div className="flex items-center gap-4 mb-4">
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/30">
                       {i + 1}
                     </span>
                     <h3 className="text-lg font-bold">{s.title}</h3>
                   </div>
-                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/8">
-                    <s.icon className="h-7 w-7 text-primary" />
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed">{s.desc}</p>
+                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{s.desc}</p>
                   {i < STEPS.length - 1 && (
                     <ArrowRight className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground/30" />
                   )}
@@ -1424,6 +1439,9 @@ function Index() {
           </div>
         </div>
       </footer>
+
+      {/* Raccourci support WhatsApp direct */}
+      <FloatingWhatsAppSupport />
     </div>
   );
 }

@@ -27,4 +27,10 @@ describe("App routing", () => {
     expect(router.matchRoutes("/privacy").at(-1)?.routeId).toBe("/privacy");
     expect(router.matchRoutes("/terms").at(-1)?.routeId).toBe("/terms");
   });
+
+  it("matches /admin/demandes-suppression correctly", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    const matches = router.matchRoutes("/admin/demandes-suppression");
+    expect(matches.at(-1)?.routeId).toBe("/_authenticated/admin/demandes-suppression");
+  });
 });

@@ -1,4 +1,5 @@
-import { Clock, MapPin, Facebook, Instagram, MessageCircle, Plus, Star, ShoppingBag, Package, BadgeCheck, Share2, Sparkles } from "lucide-react";
+import { Clock, MapPin, Facebook, Instagram, MessageCircle, Plus, Star, ShoppingBag, Package, BadgeCheck, Share2, Sparkles, ShieldCheck, Truck } from "lucide-react";
+import { toast } from "sonner";
 import type { Shop, Product } from "@/hooks/useMyShop";
 import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
@@ -72,8 +73,31 @@ export function StoreHeader({
             </div>
           </div>
 
-          {/* Boutons d'actions rapides (WhatsApp + Réseaux) */}
+          {/* Boutons d'actions rapides (Partage + WhatsApp + Réseaux) */}
           <div className="mb-1 flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const url = typeof window !== "undefined" ? window.location.href : "";
+                if (navigator.share) {
+                  navigator
+                    .share({
+                      title: shop.name,
+                      text: shop.description || `Découvrez la boutique ${shop.name} sur MarketNet !`,
+                      url,
+                    })
+                    .catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(url);
+                  toast.success("Lien de la boutique copié !");
+                }
+              }}
+              title="Partager cette boutique"
+              aria-label="Partager cette boutique"
+              className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl border border-border/80 bg-background/95 text-foreground shadow-sm backdrop-blur transition-all hover:scale-105 hover:border-primary/50 hover:text-primary cursor-pointer"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
             {shop.instagram && (
               <a
                 href={shop.instagram}
@@ -168,6 +192,22 @@ export function StoreHeader({
             )}
           </div>
         )}
+
+        {/* Badges de réassurance client discrets et anti-arnaque */}
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 pt-0.5 text-[11px] text-muted-foreground select-none">
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border/40 px-2.5 py-0.5">
+            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Direct vendeur</span>
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border/40 px-2.5 py-0.5">
+            <MessageCircle className="h-3 w-3 text-[#25D366] shrink-0" />
+            <span>WhatsApp direct</span>
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border/40 px-2.5 py-0.5">
+            <Truck className="h-3 w-3 text-primary shrink-0" />
+            <span>Mobile Money ou Cash</span>
+          </span>
+        </div>
 
         <div className="mt-4 h-px bg-border/60" />
       </div>
