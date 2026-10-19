@@ -259,32 +259,61 @@ export function ContactFields({ draft, set }: P) {
 
 export function AppearanceFields({ draft, set }: P) {
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-5 min-w-0 max-w-full">
+      <div className="grid grid-cols-2 gap-3 min-w-0">
         <ImageField label="Logo" value={draft.logo_url} onChange={(v) => set({ logo_url: v })} square />
         <ImageField label="Bannière" value={draft.banner_url} onChange={(v) => set({ banner_url: v })} />
       </div>
       <Field label="Thème">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 min-w-0">
           {THEMES.map((t) => (
-            <button key={t.id} type="button" onClick={() => set({ theme: t.id })}
-              className={cn("rounded-xl border-2 p-2 text-left transition", draft.theme === t.id ? "border-primary" : "border-transparent bg-card")}>
-              <div className="flex h-10 overflow-hidden rounded-lg">{t.swatch.map((c) => <span key={c} className="flex-1" style={{ background: c }} />)}</div>
-              <p className="mt-1.5 text-sm font-semibold">{t.name}</p>
-              <p className="text-xs text-muted-foreground">{t.desc}</p>
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => set({ theme: t.id })}
+              className={cn(
+                "rounded-xl border-2 p-2 sm:p-2.5 text-left transition min-w-0",
+                draft.theme === t.id ? "border-primary bg-primary/5" : "border-border/60 bg-card hover:border-border"
+              )}
+            >
+              <div className="flex h-8 sm:h-10 overflow-hidden rounded-lg shadow-xs">
+                {t.swatch.map((c) => (
+                  <span key={c} className="flex-1" style={{ background: c }} />
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs sm:text-sm font-bold truncate">{t.name}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t.desc}</p>
             </button>
           ))}
         </div>
       </Field>
       <Field label="Couleur principale">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           {PRESET_COLORS.map((c) => (
-            <button key={c} type="button" aria-label={c} onClick={() => set({ primary_color: c })}
-              className="grid h-10 w-10 place-items-center rounded-full ring-offset-2 ring-offset-background" style={{ background: c, boxShadow: draft.primary_color === c ? `0 0 0 3px ${c}55` : undefined }}>
+            <button
+              key={c}
+              type="button"
+              aria-label={c}
+              onClick={() => set({ primary_color: c })}
+              className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full ring-offset-2 ring-offset-background transition-transform active:scale-95"
+              style={{ background: c, boxShadow: draft.primary_color === c ? `0 0 0 3px ${c}55` : undefined }}
+            >
               {draft.primary_color === c && <Check className="h-4 w-4 text-primary-foreground mix-blend-difference" />}
             </button>
           ))}
-          <input type="color" value={draft.primary_color} onChange={(e) => set({ primary_color: e.target.value.toUpperCase() })} className="h-10 w-10 cursor-pointer rounded-full border-0 bg-transparent" aria-label="Couleur personnalisée" />
+          <label
+            title="Couleur personnalisée"
+            className="relative grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full border border-dashed border-input cursor-pointer hover:border-primary transition-colors overflow-hidden"
+          >
+            <input
+              type="color"
+              value={draft.primary_color}
+              onChange={(e) => set({ primary_color: e.target.value.toUpperCase() })}
+              className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+              aria-label="Couleur personnalisée"
+            />
+            <span className="text-xs font-bold text-muted-foreground select-none">+</span>
+          </label>
         </div>
       </Field>
     </div>

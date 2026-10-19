@@ -219,8 +219,8 @@ function Onboarding() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-4 py-5">
         <Logo />
-        <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_380px]">
-          <div className="max-w-xl">
+        <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_380px] min-w-0">
+          <div className="max-w-xl w-full min-w-0">
             <div className="flex gap-2">
               {STEPS.map((s, i) => (
                 <div
@@ -232,37 +232,49 @@ function Onboarding() {
               ))}
             </div>
             <p className="mt-4 text-sm font-semibold text-primary">Étape {step + 1} sur 3</p>
-            <h1 className="mt-1 text-3xl font-extrabold">{STEPS[step]}</h1>
-            <div className="mt-6">
+            <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold">{STEPS[step]}</h1>
+            <div className="mt-6 min-w-0">
               {step === 0 && <IdentityFields draft={draft} set={set} />}
               {step === 1 && <ContactFields draft={draft} set={set} />}
               {step === 2 && <AppearanceFields draft={draft} set={set} />}
             </div>
-            <div className="sticky bottom-0 -mx-4 mt-8 flex gap-3 border-t bg-background/95 px-4 py-4 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:px-0">
+            <div className="sticky bottom-0 -mx-4 mt-8 flex items-center gap-2 sm:gap-3 border-t bg-background/95 px-4 py-3 sm:py-4 backdrop-blur z-20 lg:static lg:mx-0 lg:border-0 lg:px-0">
               {step > 0 && (
-                <Button variant="outline" size="lg" onClick={() => setStep((s) => s - 1)}>
-                  <ArrowLeft className="h-4 w-4 mr-2" /> Retour
+                <Button
+                  variant="outline"
+                  className="h-11 sm:h-12 px-3 sm:px-5 font-semibold text-xs sm:text-sm shrink-0 rounded-xl"
+                  onClick={() => setStep((s) => s - 1)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2 shrink-0" />
+                  <span>Retour</span>
                 </Button>
               )}
               {step < 2 ? (
-                <Button variant="hero" size="lg" className="flex-1 font-bold" onClick={next}>
-                  Continuer
+                <Button
+                  variant="hero"
+                  className="flex-1 h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl shadow-md gap-1.5"
+                  onClick={next}
+                >
+                  <span>Continuer</span>
+                  <ArrowRight className="h-4 w-4 shrink-0" />
                 </Button>
               ) : (
                 <Button
                   variant="hero"
-                  size="lg"
-                  className="flex-1 font-bold shadow-md"
+                  className="flex-1 h-11 sm:h-12 font-bold text-xs sm:text-sm rounded-xl shadow-md min-w-0 px-2 sm:px-4 gap-1.5"
                   onClick={finish}
                   disabled={busy}
                 >
                   {busy ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Création en cours…
+                      <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                      <span className="truncate">Création en cours…</span>
                     </>
                   ) : (
-                    "Publier ma boutique"
+                    <>
+                      <span className="truncate">Publier ma boutique</span>
+                      <ArrowRight className="h-4 w-4 shrink-0" />
+                    </>
                   )}
                 </Button>
               )}
