@@ -51,7 +51,7 @@ function Onboarding() {
     ownerName: string;
     whatsapp?: string;
   } | null>(null);
-  const [countdown, setCountdown] = useState(6);
+  const [countdown, setCountdown] = useState(10);
 
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -73,7 +73,7 @@ function Onboarding() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate({ to: "/dashboard/produits" });
+          navigate({ to: "/dashboard" });
           return 0;
         }
         return prev - 1;
@@ -189,7 +189,7 @@ function Onboarding() {
               {/* Bouton d'action immédiate sans coupure */}
               <div className="pt-1 space-y-3">
                 <Button
-                  onClick={() => navigate({ to: "/dashboard/produits" })}
+                  onClick={() => navigate({ to: "/dashboard" })}
                   className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 gap-2 transition-transform hover:scale-[1.02] active:scale-95 text-sm"
                 >
                   <span>Accéder à mon tableau de bord</span>
