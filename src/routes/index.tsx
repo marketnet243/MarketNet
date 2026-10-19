@@ -490,7 +490,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Liste des produits de la vitrine */}
-            <div ref={demoScrollRef} className="no-scrollbar overscroll-contain flex-1 p-2.5 space-y-2 overflow-y-auto">
+            <div ref={demoScrollRef} className="no-scrollbar overscroll-auto flex-1 p-2.5 space-y-2 overflow-y-auto">
               {DEMO_PRODUCTS.map((p) => {
                 const isSelected = p.id === activeProduct.id;
                 return (
@@ -587,7 +587,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Body fiche produit */}
-            <div ref={demoScrollRef} className="no-scrollbar overscroll-contain flex-1 p-3 overflow-y-auto space-y-2.5">
+            <div ref={demoScrollRef} className="no-scrollbar overscroll-auto flex-1 p-3 overflow-y-auto space-y-2.5">
               <div className="relative h-28 w-full rounded-2xl overflow-hidden bg-[#f4eee7] shadow-sm ring-1 ring-black/5">
                 <img
                   src={activeProduct.image}
@@ -750,7 +750,7 @@ function InteractiveHeroDemo() {
             </div>
 
             {/* Chat WhatsApp */}
-            <div ref={demoScrollRef} className="no-scrollbar overscroll-contain flex-1 p-3 overflow-y-auto space-y-2 text-xs">
+            <div ref={demoScrollRef} className="no-scrollbar overscroll-auto flex-1 p-3 overflow-y-auto space-y-2 text-xs">
               <div className="text-center my-0.5">
                 <span className="bg-white/85 dark:bg-[#182229] text-[9px] text-[#68736f] dark:text-[#8696a0] px-2.5 py-0.5 rounded-lg shadow-sm font-medium">
                   Aujourd'hui
@@ -830,7 +830,7 @@ function Index() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden selection:bg-primary/20">
+    <div className="min-h-screen bg-background overflow-x-clip selection:bg-primary/20">
 
       {/* ── HEADER ── */}
       <header className="fixed top-0 z-50 w-full border-b bg-background/90 backdrop-blur-md">
