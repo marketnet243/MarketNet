@@ -7,13 +7,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Sparkles,
-  Rocket,
-  Store,
-  Copy,
-  Check,
-  ExternalLink,
-  MessageCircle,
-  Package,
   Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,8 +51,7 @@ function Onboarding() {
     ownerName: string;
     whatsapp?: string;
   } | null>(null);
-  const [countdown, setCountdown] = useState(5);
-  const [copied, setCopied] = useState(false);
+  const [countdown, setCountdown] = useState(6);
 
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -140,43 +132,20 @@ function Onboarding() {
     }
   }
 
-  function handleCopyLink() {
-    if (!successData?.slug) return;
-    const url = `${window.location.origin}/b/${successData.slug}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    toast.success("Lien de votre boutique copié !");
-    setTimeout(() => setCopied(false), 2500);
-  }
-
   // ══════════════════════════════════════════════════════════════════════════
   // ÉCRAN DE SUCCÈS & BIENVENUE APRÈS CRÉATION DE LA BOUTIQUE
   // ══════════════════════════════════════════════════════════════════════════
   if (createdSuccess && successData) {
-    const publicUrl = `${typeof window !== "undefined" ? window.location.origin : "https://appmarketnet.vercel.app"}/b/${successData.slug}`;
-
     return (
-      <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-primary/10 via-background to-orange-500/10 overflow-hidden">
-        {/* Halos d'ambiance festive */}
-        <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-primary/15 blur-[140px] pointer-events-none animate-pulse" />
-        <div className="absolute bottom-1/4 -right-32 h-96 w-96 rounded-full bg-orange-500/15 blur-[150px] pointer-events-none" />
-
-        {/* Particules légères décoratives sans dépendance externe */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[15%] left-[20%] text-2xl animate-bounce duration-1000 opacity-60">🎉</div>
-          <div className="absolute top-[25%] right-[22%] text-2xl animate-pulse duration-700 opacity-60">✨</div>
-          <div className="absolute bottom-[20%] left-[25%] text-2xl animate-pulse duration-1000 opacity-60">🚀</div>
-          <div className="absolute bottom-[30%] right-[20%] text-2xl animate-bounce duration-700 opacity-60">⭐</div>
-        </div>
-
-        <div className="w-full max-w-[540px] relative z-10 py-6 animate-in fade-in zoom-in-95 duration-400">
-          {/* Header Marque */}
+      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-primary/5 via-background to-orange-500/5">
+        <div className="w-full max-w-[460px] py-6">
+          {/* Header Marque MarketNet */}
           <div className="mb-6 flex items-center justify-center">
             <Link
               to="/"
               className="inline-flex items-center gap-2.5 transition-transform hover:scale-105 active:scale-95"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-black text-2xl shadow-xl shadow-primary/30">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-warm text-primary-foreground font-black text-2xl shadow-xl shadow-primary/30">
                 M
               </span>
               <span className="text-2xl font-black tracking-tight text-foreground">
@@ -186,117 +155,56 @@ function Onboarding() {
           </div>
 
           {/* Card Principale de Bienvenue */}
-          <div className="rounded-[2.5rem] border bg-card/95 backdrop-blur-xl p-7 sm:p-10 shadow-2xl shadow-primary/10 space-y-6 text-center">
-            {/* Badge et Fusée animée */}
-            <div className="space-y-3">
+          <div className="rounded-[2rem] border bg-card/95 backdrop-blur-xl p-7 sm:p-9 shadow-2xl shadow-primary/5 text-center">
+            <div className="space-y-6">
+              {/* Badge de succès émeraude avec checkmark */}
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-                <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-xl animate-pulse" />
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-tr from-primary via-primary/90 to-orange-500 text-primary-foreground shadow-xl shadow-primary/30">
-                  <Rocket className="h-10 w-10 animate-in zoom-in-50 duration-300" />
+                <div className="absolute inset-0 rounded-3xl bg-emerald-500/20 blur-xl animate-pulse" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shadow-lg shadow-emerald-500/10">
+                  <CheckCircle2 className="h-10 w-10 animate-in zoom-in-75 duration-300" />
                 </div>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Boutique en ligne activée avec succès</span>
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Boutique créée avec succès</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+                  Bienvenue, {successData.ownerName} !
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                  Votre boutique <strong className="text-foreground">« {successData.name} »</strong> est prête. Vous pouvez désormais ajouter vos produits et commencer à vendre.
+                </p>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                Bienvenue, {successData.ownerName} !
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-                Votre boutique <strong className="text-foreground">« {successData.name} »</strong> est prête à conquérir vos premiers clients sur internet.
-              </p>
-            </div>
-
-            {/* Carte URL de la boutique */}
-            <div className="rounded-2xl border bg-muted/30 p-4 text-left space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground font-semibold">
-                <span className="flex items-center gap-1.5">
-                  <Store className="h-3.5 w-3.5 text-primary" />
-                  Lien public de votre boutique
-                </span>
-                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                  Accessible au public
+              {/* Indicateur de décompte intelligent */}
+              <div className="rounded-xl bg-muted/40 border border-border/50 p-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />
+                <span>
+                  Redirection automatique dans <strong className="text-foreground">{countdown}s</strong>…
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 bg-background border rounded-xl p-2.5">
-                <span className="text-xs font-mono text-foreground truncate flex-1 select-all font-semibold">
-                  {publicUrl}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition-colors shrink-0"
-                  title="Copier le lien"
+              {/* Bouton d'action immédiate sans coupure */}
+              <div className="pt-1 space-y-3">
+                <Button
+                  onClick={() => navigate({ to: "/dashboard/produits" })}
+                  className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 gap-2 transition-transform hover:scale-[1.02] active:scale-95 text-sm"
                 >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5" />
-                      <span>Copié</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" />
-                      <span>Copier</span>
-                    </>
-                  )}
-                </button>
+                  <span>Accéder à mon tableau de bord</span>
+                  <ArrowRight className="h-4 w-4 shrink-0" />
+                </Button>
+
+                <a
+                  href={`/b/${successData.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Voir l'aperçu de ma boutique
+                </a>
               </div>
-            </div>
-
-            {/* Points d'encouragement */}
-            <div className="grid grid-cols-2 gap-3 text-left">
-              <div className="rounded-xl border bg-muted/20 p-3 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                  <MessageCircle className="h-3.5 w-3.5 text-emerald-500" />
-                  <span>WhatsApp direct</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-tight">
-                  Les clients commandent directement sur votre WhatsApp.
-                </p>
-              </div>
-
-              <div className="rounded-xl border bg-muted/20 p-3 space-y-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                  <Package className="h-3.5 w-3.5 text-primary" />
-                  <span>Prêt pour l'ajout</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-tight">
-                  Ajoutez vos premiers produits avec photos et prix en Franc Congolais.
-                </p>
-              </div>
-            </div>
-
-            {/* Décompte doux non bloquant */}
-            <div className="rounded-xl bg-muted/40 border border-border/50 py-2.5 px-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />
-              <span>
-                Redirection automatique vers votre gestionnaire dans <strong className="text-foreground">{countdown}s</strong>…
-              </span>
-            </div>
-
-            {/* Boutons d'action immédiate (100% NON BLOQUANTS) */}
-            <div className="pt-1 space-y-3">
-              <Button
-                onClick={() => navigate({ to: "/dashboard/produits" })}
-                className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/25 gap-2 text-sm transition-transform hover:scale-[1.02] active:scale-95"
-              >
-                <span>Accéder à mon tableau de bord dès maintenant</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
-              <a
-                href={`/b/${successData.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors w-full py-1"
-              >
-                <Store className="h-3.5 w-3.5" />
-                <span>Voir l'aperçu public de ma boutique</span>
-                <ExternalLink className="h-3 w-3 opacity-60" />
-              </a>
             </div>
           </div>
         </div>

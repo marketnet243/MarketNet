@@ -69,7 +69,9 @@ function ShopLayout() {
 
     if (!sessionStorage.getItem(k)) {
       sessionStorage.setItem(k, "1");
-      visitFn({ data: { slug, src, productId } }).catch(() => null);
+      visitFn({ data: { slug, src, productId } }).catch(() => {
+        supabase.rpc("increment_shop_view", { _slug: slug });
+      });
     }
   }, [slug]);
   const isOffline = !shop.is_published || shop.is_suspended;

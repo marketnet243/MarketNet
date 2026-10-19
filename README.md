@@ -65,6 +65,7 @@ L'ensemble de l'interface est pensée **mobile-first** pour garantir une fluidit
 - **Gestion des plans d'abonnement (`/admin/plans`)** : Création et modification dynamique des tarifs en Franc Congolais (FC) et des limites (nombre de produits, nombre de photos, promotions actives, support prioritaire) avec synchronisation en temps réel.
 - **Suivi des paiements (`/admin/paiements`)** : Liste détaillée des transactions SasPay réelles vs attributions manuelles, filtrage par statut (`payé`, `en_attente`, `échoué`, `à_vérifier`), réconciliation et attribution de plans avec génération de lettre d'attribution PDF.
 - **Support & Diffusions (`/admin/support`)** : Gestion des tickets d'assistance et envoi d'annonces officielles ciblées (tous les commerçants ou par sélection de forfaits) avec statistiques de délivrabilité et lectures en temps réel.
+- **Demandes de suppression (`/admin/demandes-suppression`)** : Modération des demandes de départ des commerçants, planification du délai de grâce de 30 jours, rejet ou restauration anticipée de boutique.
 - **Journal d'activité (Audit log)** : Traçabilité immuable des actions sensibles.
 - **Paramètres globaux (`/admin/parametres`)** : Catégories de boutiques, passerelle SasPay en CDF, textes légaux.
 
@@ -91,7 +92,10 @@ L'ensemble de la tarification des abonnements MarketNet et des flux SasPay fonct
 - **Renouvellement anticipé** : Tout renouvellement avant échéance s'ajoute à la date de fin courante (aucun jour perdu).
 - **Période de grâce de 7 jours** : À l'échéance, le statut bascule en `grâce` sans coupure de service pendant 7 jours.
 - **Alertes progressives** : Bandeaux préventifs discrets dans le dashboard commerçant à J-7, J-3 et en période de grâce.
-- **Rétrogradation douce** : À expiration définitive, la boutique bascule sur le plan Gratuit (les produits au-delà de 10 sont temporairement masqués sans être supprimés, les promotions sont mises en pause).
+- **Rétrogradation douce sans suppression** : À expiration définitive, la boutique bascule sur le plan Gratuit :
+  - Les fonctionnalités avancées sont mises en pause.
+  - Les produits dépassant le quota gratuit sont temporairement masqués de la vitrine sans jamais être supprimés.
+  - Dès le réabonnement, tout se réactive instantanément et automatiquement.
 
 ### 7.4. Intégration SasPay & Webhook Sécurisé
 - **Variables d'environnement (côté serveur uniquement)** :
@@ -123,7 +127,43 @@ L'ensemble de la tarification des abonnements MarketNet et des flux SasPay fonct
 
 ---
 
-## 7. SEO & Balises Open Graph Dynamiques (Partage Réseaux Sociaux)
+## 7. Workflow de Suppression de Compte & Données (Période de grâce de 30 jours)
+
+Pour concilier la protection des données (droit à l'oubli) et la sécurité contre les suppressions accidentelles, MarketNet applique un cycle de résiliation sécurisé :
+
+1. **Demande commerçant (`/dashboard/reglages`)** :
+   - Zone de danger dédiée avec formulaire de motif de départ.
+   - Possibilité d'annuler la demande tant qu'elle est en attente.
+2. **Modération administrative (`/admin/demandes-suppression`)** :
+   - L'équipe admin valide la demande et planifie la date de purge irréversible (délai de grâce de **30 jours**).
+   - La boutique est suspendue de la vitrine publique pendant ce délai.
+3. **Restauration possible pendant 30 jours** :
+   - Le commerçant ou le support peut annuler la suppression et réactiver immédiatement le compte.
+   - Un e-mail de rappel automatique est envoyé à **J-7** avant la date fatidique.
+4. **Purge définitive automatisée (Cron nocturne)** :
+   - Route sécurisée `POST /api/cron/process-account-deletions` exécutée quotidiennement.
+   - Purge complète des tables relationnelles (`products`, `orders`, `promotions`, `shops`, `profiles`) et suppression définitive de l'utilisateur dans `auth.users` via l'API Admin Supabase.
+
+---
+
+## 8. Pages Légales & Conformité
+
+- **Conditions Générales d'Utilisation (`/terms`)** : Règles d'exploitation, responsabilités marchandes, paiements SasPay en CDF, redirection WhatsApp sans commission, et conditions d'expiration/suppression.
+- **Politique de Confidentialité (`/privacy`)** : Règles de sécurité RLS multi-tenant, données collectées, sous-traitants agréés (SasPay, Cloudinary, Supabase), droit d'accès et d'effacement.
+- **Suppression des Données (`/data-deletion`)** : Guide transparent expliquant le processus de purge, le délai de 30 jours et la demande par e-mail de secours (`support@marketnet.cd`).
+- **Formulaire d'Inscription (`/auth`)** : Liens directs de consentement vers les CGU et la Confidentialité.
+
+---
+
+## 9. Expérience Utilisateur & Parcours Fluides
+
+- **Écran de bienvenue post-onboarding (`/onboarding`)** : Écran festif et chaleureux avec lien direct de boutique, bouton de copie rapide et redirection automatique non-bloquante vers le tableau de bord.
+- **Réinitialisation de mot de passe (`/reset-password`)** : Interface moderne calquée sur `/auth`, validation dynamique de confirmation et transition fluide après succès.
+- **Tableau de bord commerçant (`/dashboard/reglages`)** : Agencement aéré, informations de contact, résumé du forfait avec raccourci vers `/dashboard/abonnement` et zone de danger protégée.
+
+---
+
+## 10. SEO & Balises Open Graph Dynamiques (Partage Réseaux Sociaux)
 
 Le système injecte dynamiquement les balises Open Graph et Twitter Cards (`og:title`, `og:description`, `og:image`, `twitter:card`) pour garantir un aperçu visuel parfait lors des partages sur WhatsApp, Facebook, LinkedIn, Twitter et Telegram :
 - **Produits (`/b/:slug/p/:productId`)** : L'image principale du produit est définie comme couverture Open Graph, complétée par le nom, le prix dans la devise de la boutique et la description.
@@ -133,7 +173,7 @@ Le système injecte dynamiquement les balises Open Graph et Twitter Cards (`og:t
 
 ---
 
-## 8. Module Promotions (Ventes Flash & Campagnes)
+## 11. Module Promotions (Ventes Flash & Campagnes)
 
 Permet aux commerçants de lancer des campagnes marketing ciblées :
 - **5 Modèles Graphiques Modernes (`PromoTemplate`)** :
@@ -148,7 +188,7 @@ Permet aux commerçants de lancer des campagnes marketing ciblées :
 
 ---
 
-## 9. Améliorations de l'Expérience Storefront & Panier
+## 12. Améliorations de l'Expérience Storefront & Panier
 
 - **Gestion des Paniers Mixtes** : Prise en charge native des devises multiples. Le `CartSheet` enregistre la devise exacte de chaque ligne de commande et calcule la somme détaillée.
 - **Filtres Avancés** : Sélecteur de dates Popover natif (`react-day-picker` / Shadcn) permettant de filtrer par date ou plage de dates.
@@ -157,7 +197,7 @@ Permet aux commerçants de lancer des campagnes marketing ciblées :
 
 ---
 
-## 10. Notifications par E-mail (Nodemailer SMTP)
+## 13. Notifications par E-mail (Nodemailer SMTP)
 
 Variables requises : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MARKETNET_ADMIN_EMAIL`, `MARKETNET_SITE_URL`.
 
@@ -166,13 +206,16 @@ Variables requises : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MA
 | Nouvel utilisateur inscrit | Administrateur | `sendNewUserAdminNotification()` |
 | Boutique créée (onboarding) | Commerçant + Administrateur | `sendMerchantWelcomeEmail()` |
 | Facture de paiement acquittée | Commerçant | `sendInvoiceEmail()` (avec PDF joint) |
-| Auto-suppression de compte | Commerçant + Administrateur | `sendDeletionConfirmationEmail()` |
-| Suppression de compte par admin | Commerçant + Administrateur | `sendDeletionConfirmationEmail()` |
+| Demande de suppression soumise | Commerçant + Administrateur | `sendDeletionRequestReceivedMerchantEmail()` / `sendDeletionRequestAdminAlertEmail()` |
+| Demande de suppression validée (J-30) | Commerçant | `sendDeletionApprovedMerchantEmail()` |
+| Demande de suppression rejetée | Commerçant | `sendDeletionRejectedMerchantEmail()` |
+| Rappel suppression définitive (J-7) | Commerçant | `sendDeletionReminderEmail()` |
+| Compte purgé définitivement | Commerçant + Administrateur | `sendDeletionCompletedEmail()` |
 | Attribution manuelle de plan | Commerçant | `sendPlanAttributionEmail()` |
 
 ---
 
-## 11. Développement Local & Commandes
+## 14. Développement Local & Commandes
 
 ### Installation
 
@@ -195,7 +238,7 @@ L'application est accessible localement sur `http://localhost:8080`.
 ### Exécution des tests automatisés
 
 ```bash
-# Exécute l'ensemble de la suite Vitest (26 tests automatisés)
+# Exécute l'ensemble de la suite Vitest (31 tests automatisés)
 npm run test
 ```
 
@@ -210,7 +253,7 @@ npm run db:migrate
 
 ---
 
-## 12. Déploiement en Production (Vercel)
+## 15. Déploiement en Production (Vercel)
 
 1. **Build Command** : `NITRO_PRESET=vercel npm run build` (configuré dans `vercel.json`).
 2. **Pré-build automatique** : `node scripts/deploy-prebuild.mjs` exécute les migrations SQL non appliquées et vérifie le compte administrateur initial.

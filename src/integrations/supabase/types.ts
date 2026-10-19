@@ -55,6 +55,7 @@ export type Database = {
           target?: string | null
         }
         Relationships: []
+      }
       merchant_subscriptions: {
         Row: {
           cree_le: string
