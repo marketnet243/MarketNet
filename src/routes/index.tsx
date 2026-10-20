@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Check, MessageCircle, Palette, Smartphone, Store, Zap, ArrowRight,
   TrendingUp, Users, ShieldCheck, Menu, X, Sparkles, Layers, CreditCard,
-  LogIn, Tag, Megaphone, BarChart3, Globe2, BadgePercent, Star, Clock,
-  Share2, Gift, Rocket, Send, HelpCircle, Quote, ShoppingBag, Plus, Minus,
-  CheckCircle2, Wallet, Flame,
+  LogIn, Tag, Megaphone, BarChart3, Globe2, Star,
+  Share2, Gift, Send, HelpCircle, Quote, ShoppingBag, Plus, Minus,
+  CheckCircle2, Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -51,26 +51,57 @@ export const Route = createFileRoute("/")(({
 
 const FEATURES = [
   { icon: Zap, color: "text-amber-500", bg: "bg-amber-500/10", title: "Prête en 5 minutes", text: "Nom, logo, numéro WhatsApp : votre boutique est en ligne sans attendre." },
-  { icon: MessageCircle, color: "text-green-500", bg: "bg-green-500/10", title: "Commandes WhatsApp", text: "Le client remplit son panier, vous recevez la commande détaillée directement." },
+  { icon: MessageCircle, color: "text-green-500", bg: "bg-green-500/10", title: "Commandes WhatsApp", text: "Le client compose son panier, vous recevez la commande détaillée directement." },
+  { icon: CreditCard, color: "text-blue-500", bg: "bg-blue-500/10", title: "Double devise ($ & Francs)", text: "Vos prix s'affichent automatiquement en Dollars et Francs Congolais (CDF)." },
+  { icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", title: "0% de commission", text: "MarketNet ne prélève aucune commission sur vos ventes. Vous gardez l'intégralité de vos bénéfices." },
+  { icon: Smartphone, color: "text-cyan-500", bg: "bg-cyan-500/10", title: "Pensé pour le mobile", text: "Léger et ultra-rapide, optimisé pour les connexions mobiles africaines (3G/4G)." },
   { icon: Palette, color: "text-purple-500", bg: "bg-purple-500/10", title: "À votre image", text: "Personnalisez couleurs, bannière, thème et catégories en quelques clics." },
-  { icon: Smartphone, color: "text-blue-500", bg: "bg-blue-500/10", title: "Pensé pour le mobile", text: "Léger et rapide, optimisé pour les connexions mobiles africaines." },
-  { icon: BarChart3, color: "text-primary", bg: "bg-primary/10", title: "Statistiques en direct", text: "Suivez vos ventes, produits populaires et commandes en temps réel." },
-  { icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", title: "Sécurisé & fiable", text: "Données hébergées sur infrastructure sécurisée, disponible 99% du temps." },
-  { icon: Globe2, color: "text-cyan-500", bg: "bg-cyan-500/10", title: "Lien partageable", text: "Un lien unique que vous pouvez partager partout : WhatsApp, TikTok, Facebook." },
-  { icon: Tag, color: "text-rose-500", bg: "bg-rose-500/10", title: "Gestion des stocks", text: "Ajoutez, modifiez ou retirez des produits à tout moment depuis votre téléphone." },
+  { icon: Globe2, color: "text-primary", bg: "bg-primary/10", title: "Lien universel", text: "Un lien unique à placer dans votre statut WhatsApp, bio TikTok ou Instagram." },
+  { icon: Tag, color: "text-rose-500", bg: "bg-rose-500/10", title: "Gestion des stocks & options", text: "Gérez vos quantités, tailles et couleurs directement depuis votre téléphone." },
 ];
 
 const STEPS = [
-  { title: "Créez votre boutique", desc: "Ajoutez vos produits, vos prix et vos photos depuis votre téléphone en moins de 5 minutes." },
-  { title: "Partagez votre lien", desc: "Mettez le lien sur WhatsApp, Facebook, TikTok ou Instagram. Vos abonnés deviennent des clients." },
-  { title: "Recevez les commandes", desc: "Discutez directement avec vos clients sur WhatsApp pour conclure la vente et organiser la livraison." },
+  {
+    step: "01",
+    time: "5 minutes",
+    title: "Créez votre catalogue",
+    desc: "Prenez vos articles en photo avec votre smartphone, indiquez vos prix en $ ou en Francs Congolais, et configurez vos options (tailles, couleurs).",
+  },
+  {
+    step: "02",
+    time: "1 clic",
+    title: "Partagez votre lien",
+    desc: "Placez votre lien MarketNet dans votre bio TikTok, vos statuts WhatsApp, Instagram ou Facebook. Vos clients explorent votre vitrine sans rien installer.",
+  },
+  {
+    step: "03",
+    time: "Instantané",
+    title: "Recevez les commandes sur WhatsApp",
+    desc: "Le client valide son panier en 3 clics. Votre WhatsApp s'ouvre avec la commande complète et structurée pour organiser la livraison.",
+  },
 ];
 
-const PROMO_FEATURES = [
-  { icon: BadgePercent, title: "Réductions sur mesure", desc: "Définissez un pourcentage ou un montant de réduction sur n'importe quel produit." },
-  { icon: Clock, title: "Promotions temporaires", desc: "Activez des offres avec une date de début et de fin. Elles s'arrêtent automatiquement." },
-  { icon: Flame, title: "Bannières interactives", desc: "Affichez de superbes bannières visuelles en tête de boutique pour capter l'attention." },
-  { icon: Star, title: "Mise en avant", desc: "Les produits en promotion s'affichent en premier dans votre boutique avec un badge visible." },
+const COMPARISON_ITEMS = [
+  {
+    problem: "Passer 2 à 3 heures par jour à répondre « C'est combien ? » et « C'est dispo ? »",
+    solution: "Un lien unique dans votre statut avec tous vos articles, prix et photos toujours à jour",
+  },
+  {
+    problem: "Envoyer 50 photos lourdes en DM qui bloquent et ralentissent la connexion du client",
+    solution: "Une vitrine web ultra-légère qui s'ouvre instantanément même en connexion 3G",
+  },
+  {
+    problem: "Commandes floues et oubliées dans le fil de discussion sans taille ni adresse",
+    solution: "Un récapitulatif WhatsApp structuré avec taille, couleur, quantité et montant exact",
+  },
+  {
+    problem: "Calculs compliqués et hésitations entre Dollars ($) et Francs Congolais (CDF)",
+    solution: "Double affichage automatique en $ et Francs calculé selon votre propre taux",
+  },
+  {
+    problem: "Clients découragés par l'attente qui finissent par acheter chez la concurrence",
+    solution: "Parcours d'achat autonome en 3 clics : vos clients commandent même pendant votre sommeil",
+  },
 ];
 
 const TESTIMONIALS = [
@@ -79,10 +110,9 @@ const TESTIMONIALS = [
     role: "Créatrice & Gérante",
     shop: "Awa Fashion & Wax",
     city: "Kinshasa (Gombe)",
-    avatar: "CM",
-    color: "bg-amber-500",
-    quote: "Avant MarketNet, je passais mes journées à répondre « C'est combien ? » et à renvoyer 50 photos en DM. Maintenant, mon lien est dans ma bio TikTok et sur mes statuts. Les clientes choisissent leur taille, voient les prix en $ et en Francs, et m'envoient directement leur panier prêt. J'ai doublé mes ventes.",
-    metric: "+180 commandes / mois",
+    avatar: "/testimonials/chantal.jpg",
+    quote: "Fini de répéter les prix en DM. Mes clientes cliquent sur mon lien et la commande arrive prête sur WhatsApp. J'ai doublé mes ventes !",
+    metric: "Ventes doublées",
     rating: 5,
   },
   {
@@ -90,21 +120,29 @@ const TESTIMONIALS = [
     role: "Responsable Ventes",
     shop: "TechStore 243",
     city: "Lubumbashi",
-    avatar: "DK",
-    color: "bg-blue-600",
-    quote: "Ce qui m'a conquis, ce sont les promotions et le 0% de commission. Je lance une offre -20% le vendredi soir, je partage le lien direct avec la photo et le prix sur mes statuts WhatsApp, et le samedi matin les commandes tombent directement sans intermédiaire.",
-    metric: "Temps de gestion divisé par 3",
+    avatar: "/testimonials/dieudonne.jpg",
+    quote: "Mes clients voient le stock et les prix en $ et en Francs. Le panier arrive tout calculé et structuré, il ne me reste plus qu'à valider et livrer.",
+    metric: "0% de commission",
     rating: 5,
   },
   {
     name: "Grace Nsimba",
     role: "Fondatrice",
-    shop: "Élégance Bio & Parfums",
+    shop: "Flora & Kivu",
     city: "Goma",
-    avatar: "GN",
-    color: "bg-emerald-600",
-    quote: "Je n'ai pas d'ordinateur à la boutique, je fais absolument tout sur mon smartphone. Ajouter un produit prend 30 secondes avec la photo et les variantes. Les clients apprécient le panier rapide et le récapitulatif clair avant l'envoi sur WhatsApp.",
-    metric: "100% géré sur smartphone",
+    avatar: "/testimonials/grace.jpg",
+    quote: "Je gère toute ma boutique sur mon smartphone en 5 minutes. Mes clientes adorent la rapidité et le récapitulatif clair.",
+    metric: "100% sur mobile",
+    rating: 5,
+  },
+  {
+    name: "Patrick Tshisekedi",
+    role: "Gérant",
+    shop: "Kinshasa Vibes",
+    city: "Kinshasa (Bandal)",
+    avatar: "/testimonials/patrick.jpg",
+    quote: "Avant, je passais mes soirées à répondre 'c'est dispo en 42 ?'. Maintenant, le client choisit sa pointure et commande en 3 clics.",
+    metric: "3h gagnées par jour",
     rating: 5,
   },
 ];
@@ -119,8 +157,8 @@ const FAQ_ITEMS = [
     a: "Oui, totalement ! Vous choisissez librement la devise de votre boutique : Dollar américain (USD $), Franc Congolais (CDF), FCFA, Euro ou montant mixte selon votre activité et vos clients.",
   },
   {
-    q: "Comment mes clients effectuent-ils le paiement ?",
-    a: "Le paiement s'effectue directement entre vous et votre client selon vos méthodes habituelles : Mobile Money (M-Pesa, Airtel Money, Orange Money, Afrimoney), virement bancaire ou paiement en espèces à la livraison. MarketNet ne bloque jamais votre argent.",
+    q: "Comment les commandes arrivent-elles ?",
+    a: "Dès que le client valide son panier sur votre catalogue, votre WhatsApp s'ouvre avec le message récapitulatif complet de sa commande (articles, options, quantités, montant total et adresse de livraison). Vous gardez le contact direct avec votre client.",
   },
   {
     q: "Puis-je ajouter des variantes (tailles, pointures, couleurs) sur mes produits ?",
@@ -128,7 +166,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Ai-je besoin d'un ordinateur pour gérer ma boutique ?",
-    a: "Pas du tout ! 100% de MarketNet est conçu et optimisé pour smartphone. Vous pouvez prendre des photos de vos articles, créer des promotions, ajuster vos prix et suivre vos commandes directement depuis votre téléphone.",
+    a: "Pas du tout ! 100% de MarketNet est conçu et optimisé pour smartphone. Vous pouvez prendre des photos de vos articles, ajuster vos prix, gérer vos stocks et variantes, et suivre vos commandes directement depuis votre téléphone.",
   },
   {
     q: "Mes clients doivent-ils télécharger une application ?",
@@ -802,7 +840,6 @@ function InteractiveHeroDemo() {
 
                 <div className="mt-2 pt-1.5 border-t border-black/10 dark:border-white/10 text-[10px] text-[#54656f] dark:text-[#8696a0] space-y-0.5">
                   <p>📍 Client : Sarah K. (Lubumbashi / Kalubwe)</p>
-                  <p>💳 Paiement : Mobile Money ou Cash à la livraison</p>
                 </div>
 
                 <div className="mt-1 flex items-center justify-end gap-1 text-[9px] text-[#54656f] dark:text-[#8696a0]">
@@ -851,6 +888,93 @@ function FloatingWhatsAppSupport() {
   );
 }
 
+function TestimonialsSection() {
+  const [isPaused, setIsPaused] = useState(false);
+
+  return (
+    <section id="temoignages" className="py-24 scroll-mt-20 overflow-hidden bg-muted/20 border-y">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-12">
+        <ScrollReveal direction="up" className="text-center max-w-3xl mx-auto">
+          <SectionBadge>
+            <Quote className="h-3.5 w-3.5 text-primary" /> Témoignages vérifiés
+          </SectionBadge>
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            Ils développent leur commerce avec MarketNet
+          </h2>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+            Des commerçants de Kinshasa, Lubumbashi et Goma partagent leurs résultats concrets sur WhatsApp.
+          </p>
+        </ScrollReveal>
+      </div>
+
+      {/* Marquee carrousel fluide avec dégradés latéraux doux */}
+      <div
+        className="relative w-full overflow-hidden cursor-pointer"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+        onClick={() => setIsPaused((prev) => !prev)}
+      >
+        {/* Dégradés latéraux */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-28 bg-gradient-to-r from-background to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-28 bg-gradient-to-l from-background to-transparent z-10" />
+
+        {/* Rangée animée en continu */}
+        <div
+          className="animate-marquee gap-6 py-4 px-3 flex"
+          style={{ animationPlayState: isPaused ? "paused" : "running" }}
+        >
+          {[...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS].map((item, idx) => (
+            <div
+              key={`${item.name}-${idx}`}
+              className="w-[300px] sm:w-[350px] shrink-0 flex flex-col justify-between rounded-3xl border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 select-none"
+            >
+              <div>
+                {/* Stars + metric badge */}
+                <div className="flex items-center justify-between gap-2 mb-3.5">
+                  <div className="flex items-center gap-1 text-amber-500">
+                    {Array.from({ length: item.rating }).map((_, sIdx) => (
+                      <Star key={sIdx} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+                    {item.metric}
+                  </span>
+                </div>
+
+                {/* Citation courte et percutante */}
+                <p className="text-sm font-medium text-foreground/90 leading-relaxed italic mb-5">
+                  « {item.quote} »
+                </p>
+              </div>
+
+              {/* Profil commerçant africain avec photo réelle */}
+              <div className="flex items-center gap-3 pt-3.5 border-t border-border/50">
+                <img
+                  src={item.avatar}
+                  alt={item.name}
+                  className="h-12 w-12 rounded-2xl object-cover shrink-0 shadow-md ring-2 ring-primary/20"
+                  loading="lazy"
+                  width={48}
+                  height={48}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-bold text-sm truncate text-foreground">{item.name}</p>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{item.shop} · {item.city}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Index() {
   const { data: plans } = useQuery({
     queryKey: ["plans-public"],
@@ -886,10 +1010,10 @@ function Index() {
 
           {/* Desktop nav — centre */}
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <a href="#features" className="transition-colors hover:text-foreground">Fonctionnalités</a>
-            <a href="#promotions" className="transition-colors hover:text-foreground">Promotions</a>
-            <a href="#temoignages" className="transition-colors hover:text-foreground">Témoignages</a>
+            <a href="#pourquoi" className="transition-colors hover:text-foreground">Pourquoi MarketNet</a>
             <a href="#how-it-works" className="transition-colors hover:text-foreground">Comment ça marche</a>
+            <a href="#features" className="transition-colors hover:text-foreground">Fonctionnalités</a>
+            <a href="#temoignages" className="transition-colors hover:text-foreground">Témoignages</a>
             <a href="#pricing" className="transition-colors hover:text-foreground">Tarifs</a>
             <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
           </nav>
@@ -922,10 +1046,10 @@ function Index() {
           <div className="lg:hidden border-b bg-background/98 backdrop-blur-lg px-4 pt-2 pb-6 space-y-1 shadow-xl animate-in slide-in-from-top-4 duration-200">
             <nav className="flex flex-col space-y-1 pt-2">
               {[
-                { href: "#features", label: "Fonctionnalités" },
-                { href: "#promotions", label: "Promotions" },
-                { href: "#temoignages", label: "Témoignages" },
+                { href: "#pourquoi", label: "Pourquoi MarketNet" },
                 { href: "#how-it-works", label: "Comment ça marche" },
+                { href: "#features", label: "Fonctionnalités" },
+                { href: "#temoignages", label: "Témoignages" },
                 { href: "#pricing", label: "Tarifs" },
                 { href: "#faq", label: "FAQ" },
               ].map(({ href, label }) => (
@@ -962,41 +1086,52 @@ function Index() {
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div className="text-center lg:text-left">
               <FadeIn className="delay-0">
-                <span className="inline-flex items-center gap-2 rounded-full border bg-secondary/50 px-4 py-1.5 text-sm font-semibold text-secondary-foreground backdrop-blur-sm">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-                  </span>
-                  Pour l'Afrique francophone
+                <span className="inline-flex items-center gap-2 rounded-full border bg-primary/10 border-primary/20 px-4 py-1.5 text-xs sm:text-sm font-bold text-primary backdrop-blur-sm">
+                  <Sparkles className="h-4 w-4" />
+                  La vitrine e-commerce pensée pour l'Afrique francophone
                 </span>
               </FadeIn>
 
               <FadeIn className="delay-100">
-                <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-                  Votre boutique en ligne.{" "}
+                <h1 className="mt-6 text-4xl font-black tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-[1.1]">
+                  Transformez vos statuts WhatsApp{" "}
                   <br className="hidden sm:block" />
-                  <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                    Commandes WhatsApp.
+                  <span className="bg-gradient-to-r from-primary via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                    en boutique rentable.
                   </span>
                 </h1>
               </FadeIn>
 
               <FadeIn className="delay-200">
-                <p className="mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl lg:max-w-xl">
-                  Arrêtez de perdre des ventes en message privé. Offrez à vos clients un catalogue clair, des promotions attractives et recevez des commandes parfaitement structurées.
+                <p className="mt-6 text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl lg:max-w-xl">
+                  Arrêtez d'envoyer 50 photos et de répéter vos prix en message privé. Vos clients explorent votre catalogue clair en $ et Francs Congolais, et vous envoient leur commande prête directement sur WhatsApp.
                 </p>
               </FadeIn>
 
               <FadeIn className="mt-10 flex flex-col items-center gap-4 sm:flex-row lg:justify-start delay-300">
-                <Button size="lg" className="h-14 w-full rounded-full px-8 text-lg font-bold shadow-xl transition-all hover:scale-105 active:scale-95 sm:w-auto" asChild>
+                <Button size="lg" className="h-14 w-full rounded-full px-8 text-base sm:text-lg font-bold shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 sm:w-auto" asChild>
                   <Link to="/auth" search={{ mode: "signup" }}>
                     <Store className="mr-2 h-5 w-5" />
-                    Lancer ma boutique
+                    Créer ma boutique gratuite
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="h-14 w-full rounded-full px-8 text-lg font-bold transition-all hover:bg-secondary active:scale-95 sm:w-auto" asChild>
-                  <Link to="/auth" search={{ mode: "login" }}>Se connecter</Link>
+                <Button size="lg" variant="outline" className="h-14 w-full rounded-full px-8 text-base sm:text-lg font-bold transition-all hover:bg-secondary active:scale-95 sm:w-auto" asChild>
+                  <a href="#how-it-works">Comment ça marche</a>
                 </Button>
+              </FadeIn>
+
+              <FadeIn className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs font-semibold text-muted-foreground delay-400">
+                <span className="flex items-center gap-1 text-foreground">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[3]" /> 100% sur Smartphone
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1 text-foreground">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[3]" /> 0% de commission
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1 text-foreground">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[3]" /> Prêt en 5 minutes
+                </span>
               </FadeIn>
 
             </div>
@@ -1032,6 +1167,275 @@ function Index() {
         </div>
       </section>
 
+      {/* ── COMPARATIF AVANT / AVEC MARKETNET ── */}
+      <section id="pourquoi" className="py-24 scroll-mt-20 bg-muted/20 border-b">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" className="text-center max-w-3xl mx-auto">
+            <SectionBadge>
+              <Zap className="h-3.5 w-3.5 text-primary" /> La différence MarketNet
+            </SectionBadge>
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              Arrêtez de perdre des ventes en message privé
+            </h2>
+            <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+              Vendre sur les réseaux sociaux ne devrait pas être une corvée de messages répétitifs. Comparez votre quotidien actuel avec l'expérience MarketNet.
+            </p>
+          </ScrollReveal>
+
+          <div className="mt-16 grid gap-8 lg:grid-cols-2 max-w-5xl mx-auto">
+            {/* Sans MarketNet */}
+            <ScrollReveal direction="left" delay={100}>
+              <div className="h-full rounded-3xl border border-rose-500/20 bg-rose-500/[0.03] dark:bg-rose-950/[0.1] p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-10 w-10 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-black">
+                      <X className="h-5 w-5 stroke-[3]" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">Sans MarketNet</h3>
+                      <p className="text-xs text-rose-600 font-semibold">La routine lente et frustrante</p>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-4">
+                    {COMPARISON_ITEMS.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
+                        <span className="flex h-5 w-5 rounded-full bg-rose-500/10 text-rose-500 items-center justify-center shrink-0 mt-0.5">
+                          <X className="h-3 w-3 stroke-[3]" />
+                        </span>
+                        <span>{item.problem}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-rose-500/15 flex items-center justify-between text-xs font-semibold text-rose-600">
+                  <span>❌ Risque élevé d'abandon de panier</span>
+                  <span>Perte de 2h/jour</span>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* Avec MarketNet */}
+            <ScrollReveal direction="right" delay={150}>
+              <div className="h-full rounded-3xl border-2 border-emerald-500/40 bg-emerald-500/[0.04] dark:bg-emerald-950/[0.15] p-6 sm:p-8 flex flex-col justify-between shadow-xl shadow-emerald-500/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-4 py-1 rounded-bl-2xl">
+                  Recommandé
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-10 w-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/30">
+                      <Check className="h-5 w-5 stroke-[3]" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">Avec MarketNet</h3>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Automatisé, pro et rapide</p>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-4">
+                    {COMPARISON_ITEMS.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm font-medium text-foreground leading-relaxed">
+                        <span className="flex h-5 w-5 rounded-full bg-emerald-500 text-white items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                          <Check className="h-3 w-3 stroke-[3]" />
+                        </span>
+                        <span>{item.solution}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-emerald-500/20 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  <span>✨ 3x plus de ventes conclues</span>
+                  <span>0% de commission</span>
+                </div>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMMENT ÇA MARCHE ── */}
+      <section id="how-it-works" className="py-24 scroll-mt-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ScrollReveal direction="up" className="text-center max-w-3xl mx-auto">
+            <SectionBadge><Layers className="h-3.5 w-3.5 text-primary" /> Processus</SectionBadge>
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              Comment ça marche ?
+            </h2>
+            <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+              Trois étapes simples pour transformer vos abonnés en clients fidèles et automatiser vos ventes.
+            </p>
+          </ScrollReveal>
+
+          <div className="mt-16 grid gap-8 lg:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <ScrollReveal key={s.title} delay={i * 120} direction="up">
+                <div className="relative h-full rounded-3xl bg-card p-7 sm:p-8 shadow-sm transition-transform hover:-translate-y-1.5 border hover:border-primary/20 hover:shadow-xl flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-black text-primary-foreground shadow-lg shadow-primary/30">
+                        {s.step}
+                      </span>
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+                        {s.time}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-3">{s.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{s.desc}</p>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <ArrowRight className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground/30 pointer-events-none" />
+                  )}
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── L'ANATOMIE D'UNE COMMANDE WHATSAPP ── */}
+      <section className="py-24 scroll-mt-20 bg-muted/20 border-y overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            
+            {/* Texte de gauche */}
+            <ScrollReveal direction="left">
+              <SectionBadge>
+                <MessageCircle className="h-3.5 w-3.5 text-green-500" /> Le résultat concret
+              </SectionBadge>
+              <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                Voici exactement ce que vous recevez sur WhatsApp
+              </h2>
+              <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Quand un client commande sur votre vitrine MarketNet, vous n'avez pas à deviner ce qu'il veut. Tout arrive pré-rempli, clair et prêt à livrer.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                {[
+                  {
+                    title: "Articles & Options validés d'avance",
+                    desc: "La taille, la couleur et la quantité sont figées. Fini les erreurs de préparation et les allers-retours.",
+                  },
+                  {
+                    title: "Total exact en $ et Francs Congolais",
+                    desc: "Le montant est déjà calculé selon votre propre taux de change, zéro débat avec le client.",
+                  },
+                  {
+                    title: "Coordonnées de livraison complètes",
+                    desc: "Nom du client, numéro WhatsApp et quartier de livraison : vous lancez la livraison immédiatement.",
+                  },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3.5 rounded-2xl border bg-card p-4 shadow-sm">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-green-600 font-bold text-xs mt-0.5">
+                      ✓
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-foreground">{item.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8">
+                <Button size="lg" className="rounded-full px-8 font-bold shadow-lg shadow-primary/20" asChild>
+                  <Link to="/auth" search={{ mode: "signup" }}>
+                    <Store className="mr-2 h-4 w-4" /> Créer ma boutique en 5 min
+                  </Link>
+                </Button>
+              </div>
+            </ScrollReveal>
+
+            {/* Mockup bulle WhatsApp à droite */}
+            <ScrollReveal direction="right" delay={150}>
+              <div className="relative mx-auto max-w-md w-full">
+                {/* Cadre style WhatsApp */}
+                <div className="rounded-[2.5rem] border bg-[#efeae2] dark:bg-[#0b141a] p-4 sm:p-5 shadow-2xl relative">
+                  
+                  {/* Header discussion WhatsApp */}
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-black/10 dark:border-white/10">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                        SK
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-foreground flex items-center gap-1">
+                          Sarah Kalambay <span className="text-[10px] text-muted-foreground font-normal">· Client</span>
+                        </p>
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> En ligne via MarketNet
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 bg-[#25D366] text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-sm">
+                      <MessageCircle className="h-3 w-3 fill-white" />
+                      <span>WhatsApp</span>
+                    </div>
+                  </div>
+
+                  {/* Bulle de message reçue */}
+                  <div className="rounded-2xl rounded-tl-sm bg-white dark:bg-[#1f2c34] p-4 text-xs shadow-md border border-black/5 dark:border-white/5 space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-2">
+                      <span className="font-extrabold text-foreground flex items-center gap-1">
+                        🛒 Commande #MN-4821
+                      </span>
+                      <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">
+                        Prête à livrer
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground">
+                      Bonjour ! Voici ma commande passée sur votre boutique MarketNet :
+                    </p>
+
+                    {/* Liste des articles */}
+                    <div className="rounded-xl bg-muted/50 p-2.5 space-y-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-bold text-foreground">1x Robe Soirée Wax Moderne</p>
+                          <p className="text-[10px] text-muted-foreground">Taille : L · Couleur : Doré Wax</p>
+                        </div>
+                        <span className="font-bold text-foreground shrink-0 ml-2">$25</span>
+                      </div>
+                      <div className="flex justify-between items-start border-t border-border/50 pt-1.5">
+                        <div>
+                          <p className="font-bold text-foreground">1x Pochette Artisanal Cuir</p>
+                          <p className="text-[10px] text-muted-foreground">Taille : Standard · Couleur : Marron</p>
+                        </div>
+                        <span className="font-bold text-foreground shrink-0 ml-2">$15</span>
+                      </div>
+                    </div>
+
+                    {/* Total */}
+                    <div className="flex items-center justify-between px-1 font-black text-sm text-foreground pt-1">
+                      <span>Total à payer :</span>
+                      <span className="text-primary text-base">
+                        $40 <span className="text-xs font-normal text-muted-foreground">(112 000 FC)</span>
+                      </span>
+                    </div>
+
+                    {/* Coordonnées */}
+                    <div className="border-t border-black/10 dark:border-white/10 pt-2 text-[11px] text-muted-foreground space-y-1">
+                      <p>📍 <strong className="text-foreground">Livraison :</strong> Kinshasa, Gombe (Av. de la Paix)</p>
+                      <p>📞 <strong className="text-foreground">Téléphone :</strong> +243 81 234 5678</p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground pt-1">
+                      <span>10:24</span>
+                      <span className="text-[#53bdeb] font-bold">✓✓</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </ScrollReveal>
+
+          </div>
+        </div>
+      </section>
+
       {/* ── FEATURES ── */}
       <section id="features" className="py-24 scroll-mt-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -1060,205 +1464,12 @@ function Index() {
         </div>
       </section>
 
-      {/* ── PROMOTIONS ── */}
-      <section id="promotions" className="py-24 scroll-mt-20 bg-gradient-to-b from-rose-500/4 to-transparent">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
-            {/* Left text */}
-            <ScrollReveal direction="left">
-              <SectionBadge><BadgePercent className="h-3.5 w-3.5 text-rose-500" /> Promotions</SectionBadge>
-              <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-                Boostez vos ventes avec des{" "}
-                <span className="text-rose-500">promotions puissantes</span>
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                Créez des offres limitées dans le temps, des réductions par catégorie, et attirez plus de clients. Vos promotions s'affichent automatiquement sur votre boutique avec des badges accrocheurs.
-              </p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                {PROMO_FEATURES.map((pf, i) => (
-                  <ScrollReveal key={pf.title} delay={i * 80} direction="up">
-                    <div className="flex items-start gap-3 rounded-2xl border bg-card p-4 shadow-sm h-full">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-500/10">
-                        <pf.icon className="h-4 w-4 text-rose-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">{pf.title}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{pf.desc}</p>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
-              </div>
 
-              <div className="mt-8">
-                <Button size="lg" className="rounded-full px-7 font-bold" asChild>
-                  <Link to="/auth" search={{ mode: "signup" }}>
-                    <Rocket className="mr-2 h-4 w-4" /> Créer ma première promotion
-                  </Link>
-                </Button>
-              </div>
-            </ScrollReveal>
+      {/* ── TÉMOIGNAGES RÉELS — DÉFILEMENT AUTOMATIQUE DROITE -> GAUCHE ── */}
+      <TestimonialsSection />
 
-            {/* Right visual : Vitrine promotionnelle moderne & percutante */}
-            <ScrollReveal direction="right" delay={150}>
-              <div className="relative mx-auto max-w-md w-full">
-                {/* Carte visuelle principale avec coins arrondis et ombre douce */}
-                <div className="relative overflow-hidden rounded-3xl border bg-card shadow-2xl transition-all duration-300 group hover:shadow-primary/10">
-                  {/* Photo promotionnelle haute définition légère */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                    <img
-                      src="/promo-banner.jpg"
-                      alt="Vitrine promotions et e-commerce MarketNet"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                      decoding="async"
-                      width={800}
-                      height={600}
-                    />
-                    {/* Dégradé d'ambiance bas pour lisibilité */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
-                    {/* Badge Vente Flash flottant en haut à gauche */}
-                    <div className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-xs font-bold text-white border border-white/20 shadow-lg">
-                      <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping" />
-                      <Flame className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
-                      <span>Campagne Flash Active</span>
-                    </div>
-
-                    {/* Badge remise -35% en haut à droite */}
-                    <div className="absolute top-4 right-4 rounded-2xl bg-rose-500 px-3.5 py-1 text-white font-black text-sm shadow-xl shadow-rose-500/40">
-                      -35%
-                    </div>
-
-                    {/* Encart bas style vitrine e-commerce */}
-                    <div className="absolute bottom-4 inset-x-4 rounded-2xl bg-white/10 dark:bg-black/30 backdrop-blur-md p-3.5 border border-white/25 text-white shadow-xl">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
-                            <p className="text-xs font-black truncate">Awa Mode Kinshasa</p>
-                            <span className="text-[10px] text-white/80">· Gombe</span>
-                          </div>
-                          <p className="text-sm font-extrabold mt-0.5 truncate">
-                            Collection Wax & Sacs en Promotion
-                          </p>
-                          <div className="flex items-baseline gap-2 mt-1">
-                            <span className="text-base font-black text-rose-400">$20</span>
-                            <span className="text-xs text-white/90 font-semibold">· 56 000 FC</span>
-                            <span className="text-xs text-white/60 line-through ml-1">$32</span>
-                          </div>
-                        </div>
-
-                        {/* Raccourci WhatsApp */}
-                        <div className="shrink-0 flex items-center justify-center h-10 w-10 rounded-2xl bg-[#25D366] text-white shadow-lg shadow-green-600/30">
-                          <MessageCircle className="h-5 w-5 fill-white text-white" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Petit pied informatif rassurant */}
-                  <div className="px-4 py-3 bg-card border-t flex items-center justify-between text-xs text-muted-foreground font-medium">
-                    <span className="flex items-center gap-1 text-foreground font-bold">
-                      <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[3]" /> Badge promo automatique
-                    </span>
-                    <span className="text-rose-500 font-bold">Zéro commission</span>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TÉMOIGNAGES RÉELS ── */}
-      <section id="temoignages" className="py-24 scroll-mt-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ScrollReveal direction="up" className="text-center">
-            <SectionBadge>
-              <Quote className="h-3.5 w-3.5 text-primary" /> Témoignages
-            </SectionBadge>
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Ils développent leur commerce avec MarketNet
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Découvrez comment des vendeurs de Kinshasa, Lubumbashi et Goma ont transformé leurs ventes WhatsApp au quotidien.
-            </p>
-          </ScrollReveal>
-
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
-            {TESTIMONIALS.map((item, i) => (
-              <ScrollReveal key={item.name} delay={i * 100} direction="up">
-                <div className="flex flex-col justify-between h-full rounded-3xl border bg-card p-7 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1.5 hover:border-primary/20">
-                  <div>
-                    {/* Stars + metric badge */}
-                    <div className="flex items-center justify-between gap-2 mb-4">
-                      <div className="flex items-center gap-1 text-amber-500">
-                        {Array.from({ length: item.rating }).map((_, idx) => (
-                          <Star key={idx} className="h-4 w-4 fill-amber-500" />
-                        ))}
-                      </div>
-                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
-                        {item.metric}
-                      </span>
-                    </div>
-
-                    {/* Quote */}
-                    <p className="text-sm text-foreground/90 leading-relaxed italic mb-6">
-                      « {item.quote} »
-                    </p>
-                  </div>
-
-                  {/* Author */}
-                  <div className="flex items-center gap-3 pt-4 border-t">
-                    <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center font-bold text-sm text-white shrink-0 shadow-md", item.color)}>
-                      {item.avatar}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-bold text-sm truncate text-foreground">{item.name}</p>
-                        <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{item.shop} • {item.city}</p>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="bg-secondary/30 py-24 scroll-mt-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ScrollReveal direction="up" className="text-center">
-            <SectionBadge><Layers className="h-3.5 w-3.5" /> Processus</SectionBadge>
-            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">Comment ça marche ?</h2>
-            <p className="mt-4 text-lg text-muted-foreground">Trois étapes simples pour transformer vos abonnés en clients fidèles.</p>
-          </ScrollReveal>
-
-          <div className="mt-16 grid gap-8 lg:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <ScrollReveal key={s.title} delay={i * 120} direction="up">
-                <div className="relative h-full rounded-3xl bg-card p-7 sm:p-8 shadow-sm transition-transform hover:-translate-y-1.5 border hover:border-primary/20 hover:shadow-xl">
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/30">
-                      {i + 1}
-                    </span>
-                    <h3 className="text-lg font-bold">{s.title}</h3>
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{s.desc}</p>
-                  {i < STEPS.length - 1 && (
-                    <ArrowRight className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground/30" />
-                  )}
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── PRICING ── */}
       {!!plans?.length && (
@@ -1297,14 +1508,7 @@ function Index() {
                         {[
                           { show: true, text: p.max_products != null ? `Jusqu'à ${p.max_products} produits` : "Produits illimités", strong: true },
                           { show: Boolean(p.max_photos), text: `${p.max_photos ?? 3} photos par produit` },
-                          { 
-                            show: true, 
-                            text: (p as any).max_active_promotions === 0
-                              ? "0 promotion incluse"
-                              : (p as any).max_active_promotions != null 
-                                ? `${(p as any).max_active_promotions} promotions actives max` 
-                                : "Promotions actives illimitées" 
-                          },
+                          { show: true, text: "Double affichage $ USD & Francs Congolais" },
                           { show: true, text: "Partage direct WhatsApp & réseaux sociaux" },
                           { show: Boolean(p.advanced_themes), text: "Thèmes avancés" },
                           { show: Boolean(p.advanced_stats), text: "Statistiques Pro" },

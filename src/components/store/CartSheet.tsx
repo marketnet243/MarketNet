@@ -51,16 +51,17 @@ export function CartSheet({ shop, origin, className }: { shop: ShopInfo; origin:
 
     const lines = items.map((i) => {
       const hasDiscount = i.original_price && i.original_price > i.price;
-      let priceTxt = `💰 ${formatPrice(i.price * i.qty, i.currency)}`;
+      const variantTxt = i.variant ? `\n   ▫️ Option : ${i.variant}` : "";
+      let priceTxt = `\n   ▫️ Sous-total : ${formatPrice(i.price * i.qty, i.currency)}`;
       if (hasDiscount) {
-        priceTxt += ` (Prix initial : ${formatPrice(i.original_price! * i.qty, i.currency)}, Réduction : -${formatPrice((i.original_price! - i.price) * i.qty, i.currency)})`;
+        priceTxt += ` ~(${formatPrice(i.original_price! * i.qty, i.currency)})~`;
       }
-      return `📦 *${i.qty}x ${i.name}*${i.variant ? ` (${i.variant})` : ""}\n${priceTxt}`;
+      return `📦 *${i.qty}x ${i.name}*${variantTxt}${priceTxt}`;
     });
     
-    let msg = `Bonjour *${shop.name}* 👋\n\nVoici ma commande :\n\n${lines.join("\n\n")}\n\n====================\n*TOTAL : ${totalStr}*\n====================\n\n👤 *Livraison*\n• Nom : ${customer}\n• Adresse : ${addr}`;
-    if (msgNotes) {
-      msg += `\n• Note : ${msgNotes}`;
+    let msg = `🛒 *COMMANDE — ${shop.name}*\n\nBonjour ! Je souhaite commander ces articles depuis votre boutique :\n\n${lines.join("\n\n")}\n\n────────────────────\n💵 *TOTAL : ${totalStr}*\n────────────────────\n\n📍 *Informations de livraison*\n• Nom : ${customer}\n• Adresse / Quartier : ${addr}`;
+    if (msgNotes && msgNotes.trim()) {
+      msg += `\n• Précisions : ${msgNotes.trim()}`;
     }
     
     window.open(`https://wa.me/${shop.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
