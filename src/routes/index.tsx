@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Check, MessageCircle, Palette, Smartphone, Store, Zap, ArrowRight,
+  Check, MessageCircle, Palette, Store, Zap, ArrowRight,
   TrendingUp, Users, ShieldCheck, Menu, X, Sparkles, Layers, CreditCard,
-  LogIn, Tag, Megaphone, BarChart3, Globe2, Star,
+  LogIn, Megaphone, BarChart3, Globe2, Star,
   Share2, Gift, Send, HelpCircle, Quote, ShoppingBag, Plus, Minus,
   CheckCircle2, Wallet,
 } from "lucide-react";
@@ -54,10 +54,8 @@ const FEATURES = [
   { icon: MessageCircle, color: "text-green-500", bg: "bg-green-500/10", title: "Commandes WhatsApp", text: "Le client compose son panier, vous recevez la commande détaillée directement." },
   { icon: CreditCard, color: "text-blue-500", bg: "bg-blue-500/10", title: "Double devise ($ & Francs)", text: "Vos prix s'affichent automatiquement en Dollars et Francs Congolais (CDF)." },
   { icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-500/10", title: "0% de commission", text: "MarketNet ne prélève aucune commission sur vos ventes. Vous gardez l'intégralité de vos bénéfices." },
-  { icon: Smartphone, color: "text-cyan-500", bg: "bg-cyan-500/10", title: "Pensé pour le mobile", text: "Léger et ultra-rapide, optimisé pour les connexions mobiles africaines (3G/4G)." },
   { icon: Palette, color: "text-purple-500", bg: "bg-purple-500/10", title: "À votre image", text: "Personnalisez couleurs, bannière, thème et catégories en quelques clics." },
   { icon: Globe2, color: "text-primary", bg: "bg-primary/10", title: "Lien universel", text: "Un lien unique à placer dans votre statut WhatsApp, bio TikTok ou Instagram." },
-  { icon: Tag, color: "text-rose-500", bg: "bg-rose-500/10", title: "Gestion des stocks & options", text: "Gérez vos quantités, tailles et couleurs directement depuis votre téléphone." },
 ];
 
 const STEPS = [
@@ -136,7 +134,7 @@ const TESTIMONIALS = [
     rating: 5,
   },
   {
-    name: "Patrick Tshisekedi",
+    name: "Patrick Ngoy",
     role: "Gérant",
     shop: "Kinshasa Vibes",
     city: "Kinshasa (Bandal)",
@@ -1447,7 +1445,7 @@ function Index() {
             </p>
           </ScrollReveal>
 
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f, i) => (
               <ScrollReveal key={f.title} delay={i * 60} direction="up">
                 <div className="group relative h-full overflow-hidden rounded-3xl border bg-card p-7 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1.5 hover:border-primary/20">
