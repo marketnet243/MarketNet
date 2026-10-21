@@ -1,4 +1,4 @@
-﻿import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
 /**
  * Emails transactionnels pour le workflow de suppression de compte.
@@ -39,29 +39,77 @@ function buildEmailShell(params: {
       </a>
     </div>` : "";
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${params.title} -- ${fromName}</title>
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-outer-td {
+        padding: 4px 2px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+      .email-header-cell {
+        padding: 16px 14px 12px !important;
+      }
+      .email-body-cell {
+        padding: 18px 14px 16px !important;
+      }
+      .email-footer-cell {
+        padding: 14px 10px !important;
+      }
+      .email-brand-title {
+        font-size: 20px !important;
+      }
+      .email-badge {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:24px;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;width:100%!important;-webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width:100%;margin:0;padding:0;background-color:#f1f5f9;">
     <tr>
-      <td style="padding:28px 32px 20px;border-bottom:2px solid #f1f5f9;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0"><tr>
-          <td><div style="font-size:24px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;">Market<span style="color:#f97316;">Net</span></div>
-          <div style="font-size:12px;color:#64748b;margin-top:2px;">La plateforme e-commerce des commercants de RDC</div></td>
-          <td align="right"><span style="display:inline-block;padding:6px 12px;background-color:${params.badgeColor};font-size:11px;font-weight:700;border-radius:9999px;border:1px solid #e2e8f0;">${params.badgeText}</span></td>
-        </tr></table>
-      </td>
-    </tr>
-    <tr><td style="padding:28px 32px 20px;">${params.body}${cta}</td></tr>
-    <tr>
-      <td style="padding:20px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;">
-        <p style="margin:2px 0;">© ${new Date().getFullYear()} MarketNet Africa</p>
-        <p style="margin:2px 0;">Ceci est une notification automatique. Ne repondez pas directement a cet e-mail.</p>
-        <p style="margin:4px 0;"><a href="${siteUrl}" style="color:#f97316;text-decoration:none;">${siteUrl}</a></p>
+      <td align="center" class="email-outer-td" style="padding:20px 8px;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width:100%;max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+          <tr>
+            <td class="email-header-cell" style="padding:24px 28px 18px;border-bottom:2px solid #f1f5f9;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0"><tr>
+                <td valign="middle"><div class="email-brand-title" style="font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#0f172a;">Market<span style="color:#f97316;">Net</span></div>
+                <div style="font-size:12px;color:#64748b;margin-top:2px;">La plateforme e-commerce des commercants de RDC</div></td>
+                <td align="right" valign="middle"><span class="email-badge" style="display:inline-block;padding:6px 12px;background-color:${params.badgeColor};font-size:11px;font-weight:700;border-radius:9999px;border:1px solid #e2e8f0;white-space:nowrap;">${params.badgeText}</span></td>
+              </tr></table>
+            </td>
+          </tr>
+          <tr><td class="email-body-cell" style="padding:24px 28px;">${params.body}${cta}</td></tr>
+          <tr>
+            <td class="email-footer-cell" style="padding:18px 24px;background-color:#f8fafc;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;">
+              <p style="margin:2px 0;">© ${new Date().getFullYear()} MarketNet Africa</p>
+              <p style="margin:2px 0;">Ceci est une notification automatique. Ne repondez pas directement a cet e-mail.</p>
+              <p style="margin:4px 0;"><a href="${siteUrl}" style="color:#f97316;text-decoration:none;">${siteUrl}</a></p>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
   </table>

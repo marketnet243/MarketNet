@@ -146,24 +146,59 @@ function createSmtpTransporter() {
  */
 export function buildInvoiceHtml(inv: InvoiceData): string {
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Facture ${inv.invoiceNumber} — MarketNet</title>
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-outer-td {
+        padding: 4px 2px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+      .email-header-cell {
+        padding: 18px 16px 14px !important;
+      }
+      .email-body-cell {
+        padding: 18px 16px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-    
-    <!-- En-tête -->
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
     <tr>
-      <td style="padding: 32px 32px 24px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          
+          <!-- En-tête -->
           <tr>
-            <td>
-              <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                Market<span style="color: #f97316;">Net</span>
-              </div>
+            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
+                      Market<span style="color: #f97316;">Net</span>
+                    </div>
               <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
                 La plateforme e-commerce des commerçants de RDC
               </div>
@@ -278,6 +313,9 @@ export function buildInvoiceHtml(inv: InvoiceData): string {
       </td>
     </tr>
 
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`;
@@ -612,24 +650,59 @@ export async function getAssignmentLetterData(paymentId: string): Promise<Assign
  */
 export function buildAssignmentLetterHtml(data: AssignmentLetterData): string {
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Lettre d'Attribution — ${data.planName} — MarketNet</title>
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-outer-td {
+        padding: 4px 2px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+      .email-header-cell {
+        padding: 18px 16px 14px !important;
+      }
+      .email-body-cell {
+        padding: 18px 16px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-
-    <!-- En-tête -->
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
     <tr>
-      <td style="padding: 32px 32px 24px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+
+          <!-- En-tête -->
           <tr>
-            <td>
-              <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                Market<span style="color: #f97316;">Net</span>
-              </div>
+            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
+                      Market<span style="color: #f97316;">Net</span>
+                    </div>
               <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
                 La plateforme e-commerce des commerçants de RDC
               </div>
@@ -742,6 +815,9 @@ export function buildAssignmentLetterHtml(data: AssignmentLetterData): string {
       </td>
     </tr>
 
+        </table>
+      </td>
+    </tr>
   </table>
 </body>
 </html>`;
@@ -1165,24 +1241,59 @@ export function buildNewUserAdminAlertHtml(params: {
   adminUrl: string;
 }): string {
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Nouvelle inscription MarketNet</title>
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-outer-td {
+        padding: 4px 2px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+      .email-header-cell {
+        padding: 18px 16px 14px !important;
+      }
+      .email-body-cell {
+        padding: 18px 16px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-    
-    <!-- En-tête -->
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
     <tr>
-      <td style="padding: 28px 32px 20px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          
+          <!-- En-tête -->
           <tr>
-            <td>
-              <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                Market<span style="color: #f97316;">Net</span>
-              </div>
+            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td>
+                    <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
+                      Market<span style="color: #f97316;">Net</span>
+                    </div>
               <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
                 Plateforme d'Administration
               </div>
@@ -1236,6 +1347,9 @@ export function buildNewUserAdminAlertHtml(params: {
     <tr>
       <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8;">
         Notification automatique générée par MarketNet • Système d'alerte administrateur
+      </td>
+    </tr>
+        </table>
       </td>
     </tr>
   </table>
@@ -1313,21 +1427,56 @@ export function buildMerchantWelcomeHtml(params: {
   supportEmail: string;
 }): string {
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Bienvenue sur MarketNet !</title>
+  <style>
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-outer-td {
+        padding: 4px 2px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+      .email-header-cell {
+        padding: 24px 16px 20px !important;
+      }
+      .email-body-cell {
+        padding: 20px 16px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-    
-    <!-- En-tête avec Bannière dégradée -->
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
     <tr>
-      <td style="padding: 36px 32px 28px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center;">
-        <div style="font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff;">
-          Market<span style="color: #f97316;">Net</span>
-        </div>
+      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          
+          <!-- En-tête avec Bannière dégradée -->
+          <tr>
+            <td class="email-header-cell" style="padding: 36px 32px 28px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center;">
+              <div style="font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff;">
+                Market<span style="color: #f97316;">Net</span>
+              </div>
         <p style="font-size: 13px; color: #94a3b8; margin: 6px 0 0;">
           La plateforme e-commerce tout-en-un pour les commerçants de RDC
         </p>
@@ -1457,6 +1606,9 @@ export function buildMerchantWelcomeHtml(params: {
     <tr>
       <td style="padding: 20px 32px; background-color: #ffffff; text-align: center; font-size: 12px; color: #94a3b8;">
         © ${new Date().getFullYear()} MarketNet Inc. RDC • Conçu avec passion pour propulser l'e-commerce africain.
+      </td>
+    </tr>
+        </table>
       </td>
     </tr>
   </table>

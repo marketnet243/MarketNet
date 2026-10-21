@@ -46,52 +46,119 @@ function buildEmailShell(params: {
   const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
   const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>${params.title} — ${fromName}</title>
+  <style>
+    /* Reset et responsive mobile */
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-width: 100% !important;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+    @media only screen and (max-width: 600px) {
+      .email-outer-td {
+        padding: 4px 2px !important;
+      }
+      .email-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 10px !important;
+      }
+      .email-header-cell {
+        padding: 16px 14px 12px !important;
+      }
+      .email-body-cell {
+        padding: 18px 14px 16px !important;
+      }
+      .email-footer-cell {
+        padding: 14px 10px !important;
+      }
+      .email-inner-box {
+        padding: 14px 12px !important;
+        border-radius: 10px !important;
+      }
+      .email-brand-title {
+        font-size: 20px !important;
+      }
+      .email-brand-sub {
+        font-size: 11px !important;
+      }
+      .email-badge {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+      }
+      .email-h2 {
+        font-size: 17px !important;
+      }
+    }
+  </style>
 </head>
-<body style="margin: 0; padding: 24px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-    <!-- En-tête -->
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
     <tr>
-      <td style="padding: 28px 32px 20px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <!-- En-tête -->
           <tr>
-            <td>
-              <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                Market<span style="color: #f97316;">Net</span>
-              </div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">La plateforme e-commerce des commerçants de RDC</div>
+            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td valign="middle">
+                    <div class="email-brand-title" style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
+                      Market<span style="color: #f97316;">Net</span>
+                    </div>
+                    <div class="email-brand-sub" style="font-size: 12px; color: #64748b; margin-top: 2px;">La plateforme e-commerce des commerçants de RDC</div>
+                  </td>
+                  <td align="right" valign="middle">
+                    <span class="email-badge" style="display: inline-block; padding: 6px 12px; background-color: ${params.badgeColor}; font-size: 11px; font-weight: 700; border-radius: 9999px; border: 1px solid #e2e8f0; white-space: nowrap;">
+                      ${params.badgeText}
+                    </span>
+                  </td>
+                </tr>
+              </table>
             </td>
-            <td align="right">
-              <span style="display: inline-block; padding: 6px 12px; background-color: ${params.badgeColor}; font-size: 11px; font-weight: 700; border-radius: 9999px; border: 1px solid #e2e8f0;">
-                ${params.badgeText}
-              </span>
+          </tr>
+          <!-- Corps -->
+          <tr>
+            <td class="email-body-cell" style="padding: 24px 28px;">
+              ${params.body}
+              ${params.ctaLabel && params.ctaUrl ? `
+              <div style="text-align: center; margin: 24px 0 8px;">
+                <a href="${params.ctaUrl}" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);">
+                  ${params.ctaLabel} →
+                </a>
+              </div>` : ""}
+            </td>
+          </tr>
+          <!-- Pied de page -->
+          <tr>
+            <td class="email-footer-cell" style="padding: 18px 24px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8;">
+              <p style="margin: 2px 0;">© ${new Date().getFullYear()} MarketNet Africa — La plateforme e-commerce tout-en-un.</p>
+              <p style="margin: 2px 0;">Ceci est une notification automatique. Ne répondez pas directement à cet e-mail.</p>
+              <p style="margin: 4px 0;"><a href="${siteUrl}" style="color: #f97316; text-decoration: none;">${siteUrl}</a></p>
             </td>
           </tr>
         </table>
-      </td>
-    </tr>
-    <!-- Corps -->
-    <tr>
-      <td style="padding: 28px 32px 20px;">
-        ${params.body}
-        ${params.ctaLabel && params.ctaUrl ? `
-        <div style="text-align: center; margin: 28px 0 12px;">
-          <a href="${params.ctaUrl}" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);">
-            ${params.ctaLabel} →
-          </a>
-        </div>` : ""}
-      </td>
-    </tr>
-    <!-- Pied de page -->
-    <tr>
-      <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8;">
-        <p style="margin: 2px 0;">© ${new Date().getFullYear()} MarketNet Africa — La plateforme e-commerce tout-en-un.</p>
-        <p style="margin: 2px 0;">Ceci est une notification automatique. Ne répondez pas directement à cet e-mail.</p>
-        <p style="margin: 4px 0;"><a href="${siteUrl}" style="color: #f97316; text-decoration: none;">${siteUrl}</a></p>
       </td>
     </tr>
   </table>
@@ -406,12 +473,12 @@ export function buildBroadcastHtml(params: {
   trackingPixelUrl?: string;
 }): string {
   const body = `
-    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 12px; color: #0f172a;">📢 Annonce officielle MarketNet</h2>
-    <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">
+    <h2 class="email-h2" style="font-size: 18px; font-weight: 800; margin: 0 0 10px; color: #0f172a; line-height: 1.3;">📢 Annonce officielle MarketNet</h2>
+    <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 14px; line-height: 1.4;">
       ${params.titre}
     </div>
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;">
-      <p style="margin: 0; font-size: 14px; color: #1e293b; line-height: 1.7; white-space: pre-wrap;">${params.message}</p>
+    <div class="email-inner-box" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 16px; margin-bottom: 18px;">
+      <p style="margin: 0; font-size: 14px; color: #1e293b; line-height: 1.65; white-space: pre-wrap;">${params.message}</p>
     </div>
     ${params.trackingPixelUrl ? `<img src="${params.trackingPixelUrl}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:0;" />` : ""}
   `;
