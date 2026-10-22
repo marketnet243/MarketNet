@@ -94,6 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "google-site-verification", content: "fxXPuRZ8hZZ38VE1PfyLlBBhLYlSrTh6H1enOT3S_Nk" },
         { title: "MarketNet — Votre boutique en ligne, vos commandes sur WhatsApp" },
         { name: "description", content: "Créez votre boutique en ligne en quelques minutes et recevez vos commandes sur WhatsApp." },
         { property: "og:site_name", content: "MarketNet" },
