@@ -189,6 +189,7 @@ function ResetPage() {
 
                 <Link
                   to="/auth"
+                  search={{ mode: "login" }}
                   className="inline-block text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Revenir à la page de connexion

@@ -1,10 +1,41 @@
-import { Clock, MapPin, Facebook, Instagram, MessageCircle, Plus, Star, ShoppingBag, Package, BadgeCheck, Share2, Sparkles, ShieldCheck, Truck } from "lucide-react";
+import {
+  Clock,
+  MapPin,
+  Facebook,
+  Instagram,
+  MessageCircle,
+  Plus,
+  Star,
+  ShoppingBag,
+  Package,
+  BadgeCheck,
+  Share2,
+  Sparkles,
+  ShieldCheck,
+  Truck,
+  Zap,
+  Check,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Shop, Product } from "@/hooks/useMyShop";
 import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
+import React, { useState } from "react";
 
-type ShopLike = Pick<Shop, "name" | "description" | "logo_url" | "banner_url" | "category" | "category_custom" | "city" | "hours" | "whatsapp" | "facebook" | "instagram">;
+type ShopLike = Pick<
+  Shop,
+  | "name"
+  | "description"
+  | "logo_url"
+  | "banner_url"
+  | "category"
+  | "category_custom"
+  | "city"
+  | "hours"
+  | "whatsapp"
+  | "facebook"
+  | "instagram"
+>;
 
 export function StoreHeader({
   shop,
@@ -17,171 +48,214 @@ export function StoreHeader({
   isPublished?: boolean;
   isSuspended?: boolean;
 }) {
+  const [descExpanded, setDescExpanded] = useState(false);
   const banner = mediaUrl(shop.banner_url);
   const logo = mediaUrl(shop.logo_url);
-  const hasWhatsapp = shop.whatsapp?.replace(/\D/g, "").length >= 8;
+  const hasWhatsapp = (shop.whatsapp?.replace(/\D/g, "") || "").length >= 8;
+
+  function handleShare() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (navigator.share) {
+      navigator
+        .share({
+          title: shop.name,
+          text: shop.description || `Découvrez la boutique ${shop.name} sur MarketNet !`,
+          url,
+        })
+        .catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Lien de la boutique copié dans le presse-papier !");
+    }
+  }
+
+  const descText = shop.description?.trim() || "";
+  const isLongDesc = descText.length > 180;
 
   return (
-    <header className="pb-0">
-      {/* Banner */}
-      <div
-        className={cn("relative isolate w-full overflow-hidden", compact ? "h-32" : "h-44 sm:h-64")}
-        style={banner ? undefined : {
-          backgroundImage: "radial-gradient(ellipse at 78% 12%, color-mix(in srgb, var(--shop-primary) 52%, transparent), transparent 48%), radial-gradient(ellipse at 8% 100%, color-mix(in srgb, var(--shop-primary) 24%, transparent), transparent 42%), linear-gradient(135deg, var(--shop-bg), color-mix(in srgb, var(--shop-bg) 75%, var(--shop-primary)))",
-        }}
-      >
-        {banner && (
-          <>
-            <img src={banner} alt={`Bannière de ${shop.name}`} className="absolute inset-0 h-full w-full object-cover" fetchPriority="high" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/10" />
-          </>
-        )}
-        {!banner && (
-          <>
-            <div aria-hidden="true" className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-shop/10 blur-3xl" />
-            <div aria-hidden="true" className="absolute -left-8 bottom-0 h-48 w-48 rounded-full bg-shop/15 blur-2xl" />
-          </>
-        )}
+    <header className="pb-4">
+      {/* ── BANIÈRE PANORAMIQUE HAUT DE GAMME ── */}
+      <div className="mx-auto max-w-5xl px-3 sm:px-4 pt-2 sm:pt-4">
+        <div
+          className={cn(
+            "relative isolate w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-md border border-border/60 bg-muted/30 transition-all",
+            compact ? "h-28 sm:h-36" : "h-44 sm:h-64 lg:h-72"
+          )}
+          style={
+            banner
+              ? undefined
+              : {
+                  backgroundImage:
+                    "radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--shop-primary) 45%, transparent), transparent 50%), radial-gradient(ellipse at 10% 90%, color-mix(in srgb, var(--shop-primary) 30%, transparent), transparent 45%), linear-gradient(135deg, color-mix(in srgb, var(--shop-bg) 85%, var(--shop-primary)), var(--shop-bg))",
+                }
+          }
+        >
+          {banner ? (
+            <>
+              <img
+                src={banner}
+                alt={`Bannière de ${shop.name}`}
+                className="absolute inset-0 h-full w-full object-cover"
+                fetchPriority="high"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/5" />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center opacity-10 select-none">
+              <span className="text-8xl sm:text-9xl font-black text-foreground">{shop.name.slice(0, 2)}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4">
-        {/* Logo + Actions Row */}
-        <div className={cn(
-          "relative z-10 flex items-end justify-between gap-3",
-          compact ? "-mt-10" : "-mt-12 sm:-mt-14"
-        )}>
-          {/* Logo en squircle avec ombre douce et fond contrasté */}
-          <div className="relative group shrink-0">
-            <div
-              className={cn(
-                "relative grid place-items-center overflow-hidden rounded-2xl border-4 border-background bg-card font-shop-heading font-extrabold text-shop shadow-xl ring-1 ring-black/5 transition-transform duration-200",
-                compact ? "h-16 w-16" : "h-20 w-20 sm:h-24 sm:w-24"
-              )}
-            >
-              {logo ? (
-                <img src={logo} alt={shop.name} className="h-full w-full object-cover" />
-              ) : (
-                <span className="select-none text-2xl sm:text-3xl font-extrabold text-primary">{shop.name.slice(0, 1)}</span>
-              )}
+      {/* ── CARTE D'IDENTITÉ & ACTIONS COMMERÇANT ── */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="relative -mt-10 sm:-mt-14 z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          
+          {/* Logo & Titre */}
+          <div className="flex items-end gap-3.5 sm:gap-5">
+            {/* Logo en squircle doux avec ombre portée */}
+            <div className="relative group shrink-0">
+              <div
+                className={cn(
+                  "relative grid place-items-center overflow-hidden rounded-2xl sm:rounded-3xl border-4 border-background bg-card font-shop-heading font-black text-shop shadow-2xl ring-1 ring-black/10 transition-transform duration-300 group-hover:scale-102",
+                  compact ? "h-16 w-16" : "h-20 w-20 sm:h-26 sm:w-26"
+                )}
+              >
+                {logo ? (
+                  <img src={logo} alt={shop.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="select-none text-2xl sm:text-4xl font-black text-primary">
+                    {shop.name.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+
+              {/* Badge Boutique Officielle */}
+              <div
+                className="absolute -bottom-1 -right-1 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-background p-0.5 shadow-md"
+                title="Boutique Vérifiée MarketNet"
+              >
+                <BadgeCheck className="h-full w-full text-emerald-500 fill-emerald-500/20" />
+              </div>
             </div>
-            {/* Badge de boutique vérifiée / active */}
-            <div
-              className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-background p-0.5 shadow-md"
-              title="Boutique vérifiée MarketNet"
-            >
-              <BadgeCheck className="h-5 w-5 text-emerald-500 fill-emerald-500/20" />
+
+            {/* Titre & Statut (Mobile & Desktop) */}
+            <div className="space-y-1 pb-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {getShopCategoryLabel(shop) && (
+                  <span className="inline-flex items-center rounded-lg bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase">
+                    {getShopCategoryLabel(shop)}
+                  </span>
+                )}
+
+                {/* Badge d'ouverture en direct */}
+                {isSuspended ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    Suspendue
+                  </span>
+                ) : !isPublished ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    Fermée
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Ouvert
+                  </span>
+                )}
+              </div>
+
+              <h1 className="font-shop-heading font-black tracking-tight text-xl sm:text-2xl lg:text-3xl text-foreground">
+                {shop.name}
+              </h1>
             </div>
           </div>
 
-          {/* Boutons d'actions rapides (Partage + WhatsApp + Réseaux) */}
-          <div className="mb-1 flex items-center gap-1.5 sm:gap-2">
+          {/* Boutons d'Action (WhatsApp direct + Partage + Réseaux sociaux) */}
+          <div className="flex items-center gap-2 self-start sm:self-end pb-1 w-full sm:w-auto">
+            {hasWhatsapp && (
+              <a
+                href={`https://wa.me/${shop.whatsapp?.replace(/\D/g, "")}?text=${encodeURIComponent(
+                  `Bonjour ${shop.name}, je vous contacte depuis votre boutique en ligne MarketNet.`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 sm:flex-initial inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-600/25 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer select-none"
+              >
+                <MessageCircle className="h-4 w-4 fill-white" />
+                <span>Discuter sur WhatsApp</span>
+              </a>
+            )}
+
             <button
               type="button"
-              onClick={() => {
-                const url = typeof window !== "undefined" ? window.location.href : "";
-                if (navigator.share) {
-                  navigator
-                    .share({
-                      title: shop.name,
-                      text: shop.description || `Découvrez la boutique ${shop.name} sur MarketNet !`,
-                      url,
-                    })
-                    .catch(() => {});
-                } else {
-                  navigator.clipboard.writeText(url);
-                  toast.success("Lien de la boutique copié !");
-                }
-              }}
-              title="Partager cette boutique"
-              aria-label="Partager cette boutique"
-              className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl border border-border/80 bg-background/95 text-foreground shadow-sm backdrop-blur transition-all hover:scale-105 hover:border-primary/50 hover:text-primary cursor-pointer"
+              onClick={handleShare}
+              title="Partager le lien de la boutique"
+              aria-label="Partager le lien de la boutique"
+              className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-primary/40 hover:text-primary transition-all active:scale-95 cursor-pointer shrink-0"
             >
               <Share2 className="h-4 w-4" />
             </button>
+
             {shop.instagram && (
               <a
                 href={shop.instagram}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Instagram"
-                className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl border border-border/80 bg-background/95 text-foreground shadow-sm backdrop-blur transition-all hover:scale-105 hover:border-[#E1306C]/50 hover:text-[#E1306C]"
+                aria-label="Page Instagram"
+                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#E1306C]/50 hover:text-[#E1306C] transition-all active:scale-95 shrink-0"
               >
                 <Instagram className="h-4 w-4" />
               </a>
             )}
+
             {shop.facebook && (
               <a
                 href={shop.facebook}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Facebook"
-                className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-xl border border-border/80 bg-background/95 text-foreground shadow-sm backdrop-blur transition-all hover:scale-105 hover:border-[#1877F2]/50 hover:text-[#1877F2]"
+                aria-label="Page Facebook"
+                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#1877F2]/50 hover:text-[#1877F2] transition-all active:scale-95 shrink-0"
               >
                 <Facebook className="h-4 w-4" />
               </a>
             )}
-            {hasWhatsapp && (
-              <a
-                href={`https://wa.me/${shop.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Bonjour ${shop.name}, je vous contacte depuis votre boutique MarketNet.`)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-9 sm:h-10 items-center gap-1.5 sm:gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] px-3.5 sm:px-4 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span>Contacter</span>
-              </a>
-            )}
           </div>
         </div>
 
-        {/* Détails de la boutique */}
-        <div className="mt-3.5 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            {getShopCategoryLabel(shop) && (
-              <span className="inline-flex items-center rounded-lg bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase">
-                {getShopCategoryLabel(shop)}
-              </span>
-            )}
-            {/* Statut ouvert / fermé / suspendu */}
-            {isSuspended ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 px-2.5 py-0.5 text-[11px] font-semibold">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                Suspendue
-              </span>
-            ) : !isPublished ? (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 text-[11px] font-semibold">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                Fermée
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[11px] font-semibold">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Ouvert
-              </span>
-            )}
-          </div>
-
-          <h1 className={cn(
-            "font-shop-heading font-extrabold tracking-tight text-foreground",
-            compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl lg:text-3xl"
-          )}>
-            {shop.name}
-          </h1>
-
-          {shop.description && (
-            <p className="max-w-2xl text-xs sm:text-sm leading-relaxed text-muted-foreground pt-0.5">
-              {shop.description}
+        {/* ── DESCRIPTION AVEC DÉPLIAGE FLUIDE ── */}
+        {descText && (
+          <div className="mt-4 max-w-3xl space-y-1">
+            <p
+              className={cn(
+                "text-xs sm:text-sm leading-relaxed text-muted-foreground whitespace-pre-line transition-all",
+                !descExpanded && isLongDesc && "line-clamp-3"
+              )}
+            >
+              {descText}
             </p>
-          )}
-        </div>
+            {isLongDesc && (
+              <button
+                type="button"
+                onClick={() => setDescExpanded(!descExpanded)}
+                className="text-xs font-bold text-primary hover:underline cursor-pointer pt-0.5"
+              >
+                {descExpanded ? "Voir moins" : "Lire la suite..."}
+              </button>
+            )}
+          </div>
+        )}
 
-        {/* Méta-données (Localisation & Horaires) */}
+        {/* ── LOCALISATION & HORAIRES ── */}
         {(shop.city || shop.hours) && (
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
             {shop.city && (
               <span className="inline-flex items-center gap-1.5 font-medium">
                 <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                {shop.city}
+                <span>{shop.city}</span>
               </span>
             )}
             {shop.hours && (
@@ -193,29 +267,50 @@ export function StoreHeader({
           </div>
         )}
 
-        {/* Badges de réassurance client discrets et anti-arnaque */}
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 pt-0.5 text-[11px] text-muted-foreground select-none">
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border/40 px-2.5 py-0.5">
-            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>Direct vendeur</span>
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border/40 px-2.5 py-0.5">
-            <MessageCircle className="h-3 w-3 text-[#25D366] shrink-0" />
-            <span>WhatsApp direct</span>
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border/40 px-2.5 py-0.5">
-            <Truck className="h-3 w-3 text-primary shrink-0" />
-            <span>Mobile Money ou Cash</span>
-          </span>
+        {/* ── BADGES DE RÉASSURANCE CLIENT — grille 2×2 mobile, 3 colonnes desktop ── */}
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 select-none">
+          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5">
+            <div className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-foreground text-[11px] leading-tight">Direct Vendeur</p>
+              <p className="text-[10px] text-muted-foreground leading-tight truncate">0 intermédiaire</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5">
+            <div className="h-7 w-7 rounded-lg bg-[#25D366]/10 text-[#25D366] flex items-center justify-center shrink-0">
+              <MessageCircle className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-foreground text-[11px] leading-tight">WhatsApp</p>
+              <p className="text-[10px] text-muted-foreground leading-tight truncate">Commande directe</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5 col-span-2 sm:col-span-1">
+            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Truck className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-foreground text-[11px] leading-tight">Livraison & Paiement</p>
+              <p className="text-[10px] text-muted-foreground leading-tight truncate">Mobile Money ou Cash</p>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-4 h-px bg-border/60" />
+        <div className="mt-5 h-px bg-border/40" />
       </div>
     </header>
   );
 }
 
-export function ProductCard({ product, onAdd, href }: {
+export function ProductCard({
+  product,
+  onAdd,
+  href,
+}: {
   product: Pick<Product, "name" | "price" | "currency" | "images" | "status" | "featured"> & {
     original_price?: number;
     discounted_price?: number | null;
@@ -224,75 +319,140 @@ export function ProductCard({ product, onAdd, href }: {
   onAdd?: () => void;
   href?: React.ReactNode;
 }) {
+  const [addedAnim, setAddedAnim] = useState(false);
   const img = mediaUrl(product.images?.[0]);
-  const out = product.status === "out_of_stock";
-  const isDiscounted = product.discounted_price != null && product.discounted_price < Number(product.price);
+  const isOutOfStock = product.status === "out_of_stock";
+  const isDiscounted =
+    product.discounted_price != null && product.discounted_price < Number(product.price);
   const displayPrice = isDiscounted ? product.discounted_price! : Number(product.price);
 
+  function handleQuickAdd(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!onAdd || isOutOfStock) return;
+    onAdd();
+    setAddedAnim(true);
+    toast.success(`« ${product.name} » ajouté au panier !`);
+    setTimeout(() => setAddedAnim(false), 900);
+  }
+
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-shop-card shadow-soft transition-shadow hover:shadow-md">
-      {/* Image */}
-      <div className="relative aspect-square overflow-hidden bg-shop-bg">
-        {img
-          ? <img src={img} alt={product.name} loading="lazy" decoding="async"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]" />
-          : <div className="grid h-full place-items-center text-muted-foreground/40"><Package className="h-10 w-10 opacity-40" /></div>
-        }
-        {/* Overlays */}
-        {product.discount_badge && (
-          <span className="absolute left-2 top-2 z-10 flex items-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-black text-white shadow-md animate-pulse">
-            {product.discount_badge}
-          </span>
-        )}
-        {product.featured && !product.discount_badge && (
-          <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-shop px-2 py-0.5 text-[10px] font-bold text-shop-foreground shadow">
-            <Star className="h-2.5 w-2.5" />Top
-          </span>
-        )}
-        {out && (
-          <div className="absolute inset-0 flex items-end justify-center bg-black/30 pb-2">
-            <span className="rounded-full bg-white/90 px-3 py-0.5 text-[11px] font-semibold text-gray-700">Rupture</span>
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-shop-card shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      
+      {/* ── IMAGE DU PRODUIT ── */}
+      <div className="relative aspect-square overflow-hidden bg-muted/20">
+        {img ? (
+          <img
+            src={img}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-106"
+          />
+        ) : (
+          <div className="grid h-full place-items-center text-muted-foreground/30">
+            <Package className="h-10 w-10 opacity-40" />
           </div>
         )}
-        {/* Quick add hover overlay */}
-        {onAdd && !out && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/10">
+
+        {/* Badges d'état (Promo, Top, Rupture) */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1">
+          {product.discount_badge && (
+            <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
+              {product.discount_badge}
+            </span>
+          )}
+          {product.featured && !product.discount_badge && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-shop px-2 py-0.5 text-[10px] font-bold text-shop-foreground shadow-xs">
+              <Star className="h-2.5 w-2.5 fill-current" />
+              <span>Coup de cœur</span>
+            </span>
+          )}
+        </div>
+
+        {/* Masque Rupture de Stock */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
+            <span className="rounded-full bg-background/95 px-3 py-1 text-xs font-bold text-muted-foreground shadow-md">
+              Rupture de stock
+            </span>
+          </div>
+        )}
+
+        {/* Bouton Desktop d'ajout rapide au survol */}
+        {onAdd && !isOutOfStock && (
+          <div className="hidden sm:flex absolute inset-0 items-end justify-center p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAdd(); }}
+              type="button"
+              onClick={handleQuickAdd}
               aria-label={`Ajouter ${product.name} au panier`}
-              className="scale-75 rounded-full bg-shop p-3 text-shop-foreground opacity-0 shadow-lg transition-all duration-300 group-hover:scale-100 group-hover:opacity-100 active:scale-95"
+              className={cn(
+                "w-full h-10 rounded-xl font-bold text-xs shadow-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer",
+                addedAnim
+                  ? "bg-emerald-600 text-white"
+                  : "bg-shop text-shop-foreground hover:brightness-105"
+              )}
             >
-              <ShoppingBag className="h-4 w-4" />
+              {addedAnim ? (
+                <>
+                  <Check className="h-4 w-4 stroke-[3]" />
+                  <span>Ajouté !</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>Ajouter au panier</span>
+                </>
+              )}
             </button>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-3">
-        <p className="line-clamp-2 text-[13px] font-medium leading-snug">{product.name}</p>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="flex flex-col">
+      {/* ── INFORMATIONS PRODUIT ── */}
+      <div className="p-3 sm:p-4 space-y-2 flex-1 flex flex-col justify-between">
+        <div className="space-y-1">
+          <h3 className="line-clamp-2 text-xs sm:text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+            {product.name}
+          </h3>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+          <div className="flex flex-col min-w-0">
             {isDiscounted && (
-              <span className="text-[11px] text-shop-muted line-through">
+              <span className="text-[11px] text-muted-foreground line-through font-mono">
                 {formatPrice(Number(product.price), product.currency)}
               </span>
             )}
-            <span className={cn("text-sm font-bold text-shop", isDiscounted && "text-red-600 dark:text-red-400 font-extrabold")}>
+            <span
+              className={cn(
+                "text-sm sm:text-base font-black font-mono text-primary truncate",
+                isDiscounted && "text-red-600 dark:text-red-400"
+              )}
+            >
               {formatPrice(displayPrice, product.currency)}
             </span>
           </div>
-          {onAdd && !out && (
+
+          {/* Bouton Mobile : Ajout rapide tactile */}
+          {onAdd && !isOutOfStock && (
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAdd(); }}
+              type="button"
+              onClick={handleQuickAdd}
               aria-label={`Ajouter ${product.name} au panier`}
-              className="relative z-10 grid h-8 w-8 place-items-center rounded-full bg-shop text-shop-foreground shadow transition-transform active:scale-90 sm:hidden"
+              className={cn(
+                "sm:hidden relative z-10 grid h-8 w-8 place-items-center rounded-xl shadow-xs transition-transform active:scale-90 cursor-pointer",
+                addedAnim
+                  ? "bg-emerald-600 text-white"
+                  : "bg-shop text-shop-foreground"
+              )}
             >
-              <Plus className="h-3.5 w-3.5" />
+              {addedAnim ? <Check className="h-4 w-4 stroke-[3]" /> : <Plus className="h-4 w-4 stroke-[3]" />}
             </button>
           )}
         </div>
       </div>
+
       {href}
     </div>
   );
