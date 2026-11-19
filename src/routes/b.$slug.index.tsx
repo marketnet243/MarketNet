@@ -7,9 +7,14 @@ import {
   X,
   Package,
   ShoppingBag,
+  ArrowRight,
+  Sparkles,
+  ChevronRight,
+  Plus,
+  Check,
 } from "lucide-react";
 import { publicShopQuery } from "@/lib/storefront.query";
-import { StoreHeader, ProductCard } from "@/components/store/StoreParts";
+import { StoreHeader, ProductCard, StoreFeaturesSection } from "@/components/store/StoreParts";
 import { StoreOfflineView } from "@/components/store/StoreOfflineView";
 import { PromoBanner } from "@/components/promo/PromoBanner";
 import { useCart } from "@/components/store/cart";
@@ -22,7 +27,7 @@ export const Route = createFileRoute("/b/$slug/")({
   head: ({ loaderData }: any) => {
     if (!loaderData) return {};
     const { shop, products, origin } = loaderData;
-    const title = `${shop.name} — Catalogue en ligne & Commandes WhatsApp`;
+    const title = `${shop.name} — Vitrine officielle & Commandes WhatsApp`;
     const desc =
       shop.description?.slice(0, 160) ||
       `Découvrez le catalogue complet de ${shop.name}${shop.city ? ` à ${shop.city}` : ""}. Commandez rapidement sur WhatsApp avec livraison directe.`;
@@ -99,72 +104,51 @@ function ShopHome() {
 
   /* ── Recherche ── */
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<string | null>(null);
-  const [animPlaceholder, setAnimPlaceholder] = useState("");
   const [focused, setFocused] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  /* Typewriter placeholder */
+  /* ── Rayon / Catégorie active ── */
+  const [cat, setCat] = useState<string | null>(null);
+
+  /* ── Placeholder animé ── */
+  const [animPlaceholder, setAnimPlaceholder] = useState("");
   useEffect(() => {
-    if (products.length === 0) return;
-    const names = products.slice(0, 5).map((p) => p.name);
-    let ni = 0, ci = 0, del = false;
-    let t: ReturnType<typeof setTimeout>;
+    if (!products.length) return;
+    const sampleNames = products.slice(0, 5).map((p) => p.name);
+    let sampleIdx = 0;
+    let charIdx = 0;
+    let deleting = false;
+    let timer: any;
+
     function tick() {
-      const name = names[ni % names.length];
-      if (!del) {
-        ci++;
-        setAnimPlaceholder("Rechercher " + name.slice(0, ci) + "|");
-        if (ci >= name.length) { del = true; t = setTimeout(tick, 2200); }
-        else t = setTimeout(tick, 90);
+      const current = sampleNames[sampleIdx] || "";
+      if (!deleting) {
+        charIdx++;
+        setAnimPlaceholder(`Rechercher « ${current.slice(0, charIdx)} »`);
+        if (charIdx >= current.length) {
+          deleting = true;
+          timer = setTimeout(tick, 2200);
+          return;
+        }
+        timer = setTimeout(tick, 60);
       } else {
-        ci--;
-        setAnimPlaceholder(ci > 0 ? "Rechercher " + name.slice(0, ci) + "|" : "");
-        if (ci <= 0) { del = false; ni++; t = setTimeout(tick, 700); }
-        else t = setTimeout(tick, 45);
+        charIdx--;
+        setAnimPlaceholder(`Rechercher « ${current.slice(0, charIdx)} »`);
+        if (charIdx <= 0) {
+          deleting = false;
+          sampleIdx = (sampleIdx + 1) % sampleNames.length;
+          timer = setTimeout(tick, 400);
+          return;
+        }
+        timer = setTimeout(tick, 30);
       }
     }
-    t = setTimeout(tick, 1200);
-    return () => clearTimeout(t);
-  }, [products.length]); // eslint-disable-line
 
-  const suggestions = useMemo(() => {
-    if (!q.trim() || q.length < 2) return [];
-    const low = q.toLowerCase();
-    return products
-      .filter(
-        (p) =>
-          p.name.toLowerCase().includes(low) ||
-          p.description?.toLowerCase().includes(low)
-      )
-      .slice(0, 6);
-  }, [q, products]);
-
-  const showDropdown = focused && suggestions.length > 0;
-  const closeDropdown = useCallback(() => { setFocused(false); setActiveIdx(-1); }, []);
-
-  useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (!dropdownRef.current?.contains(e.target as Node) && !inputRef.current?.contains(e.target as Node))
-        closeDropdown();
-    };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, [closeDropdown]);
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (!showDropdown) return;
-    if (e.key === "ArrowDown") { e.preventDefault(); setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1)); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setActiveIdx((i) => Math.max(i - 1, -1)); }
-    else if (e.key === "Enter" && activeIdx >= 0) {
-      e.preventDefault();
-      const p = suggestions[activeIdx];
-      setQ(p.name); closeDropdown();
-      navigate({ to: "/b/$slug/p/$productId", params: { slug, productId: p.id } });
-    } else if (e.key === "Escape") closeDropdown();
-  }
+    timer = setTimeout(tick, 800);
+    return () => clearTimeout(timer);
+  }, [products]);
 
   /* ── Liste filtrée ── */
   const list = useMemo(
@@ -184,7 +168,6 @@ function ShopHome() {
   if (isOffline) {
     return (
       <div className="min-h-screen">
-        <div id="about" />
         <StoreHeader shop={shop} isPublished={shop.is_published} isSuspended={shop.is_suspended} />
         <StoreOfflineView shop={shop} isSuspended={shop.is_suspended} />
       </div>
@@ -193,46 +176,40 @@ function ShopHome() {
 
   function quickAdd(p: (typeof products)[0]) {
     add({ productId: p.id, name: p.name, price: Number(p.price), currency: p.currency, image: p.images[0] });
+    toast.success(`« ${p.name} » ajouté au panier !`);
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50/50">
 
-      {/* Ancre navigation menu burger */}
-      <div id="about" />
-
-      {/* ── STORE HEADER (banner, logo, description, trust badges) ── */}
+      {/* ── 1. HERO HEADER 2 COLONNES (STYLE VYTRINI) ── */}
       <StoreHeader shop={shop} isPublished={shop.is_published} isSuspended={shop.is_suspended} />
 
-      {/* Ancres burger menu */}
-      <div id="infos" />
-      <div id="atouts" />
-
-      {/* ── PROMOTIONS ACTIVES ── */}
+      {/* ── 2. PROMOTIONS ACTIVES ── */}
       {promos && promos.length > 0 && (
         <div className="mx-auto max-w-5xl px-3 sm:px-4 pt-5">
           <PromoBanner promos={promos} slug={slug} currency={shop.currency} whatsapp={shop.whatsapp} />
         </div>
       )}
 
-      {/* ── CONTENU PRINCIPAL ── */}
-      <div className="mx-auto max-w-5xl px-3 sm:px-4 pb-32">
+      {/* ── 3. CONTENU PRINCIPAL DE LA VITRINE ── */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 pb-28">
 
-        {/* ── À LA UNE (carousel horizontal, seulement si produits featured) ── */}
+        {/* ── SÉLECTION DU MOMENT (CAROUSEL) ── */}
         {!isFiltering && featured.length > 0 && (
-          <section className="mt-7">
-            <div className="mb-3 flex items-center justify-between">
+          <section className="mt-8 mb-10">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-normal text-shop/60">Sélection</p>
-                <h2 className="mt-0.5 font-shop-heading text-lg font-extrabold">Coups de cœur ✨</h2>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#4F46E5]">Sélection</p>
+                <h2 className="mt-0.5 font-shop-heading text-xl font-extrabold text-slate-900">Coups de cœur ✨</h2>
               </div>
-              <span className="rounded-full bg-shop/10 px-2.5 py-1 text-xs font-semibold text-shop">
+              <span className="rounded-full bg-[#EEF2FF] border border-[#E0E7FF] px-2.5 py-0.5 text-xs font-bold text-[#4F46E5]">
                 {featured.length}
               </span>
             </div>
-            <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 sm:-mx-4 sm:px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="-mx-4 flex snap-x snap-mandatory gap-3.5 overflow-x-auto px-4 pb-3 scrollbar-none">
               {featured.map((p) => (
-                <div key={p.id} className="w-[160px] shrink-0 snap-start sm:w-[190px]">
+                <div key={p.id} className="w-[170px] sm:w-[200px] shrink-0 snap-start">
                   <ProductCard
                     product={p}
                     onAdd={(p.variants as Variant[]).length ? undefined : () => quickAdd(p)}
@@ -254,141 +231,108 @@ function ShopHome() {
         {/* ── ANCRE CATALOGUE ── */}
         <div id="catalogue" />
 
-        {/* ── SECTION CATALOGUE ── */}
-        <section className="mt-7">
-
-          {/* En-tête */}
-          <div className="mb-4 flex items-center justify-between gap-2">
+        {/* ── SECTION PRINCIPALE DES PRODUITS (STYLE VYTRINI) ── */}
+        <section className="mt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-normal text-shop/60">Catalogue</p>
-              <h2 className="mt-0.5 font-shop-heading text-xl font-extrabold sm:text-2xl">
-                Nos produits
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#4F46E5]">Nos articles</p>
+              <h2 className="mt-0.5 font-shop-heading text-2xl font-extrabold text-slate-900">
+                Tout ce qu'on vous propose
               </h2>
             </div>
-            <span className="shrink-0 rounded-full bg-shop/10 px-3 py-1 text-xs font-semibold text-shop">
-              {list.length}{products.length !== list.length ? ` / ${products.length}` : ""}
+            <span className="self-start sm:self-auto rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+              {list.length} article{list.length > 1 ? "s" : ""}
             </span>
           </div>
 
-          {/* ── Barre de recherche ── */}
-          <div className="relative mb-4">
+          {/* ── BARRE DE RECHERCHE MINIMALISTE ── */}
+          <div className="relative mb-5">
             <div className="relative group">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-shop-muted transition-colors group-focus-within:text-shop pointer-events-none" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#4F46E5] transition-colors pointer-events-none" />
               <input
                 ref={inputRef}
                 value={q}
-                onChange={(e) => { setQ(e.target.value); setActiveIdx(-1); }}
+                onChange={(e) => setQ(e.target.value)}
                 onFocus={() => setFocused(true)}
-                onKeyDown={handleKeyDown}
-                placeholder={!focused && !q && animPlaceholder ? animPlaceholder : "Rechercher un produit…"}
-                autoComplete="off"
-                className="h-11 sm:h-12 w-full rounded-2xl border border-current/12 bg-shop-card/80 pl-10 pr-9 text-sm shadow-xs transition-all placeholder:text-shop-muted focus:border-shop/50 focus:bg-background focus:outline-none focus:ring-2 focus:ring-shop/15"
+                placeholder={!focused && !q && animPlaceholder ? animPlaceholder : "Rechercher dans la boutique…"}
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-10 text-sm shadow-xs transition-all placeholder:text-slate-400 focus:border-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/15"
               />
               {q && (
                 <button
-                  onClick={() => { setQ(""); closeDropdown(); inputRef.current?.focus(); }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-shop-muted hover:text-shop-fg cursor-pointer"
+                  type="button"
+                  onClick={() => setQ("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </button>
               )}
             </div>
-
-            {/* Dropdown suggestions */}
-            {showDropdown && (
-              <div
-                ref={dropdownRef}
-                className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-current/10 bg-background shadow-lift"
-              >
-                <p className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-normal text-shop-muted">
-                  Suggestions
-                </p>
-                <ul>
-                  {suggestions.map((p, i) => (
-                    <li key={p.id}>
-                      <Link
-                        to="/b/$slug/p/$productId"
-                        params={{ slug, productId: p.id }}
-                        onClick={() => { setQ(p.name); closeDropdown(); }}
-                        onMouseEnter={() => setActiveIdx(i)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 transition-colors",
-                          i === activeIdx ? "bg-shop/8" : "hover:bg-shop-card"
-                        )}
-                      >
-                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-shop-card">
-                          {p.images[0] ? (
-                            <img src={mediaUrl(p.images[0])!} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="grid h-full place-items-center">
-                              <Package className="h-4 w-4 opacity-40" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">
-                            {p.name.split(new RegExp(`(${q})`, "gi")).map((part, j) =>
-                              part.toLowerCase() === q.toLowerCase() ? (
-                                <mark key={j} className="rounded bg-shop/20 px-0.5 not-italic text-shop-fg">
-                                  {part}
-                                </mark>
-                              ) : part
-                            )}
-                          </p>
-                          {p.description && (
-                            <p className="mt-0.5 truncate text-xs text-shop-muted">{p.description}</p>
-                          )}
-                        </div>
-                        <span className="shrink-0 text-sm font-bold text-shop">
-                          {formatPrice(Number(p.price), p.currency)}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={closeDropdown}
-                  className="w-full border-t border-current/5 px-4 py-2.5 text-left text-xs text-shop-muted hover:text-shop-fg"
-                >
-                  Voir tous les résultats pour «&nbsp;{q}&nbsp;»
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* ── Catégories pills ── */}
+          {/* ── RAYONS / CATÉGORIES (PILLS) ── */}
           {categories.length > 0 && (
-            <div className="-mx-3 mb-5 flex items-center gap-2 overflow-x-auto px-3 pb-1 sm:-mx-4 sm:px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <Chip active={!cat} onClick={() => setCat(null)}>
+            <div className="-mx-4 mb-6 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setCat(null)}
+                className={cn(
+                  "h-9 shrink-0 rounded-full px-4 text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                  !cat
+                    ? "bg-[#4F46E5] text-white shadow-xs"
+                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                )}
+              >
                 Tout ({products.length})
-              </Chip>
+              </button>
               {categories.map((c) => {
-                const cnt = products.filter((p) => p.category_id === c.id).length;
+                const count = products.filter((p) => p.category_id === c.id).length;
+                const isSelected = cat === c.id;
                 return (
-                  <Chip key={c.id} active={cat === c.id} onClick={() => setCat(c.id)}>
-                    {c.name} {cnt > 0 && `(${cnt})`}
-                  </Chip>
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCat(c.id)}
+                    className={cn(
+                      "h-9 shrink-0 rounded-full px-4 text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                      isSelected
+                        ? "bg-[#4F46E5] text-white shadow-xs"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    )}
+                  >
+                    {c.name} {count > 0 && `(${count})`}
+                  </button>
                 );
               })}
             </div>
           )}
 
-          {/* ── Grille produits : TOUS les produits ── */}
+          {/* ── GRILLE / LISTE DE PRODUITS ── */}
           {list.length === 0 ? (
-            <EmptyState
-              hasProducts={products.length > 0}
-              isFiltering={isFiltering}
-              onReset={() => { setQ(""); setCat(null); }}
-            />
+            <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center">
+              <PackageSearch className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-slate-900">Aucun produit trouvé</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                {isFiltering
+                  ? "Aucun résultat ne correspond à votre recherche. Essayez un autre terme."
+                  : "Le commerçant prépare ses articles. N'hésitez pas à lui écrire sur WhatsApp !"}
+              </p>
+              {isFiltering && (
+                <button
+                  type="button"
+                  onClick={() => { setQ(""); setCat(null); }}
+                  className="mt-4 px-4 py-2 rounded-full bg-[#4F46E5] text-white text-xs font-bold shadow-xs hover:bg-[#4338CA] transition-colors cursor-pointer"
+                >
+                  Effacer les filtres
+                </button>
+              )}
+            </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {list.map((p) => (
                 <ProductCard
                   key={p.id}
                   product={p}
-                  onAdd={
-                    (p.variants as Variant[]).length ? undefined : () => quickAdd(p)
-                  }
+                  onAdd={(p.variants as Variant[]).length ? undefined : () => quickAdd(p)}
                   href={
                     <Link
                       to="/b/$slug/p/$productId"
@@ -402,70 +346,11 @@ function ShopHome() {
             </div>
           )}
         </section>
+
+        {/* ── 4. SECTION POURQUOI CHOISIR (ATOUTS CLIENTS VYTRINI) ── */}
+        <StoreFeaturesSection shopName={shop.name} />
+
       </div>
     </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════════════ */
-
-function EmptyState({
-  hasProducts,
-  isFiltering,
-  onReset,
-}: {
-  hasProducts: boolean;
-  isFiltering: boolean;
-  onReset: () => void;
-}) {
-  return (
-    <div className="mt-6 rounded-3xl border border-dashed border-current/15 bg-shop-card/50 px-6 py-16 text-center">
-      <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-shop/10 text-shop shadow-inner">
-        <PackageSearch className="h-8 w-8" />
-      </div>
-      <h3 className="mt-4 font-shop-heading text-lg font-bold">
-        {!hasProducts ? "Boutique en cours d'approvisionnement" : "Aucun article trouvé"}
-      </h3>
-      <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-shop-muted">
-        {!hasProducts
-          ? "Le commerçant prépare ses articles. Envoyez-lui un message sur WhatsApp pour toute demande !"
-          : "Aucun produit ne correspond à votre recherche. Essayez d'autres mots-clés."}
-      </p>
-      {isFiltering && (
-        <button
-          onClick={onReset}
-          className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-shop px-5 text-xs font-bold text-shop-foreground shadow-md transition-transform   cursor-pointer"
-        >
-          <X className="h-3.5 w-3.5" /> Effacer la recherche
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "h-9 shrink-0 rounded-xl px-3.5 text-xs font-bold transition-all duration-200  cursor-pointer flex items-center whitespace-nowrap",
-        active
-          ? "bg-shop text-shop-foreground shadow-md ring-2 ring-shop/30"
-          : "border border-current/15 bg-shop-card/80 text-shop-muted hover:border-current/30 hover:text-shop-fg shadow-xs"
-      )}
-    >
-      {children}
-    </button>
   );
 }

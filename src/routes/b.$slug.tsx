@@ -7,8 +7,12 @@ import {
   MessageCircle,
   Search,
   X,
+  ChevronLeft,
+  ChevronRight,
+  Phone,
+  Store,
+  Menu,
 } from "lucide-react";
-import { supabase } from "@/lib/imported-database";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { recordShopVisit } from "@/lib/storefront.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -28,23 +32,6 @@ export const Route = createFileRoute("/b/$slug")({
     const shopCover = shop.banner_url || shop.logo_url;
     const ogImage = shopCover ? absoluteMediaUrl(shopCover, origin) : null;
     const isOffline = !shop.is_published || shop.is_suspended;
-
-    const schemaJson = {
-      "@context": "https://schema.org",
-      "@type": "Store",
-      name: shop.name,
-      description: desc,
-      url: shopUrl,
-      ...(shop.whatsapp ? { telephone: shop.whatsapp } : {}),
-      ...(ogImage ? { image: ogImage } : {}),
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: shop.city || "Kinshasa",
-        addressCountry: "CD",
-      },
-      ...(shop.hours ? { openingHours: shop.hours } : {}),
-      priceRange: "$$",
-    };
 
     return {
       meta: [
@@ -68,34 +55,10 @@ export const Route = createFileRoute("/b/$slug")({
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
       ],
-      links: [
-        { rel: "canonical", href: shopUrl },
-      ],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(schemaJson),
-        },
-      ],
+      links: [{ rel: "canonical", href: shopUrl }],
     };
   },
   component: ShopLayout,
-  notFoundComponent: () => (
-    <div className="grid min-h-screen place-items-center px-4 text-center">
-      <div>
-        <h1 className="text-3xl font-extrabold">Boutique introuvable</h1>
-        <p className="mt-2 text-muted-foreground">Ce lien n'existe pas ou la boutique est hors ligne.</p>
-        <Link to="/" className="mt-6 inline-flex h-11 items-center rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
-          Découvrir MarketNet
-        </Link>
-      </div>
-    </div>
-  ),
-  errorComponent: () => (
-    <div className="grid min-h-screen place-items-center p-4 text-center text-muted-foreground">
-      Impossible de charger la boutique. Vérifiez votre connexion.
-    </div>
-  ),
 });
 
 function ShopLayout() {
@@ -105,17 +68,11 @@ function ShopLayout() {
   const visitFn = useServerFn(recordShopVisit);
 
   useEffect(() => {
-    const k = `mn-view-${slug}`;
-    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-    const src = params?.get("src") ?? null;
-    const pMatch = typeof window !== "undefined" ? window.location.pathname.match(/\/p\/([0-9a-f-]{36})/i) : null;
-    const productId = pMatch ? pMatch[1] : null;
-
-    if (!sessionStorage.getItem(k)) {
-      sessionStorage.setItem(k, "1");
-      visitFn({ data: { slug, src, productId } }).catch(() => {
-        supabase.rpc("increment_shop_view", { _slug: slug });
-      });
+    if (typeof window === "undefined" || !slug) return;
+    const key = `marketnet_visit_${slug}`;
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, "1");
+      visitFn({ data: { slug } }).catch(() => {});
     }
   }, [slug]);
 
@@ -123,91 +80,87 @@ function ShopLayout() {
 
   return (
     <CartProvider slug={slug}>
-      <div className={`theme-${shop.theme} storefront min-h-screen pb-28`} style={shopStyle(shop.primary_color)}>
-        
-        {/* ── BANDEAU D'ANNONCE DYNAMIQUE DÉFILANT ── */}
-        <AnnouncementBanner shop={shop} />
+      <div
+        className={cn(`theme-${shop.theme || "savane"}`, "site-root min-h-screen text-slate-800 bg-[#f4f8fa] font-sans selection:bg-[#4F46E5] selection:text-white")}
+        style={shopStyle(shop.primary_color || "#4F46E5")}
+      >
+        {/* ── 1. BANDEAU TICKER DÉFILANT EN HAUT (STYLE VYTRINI) ── */}
+        <VytriniAnnouncementTicker shop={shop} />
 
-        {/* ── NAVBAR PRINCIPALE (STYLE VYTRINI) ── */}
-        <TopBar
-          shop={shop}
-          slug={slug}
-          isOffline={isOffline}
-        />
+        {/* ── 2. NAVBAR PILULE FLOTTANTE HAUT DE GAMME (STYLE VYTRINI) ── */}
+        <VytriniFloatingNavbar shop={shop} slug={slug} isOffline={isOffline} />
 
-        {/* ── CONTENU DES PAGES (VITRINE OU PRODUIT) ── */}
-        <Outlet />
+        {/* ── 3. CONTENU DES PAGES (VITRINE / PRODUITS) ── */}
+        <main className="pt-24 sm:pt-28">
+          <Outlet />
+        </main>
 
-        {/* ── FOOTER OFFICIEL DE LA BOUTIQUE ── */}
-        <footer className="mt-20 border-t border-current/10 py-12 px-4 text-center space-y-3 text-xs text-shop-muted">
-          <p className="font-bold text-shop-foreground text-sm tracking-normal">
-            {shop.name}
-          </p>
-          {shop.city && (
-            <p className="text-[11px]">
-              📍 {shop.city} {shop.hours ? `• 🕒 ${shop.hours}` : ""}
-            </p>
-          )}
-          <p className="text-[11px] pt-1">
-            Boutique propulsée par{" "}
-            <Link to="/" className="font-bold underline text-shop">
-              MarketNet
-            </Link>{" "}
-            • 0% de commission sur vos ventes
-          </p>
-        </footer>
+        {/* ── 4. FOOTER OFFICIEL RAFFINÉ (STYLE VYTRINI) ── */}
+        <VytriniStoreFooter shop={shop} />
 
-        {/* ── TIROIR PANIER LATÉRAL (CARTSHEET) ── */}
+        {/* ── 5. TIROIR PANIER LATÉRAL ── */}
         {!isOffline && (
           <CartSheet shop={shop} origin={origin || (typeof window !== "undefined" ? window.location.origin : "")} />
         )}
 
-        {/* ── BARRE FLOTTANTE DE PANIER SUR MOBILE ── */}
-        {!isOffline && (
-          <FloatingCartBar currency={shop.currency} />
-        )}
+        {/* ── 6. BARRE STICKY DU PANIER MOBILE (STYLE VYTRINI) ── */}
+        {!isOffline && <VytriniStickyCartBar currency={shop.currency} />}
       </div>
     </CartProvider>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════════
-// BARRE DE PANIER FLOTTANTE SUR SMARTPHONE
-// ══════════════════════════════════════════════════════════════════════════
-function FloatingCartBar({ currency }: { currency?: string }) {
-  const { items, setOpen } = useCart();
-  const count = items.reduce((s, i) => s + i.qty, 0);
-  if (count === 0) return null;
+/* ══════════════════════════════════════════════════════════════════════════
+   1. BANNIÈRE ANNONCES TICKER EN TÊTE (STYLE VYTRINI)
+   ══════════════════════════════════════════════════════════════════════════ */
+function VytriniAnnouncementTicker({ shop }: { shop: any }) {
+  const annonces = [
+    `Livraison rapide partout en RDC • Commandes directes sur WhatsApp`,
+    `Catalogue officiel en ligne de ${shop.name} • Prix en $ et FC`,
+    `Service client réactif et assistance personnalisée`,
+  ];
+  const [idx, setIdx] = useState(0);
 
-  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const curr = currency || items[0]?.currency || "USD";
+  useEffect(() => {
+    const t = setInterval(() => {
+      setIdx((prev) => (prev + 1) % annonces.length);
+    }, 4500);
+    return () => clearInterval(t);
+  }, [annonces.length]);
 
   return (
-    <aside aria-label="Aperçu du panier mobile" className="fixed bottom-4 inset-x-4 z-40 sm:hidden">
+    <div className="fixed inset-x-0 top-0 z-60 h-9 sm:h-10 bg-[#1E293B] text-slate-200 text-[11px] sm:text-xs flex items-center justify-between px-3 sm:px-4 shadow-xs select-none">
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="w-full h-13 rounded-2xl bg-shop text-shop-foreground shadow-lift px-4 flex items-center justify-between font-bold text-sm transition-transform  border-2 border-white/20 cursor-pointer animate-in fade-in slide-in-from-bottom-3 duration-300 select-none"
+        aria-label="Annonce précédente"
+        onClick={() => setIdx((prev) => (prev - 1 + annonces.length) % annonces.length)}
+        className="h-full px-2 flex items-center justify-center opacity-70 hover:opacity-100 cursor-pointer transition-opacity"
       >
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-shop-foreground/20 text-xs font-black">
-            {count}
-          </span>
-          <span>Voir mon panier</span>
-        </div>
-        <div className="flex items-center gap-1.5 font-mono">
-          <span>{formatPrice(total, curr)}</span>
-          <ArrowRight className="h-4 w-4" />
-        </div>
+        <ChevronLeft className="h-3.5 w-3.5" />
       </button>
-    </aside>
+
+      <div className="overflow-hidden text-center truncate px-2 font-medium">
+        <span className="inline-block transition-transform duration-300">
+          {annonces[idx]}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Annonce suivante"
+        onClick={() => setIdx((prev) => (prev + 1) % annonces.length)}
+        className="h-full px-2 flex items-center justify-center opacity-70 hover:opacity-100 cursor-pointer transition-opacity"
+      >
+        <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════════
-// NAVBAR & MENU DÉROULANT COMPLET (INSPIRATION DIRECTE VYTRINI)
-// ══════════════════════════════════════════════════════════════════════════
-function TopBar({
+/* ══════════════════════════════════════════════════════════════════════════
+   2. NAVBAR PILULE FLOTTANTE DÉCOLLÉE (STYLE VYTRINI)
+   ══════════════════════════════════════════════════════════════════════════ */
+function VytriniFloatingNavbar({
   shop,
   slug,
   isOffline,
@@ -217,201 +170,191 @@ function TopBar({
   isOffline?: boolean;
 }) {
   const { items, setOpen } = useCart();
-  const [menuOpen, setMenuOpen] = useState(false);
   const count = items.reduce((s, i) => s + i.qty, 0);
-  const whatsappDigits = (shop.whatsapp?.replace(/\D/g, "") || "");
-  const whatsappUrl = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-    `Bonjour ${shop.name}, je vous contacte depuis votre boutique en ligne.`
-  )}`;
+  const logo = mediaUrl(shop.logo_url);
 
   function scrollToSection(id: string) {
-    setMenuOpen(false);
     if (typeof window !== "undefined") {
       const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-      }
+      if (el) el.scrollIntoView({ behavior: "smooth" });
     }
   }
 
   return (
-    <div className="sticky top-0 z-30 border-b border-current/10 bg-shop-bg/95 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-14 sm:h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+    <header className="fixed top-9 sm:top-10 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pt-2 pointer-events-none">
+      <div className="w-full max-w-5xl rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-md px-4 sm:px-6 h-13 sm:h-14 flex items-center justify-between gap-3 pointer-events-auto transition-all">
         
-        {/* Identité Boutique avec Pastille Verte de Statut (comme chez Vytrini) */}
+        {/* GAUCHE : IDENTITÉ DE LA BOUTIQUE */}
         <Link
           to="/b/$slug"
           params={{ slug }}
-          className="flex items-center gap-2.5 font-shop-heading font-black text-sm sm:text-base group tracking-normal"
+          className="flex items-center gap-2.5 group shrink-0"
         >
-          <span className="h-2.5 w-2.5 rounded-full bg-success animate-pulse shrink-0" />
-          <span className="truncate max-w-[170px] sm:max-w-xs group-hover:opacity-80 transition-opacity">
+          {logo ? (
+            <img src={logo} alt={shop.name} className="h-8 w-8 rounded-full object-cover border border-slate-200 shadow-xs" />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-[#4F46E5] text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+              {shop.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <span className="font-bold text-sm sm:text-base text-slate-900 truncate max-w-[150px] sm:max-w-xs group-hover:text-[#4F46E5] transition-colors">
             {shop.name}
           </span>
+          <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="En ligne" />
         </Link>
 
-        {/* Actions à droite : Recherche, Panier & Menu Burger (=) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          
-          {/* Raccourci vers la recherche de catalogue */}
+        {/* CENTRE : LIENS DE NAVIGATION RAPIDE */}
+        <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
           <button
             type="button"
             onClick={() => scrollToSection("catalogue")}
-            aria-label="Rechercher"
-            className="grid h-10 w-10 place-items-center rounded-xl text-shop-fg hover:bg-shop/10 transition-colors cursor-pointer"
+            className="hover:text-slate-900 transition-colors cursor-pointer"
           >
-            <Search className="h-4.5 w-4.5" />
+            Catalogue
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection("atouts")}
+            className="hover:text-slate-900 transition-colors cursor-pointer"
+          >
+            Pourquoi nous
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection("contact")}
+            className="hover:text-slate-900 transition-colors cursor-pointer"
+          >
+            Contact
+          </button>
+        </nav>
+
+        {/* DROITE : ACTIONS (RECHERCHE & PANIER) */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => scrollToSection("catalogue")}
+            title="Rechercher"
+            aria-label="Rechercher un produit"
+            className="h-9 w-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+          >
+            <Search className="h-4 w-4" />
           </button>
 
-          {/* Panier avec compteur dynamique */}
           {!isOffline && (
             <button
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Voir le panier"
-              className="relative flex h-10 items-center justify-center rounded-xl bg-shop/10 hover:bg-shop/15 px-3 text-xs sm:text-sm font-bold text-shop transition-all  cursor-pointer gap-2"
+              className="relative h-9 px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
-              <ShoppingBag className="h-4.5 w-4.5" />
-              <span className="hidden sm:inline font-bold">Panier</span>
+              <ShoppingBag className="h-3.5 w-3.5" />
+              <span>Panier</span>
               {count > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-shop px-1.5 text-[10px] font-black text-shop-foreground shadow-xs animate-in zoom-in-50 duration-200">
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-[#4F46E5] text-[10px] font-black text-white">
                   {count}
                 </span>
               )}
             </button>
           )}
-
-          {/* Bouton Hamburger épuré (= 2 traits horizontaux style Vytrini) */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Menu de navigation"
-            className="grid h-10 w-10 place-items-center rounded-xl text-shop-fg hover:bg-shop/10 transition-colors cursor-pointer"
-          >
-            {menuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <div className="flex flex-col gap-1.5 w-5">
-                <span className="h-0.5 w-full bg-current rounded-full" />
-                <span className="h-0.5 w-full bg-current rounded-full" />
-              </div>
-            )}
-          </button>
         </div>
       </div>
-
-      {/* ── MENU COULISSANT ÉPURÉ (EXACTEMENT COMME SUR LA CAPTURE VITRINI) ── */}
-      {menuOpen && (
-        <div className="border-b border-current/15 bg-shop-card/98 backdrop-blur-xl px-6 py-6 shadow-lift animate-in slide-in-from-top-2 duration-200">
-          <div className="mx-auto max-w-md space-y-4">
-            
-            {/* Liste de navigation numérotée — 2 items seulement */}
-            <nav className="divide-y divide-current/10 text-xs sm:text-sm font-black tracking-normal uppercase">
-              <button
-                type="button"
-                onClick={() => scrollToSection("catalogue")}
-                className="w-full py-4 flex items-center justify-between text-left hover:text-shop transition-colors cursor-pointer"
-              >
-                <span>NOS PRODUITS</span>
-                <span className="text-shop-muted text-[11px] font-mono">01</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => scrollToSection("about")}
-                className="w-full py-4 flex items-center justify-between text-left hover:text-shop transition-colors cursor-pointer"
-              >
-                <span>À PROPOS</span>
-                <span className="text-shop-muted text-[11px] font-mono">02</span>
-              </button>
-            </nav>
-
-            {/* Bouton Pro Émeraude : Écrire sur WhatsApp (Style Vytrini) */}
-            {whatsappDigits && (
-              <div className="pt-3">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full h-12 rounded-full bg-[#10b981] hover:bg-[#059669] text-primary-foreground flex items-center justify-center gap-2 font-black text-xs sm:text-sm tracking-normal uppercase shadow-soft shadow-success/25 transition-transform  cursor-pointer select-none"
-                >
-                  <MessageCircle className="h-4.5 w-4.5 fill-white" />
-                  <span>ÉCRIRE SUR WHATSAPP</span>
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+    </header>
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   3. BARRE FLOTTANTE DU PANIER MOBILE (STICKY BOTTOM VYTRINI)
+   ══════════════════════════════════════════════════════════════════════════ */
+function VytriniStickyCartBar({ currency }: { currency?: string }) {
+  const { items, setOpen } = useCart();
+  const count = items.reduce((s, i) => s + i.qty, 0);
+  if (count === 0) return null;
 
-// ══════════════════════════════════════════════════════════════════════════
-// BANDEAU D'ANNONCE DYNAMIQUE DÉFILANT AUTOMATIQUEMENT
-// ══════════════════════════════════════════════════════════════════════════
-function AnnouncementBanner({ shop }: { shop: any }) {
-  const slides = buildSlides(shop);
-  const [idx, setIdx] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    timerRef.current = setInterval(() => {
-      setIdx((i) => (i + 1) % slides.length);
-    }, 5500);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [slides.length]);
-
-  if (slides.length === 0) return null;
+  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const curr = currency || items[0]?.currency || "USD";
 
   return (
-    <div className="bg-[#0f172a] text-primary-foreground select-none overflow-hidden" style={{ height: "38px" }}>
-      <div className="relative h-full mx-auto max-w-xl px-6">
-        {slides.map((s, i) => (
-          <div
-            key={i}
-            aria-hidden={i !== idx}
-            className={
-              "absolute inset-0 flex items-center justify-center gap-2 text-[11px] sm:text-xs font-medium transition-all duration-700 ease-in-out " +
-              (i === idx
-                ? "opacity-100 translate-y-0"
-                : i === (idx - 1 + slides.length) % slides.length
-                ? "opacity-0 -translate-y-3 pointer-events-none"
-                : "opacity-0 translate-y-3 pointer-events-none")
-            }
-          >
-            <span className="text-sm leading-none shrink-0">{s.icon}</span>
-            <span className="text-center leading-tight">{s.text}</span>
-          </div>
-        ))}
-        {/* Indicateur discret */}
-        {slides.length > 1 && (
-          <div className="absolute bottom-1.5 right-0 flex gap-1">
-            {slides.map((_, i) => (
-              <span
-                key={i}
-                className={
-                  "block h-0.5 rounded-full transition-all duration-500 " +
-                  (i === idx ? "w-4 bg-card/70" : "w-1.5 bg-card/20")
-                }
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <aside className="fixed bottom-4 inset-x-4 z-40 sm:hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="w-full h-13 rounded-full bg-slate-900 text-white shadow-xl px-5 flex items-center justify-between font-bold text-sm transition-transform active:scale-[0.98] border border-white/20 cursor-pointer animate-in fade-in slide-in-from-bottom-3 duration-300 select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4F46E5] text-xs font-black text-white">
+            {count}
+          </span>
+          <span>Voir le panier</span>
+        </div>
+        <div className="flex items-center gap-1.5 font-bold">
+          <span>{formatPrice(total, curr)}</span>
+          <ArrowRight className="h-4 w-4 text-slate-300" />
+        </div>
+      </button>
+    </aside>
   );
 }
 
-function buildSlides(shop: any): { icon: string; text: string }[] {
-  const slides: { icon: string; text: string }[] = [];
-  if (shop.city) slides.push({ icon: "📍", text: `Livraison rapide disponible à ${shop.city}` });
-  if (shop.hours) slides.push({ icon: "🕒", text: `Horaires d'ouverture : ${shop.hours}` });
-  if (shop.whatsapp) slides.push({ icon: "💬", text: "Commandez directement sur WhatsApp • Réponse rapide garantie" });
-  slides.push({ icon: "🛡️", text: "0% de commission — vous payez le prix affiché, sans frais cachés" });
-  if (shop.name) slides.push({ icon: "🏪", text: `Bienvenue dans la boutique officielle de ${shop.name}` });
-  return slides;
+/* ══════════════════════════════════════════════════════════════════════════
+   4. FOOTER OFFICIEL RAFFINÉ (STYLE VYTRINI)
+   ══════════════════════════════════════════════════════════════════════════ */
+function VytriniStoreFooter({ shop }: { shop: any }) {
+  const whatsappDigits = shop.whatsapp?.replace(/\D/g, "") || "";
+  const whatsappUrl = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
+    `Bonjour ${shop.name}, je souhaiterais plus d'informations.`
+  )}`;
+
+  return (
+    <footer id="contact" className="mt-20 border-t border-slate-200 bg-white pt-12 pb-16 px-5 sm:px-8">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10 border-b border-slate-100">
+          <div>
+            <h3 className="font-extrabold text-xl text-slate-900">{shop.name}</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
+              Disponibilité • Fiabilité • Performance. Commandes en direct sans intermédiaire.
+            </p>
+            {shop.city && (
+              <p className="text-xs text-slate-400 mt-2">
+                📍 {shop.city} {shop.hours ? `• 🕒 ${shop.hours}` : ""}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row md:justify-end gap-3 items-start sm:items-center">
+            {whatsappDigits && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 h-11 px-5 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs shadow-xs transition-colors"
+              >
+                <MessageCircle className="h-4 w-4 fill-white" />
+                <span>Écrire sur WhatsApp</span>
+              </a>
+            )}
+            {shop.whatsapp && (
+              <a
+                href={`tel:${shop.whatsapp}`}
+                className="inline-flex items-center gap-2 h-11 px-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors"
+              >
+                <Phone className="h-3.5 w-3.5 text-slate-600" />
+                <span>{shop.whatsapp}</span>
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <p>© {new Date().getFullYear()} {shop.name}. Tous droits réservés.</p>
+          <p>
+            Boutique propulsée par{" "}
+            <Link to="/" className="font-bold text-[#4F46E5] hover:underline">
+              MarketNet
+            </Link>{" "}
+            • 0% de commission
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 }

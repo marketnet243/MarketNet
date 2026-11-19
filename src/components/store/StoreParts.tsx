@@ -15,6 +15,12 @@ import {
   Truck,
   Zap,
   Check,
+  ExternalLink,
+  Phone,
+  ArrowRight,
+  Headphones,
+  CheckCircle2,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shop, Product } from "@/hooks/useMyShop";
@@ -37,6 +43,9 @@ type ShopLike = Pick<
   | "instagram"
 >;
 
+/* ══════════════════════════════════════════════════════════════════════════
+   1. HERO SECTION MAJEUR (STYLE VYTRINI : 2 COLONNES OU BANNIÈRE ÉPURÉE)
+   ══════════════════════════════════════════════════════════════════════════ */
 export function StoreHeader({
   shop,
   compact,
@@ -59,7 +68,7 @@ export function StoreHeader({
       navigator
         .share({
           title: shop.name,
-          text: shop.description || `Découvrez la boutique ${shop.name} sur MarketNet !`,
+          text: shop.description || `Découvrez la boutique ${shop.name} !`,
           url,
         })
         .catch(() => {});
@@ -69,243 +78,165 @@ export function StoreHeader({
     }
   }
 
+  function scrollToCatalogue() {
+    if (typeof window !== "undefined") {
+      const el = document.getElementById("catalogue");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
   const descText = shop.description?.trim() || "";
-  const isLongDesc = descText.length > 180;
 
   return (
-    <header className="pb-4">
-      {/* ── BANIÈRE PANORAMIQUE HAUT DE GAMME ── */}
-      <div className="mx-auto max-w-5xl px-3 sm:px-4 pt-2 sm:pt-4">
-        <div
-          className={cn(
-            "relative isolate w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-md border border-border/60 bg-muted/30 transition-all",
-            compact ? "h-28 sm:h-36" : "h-44 sm:h-64 lg:h-72"
-          )}
-          style={
-            banner
-              ? undefined
-              : {
-                  backgroundImage:
-                    "radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--shop-primary) 45%, transparent), transparent 50%), radial-gradient(ellipse at 10% 90%, color-mix(in srgb, var(--shop-primary) 30%, transparent), transparent 45%), linear-gradient(135deg, color-mix(in srgb, var(--shop-bg) 85%, var(--shop-primary)), var(--shop-bg))",
-                }
-          }
-        >
-          {banner ? (
-            <>
+    <header className="relative overflow-hidden bg-shop-bg text-shop-fg">
+      {/* ── HERO BANNER 2 COLONNES HAUT DE GAMME (STYLE VYTRINI) ── */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-6 sm:pt-10 pb-8 sm:pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          
+          {/* COLONNE GAUCHE : TEXTE & ACTIONS */}
+          <div className="space-y-5 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full bg-shop/10 px-3.5 py-1 text-xs font-bold text-shop mx-auto lg:mx-0">
+              <span className="h-2 w-2 rounded-full bg-shop animate-pulse" />
+              <span>{getShopCategoryLabel(shop) || "Boutique Officielle"}</span>
+            </div>
+
+            <h1 className="font-shop-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15]">
+              {shop.name}
+            </h1>
+
+            <p className="text-sm sm:text-base text-shop-muted max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              {descText || "Découvrez notre sélection de produits exclusifs et passez commande directement sur WhatsApp en quelques clics."}
+            </p>
+
+            {/* BOUTONS D'ACTION CLÉS */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
+              <button
+                type="button"
+                onClick={scrollToCatalogue}
+                className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-shop text-shop-foreground font-bold text-sm shadow-md hover:brightness-105 transition-all cursor-pointer"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span>Voir la boutique</span>
+              </button>
+
+              {hasWhatsapp && (
+                <a
+                  href={`https://wa.me/${shop.whatsapp?.replace(/\D/g, "")}?text=${encodeURIComponent(
+                    `Bonjour ${shop.name}, je vous contacte depuis votre boutique en ligne.`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm shadow-xs transition-colors"
+                >
+                  <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                  <span>WhatsApp direct</span>
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={handleShare}
+                title="Partager"
+                aria-label="Partager le lien"
+                className="grid h-12 w-12 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-slate-300 transition-colors cursor-pointer"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* COLONNE DROITE : VISUEL HERO SOIGNÉ (OU BANNIÈRE) */}
+          <div className="relative aspect-4/3 sm:aspect-16/10 rounded-3xl overflow-hidden shadow-lift border border-slate-200/80 bg-slate-100 group">
+            {banner ? (
               <img
                 src={banner}
-                alt={`Bannière de ${shop.name}`}
-                className="absolute inset-0 h-full w-full object-cover"
+                alt={shop.name}
+                className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
                 fetchPriority="high"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/5" />
-            </>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center opacity-10 select-none">
-              <span className="text-8xl sm:text-9xl font-black text-foreground">{shop.name.slice(0, 2)}</span>
-            </div>
-          )}
+            ) : logo ? (
+              <div className="h-full w-full flex items-center justify-center bg-slate-50 p-8">
+                <img src={logo} alt={shop.name} className="max-h-48 max-w-48 object-contain drop-shadow-md" />
+              </div>
+            ) : (
+              <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/50 to-slate-100 text-slate-300">
+                <Package className="h-16 w-16 opacity-40 mb-2" />
+                <span className="font-bold text-sm text-slate-400">Vitrine en ligne officielle</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ── CARTE D'IDENTITÉ & ACTIONS COMMERÇANT ── */}
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
-        <div className="relative -mt-10 sm:-mt-14 z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          
-          {/* Logo & Titre */}
-          <div className="flex items-end gap-3.5 sm:gap-5">
-            {/* Logo en squircle doux avec ombre portée */}
-            <div className="relative group shrink-0">
-              <div
-                className={cn(
-                  "relative grid place-items-center overflow-hidden rounded-2xl sm:rounded-3xl border-4 border-background bg-card font-shop-heading font-black text-shop shadow-lift ring-1 ring-black/10 transition-transform duration-300 ",
-                  compact ? "h-16 w-16" : "h-20 w-20 sm:h-26 sm:w-26"
-                )}
-              >
-                {logo ? (
-                  <img src={logo} alt={shop.name} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="select-none text-2xl sm:text-4xl font-black text-primary">
-                    {shop.name.slice(0, 2).toUpperCase()}
-                  </span>
-                )}
-              </div>
-
-              {/* Badge Boutique Officielle */}
-              <div
-                className="absolute -bottom-1 -right-1 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-background p-0.5 shadow-md"
-                title="Boutique Vérifiée MarketNet"
-              >
-                <BadgeCheck className="h-full w-full text-success fill-success/20" />
-              </div>
-            </div>
-
-            {/* Titre & Statut (Mobile & Desktop) */}
-            <div className="space-y-1 pb-1">
-              <div className="flex flex-wrap items-center gap-2">
-                {getShopCategoryLabel(shop) && (
-                  <span className="inline-flex items-center rounded-lg bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold tracking-normal uppercase">
-                    {getShopCategoryLabel(shop)}
-                  </span>
-                )}
-
-                {/* Badge d'ouverture en direct */}
-                {isSuspended ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 text-destructive dark:text-destructive px-2.5 py-0.5 text-[11px] font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-                    Suspendue
-                  </span>
-                ) : !isPublished ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-warning/15 text-warning dark:text-warning px-2.5 py-0.5 text-[11px] font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-warning" />
-                    Fermée
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-success/10 text-success dark:text-success px-2.5 py-0.5 text-[11px] font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-                    Ouvert
-                  </span>
-                )}
-              </div>
-
-              <h1 className="font-shop-heading font-black tracking-normal text-xl sm:text-2xl lg:text-3xl text-foreground">
-                {shop.name}
-              </h1>
-            </div>
+      {/* ── CHIFFRES CLÉS (STYLE VYTRINI : +200 Produits vendus, +150 Clients satisfaits, Sous 24h) ── */}
+      <div className="border-y border-current/10 bg-shop-card/40 py-5">
+        <div className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-3 text-center">
+          <div>
+            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-shop block">+200</span>
+            <span className="text-[11px] sm:text-xs text-shop-muted block mt-0.5">Produits vendus</span>
           </div>
-
-          {/* Boutons d'Action (WhatsApp direct + Partage + Réseaux sociaux) */}
-          <div className="flex items-center gap-2 self-start sm:self-end pb-1 w-full sm:w-auto">
-            {hasWhatsapp && (
-              <a
-                href={`https://wa.me/${shop.whatsapp?.replace(/\D/g, "")}?text=${encodeURIComponent(
-                  `Bonjour ${shop.name}, je vous contacte depuis votre boutique en ligne MarketNet.`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 sm:flex-initial inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-whatsapp hover:bg-whatsapp/90 px-5 text-xs sm:text-sm font-bold text-primary-foreground shadow-md shadow-success/25 transition-all   cursor-pointer select-none"
-              >
-                <MessageCircle className="h-4 w-4 fill-white" />
-                <span>Discuter sur WhatsApp</span>
-              </a>
-            )}
-
-            <button
-              type="button"
-              onClick={handleShare}
-              title="Partager le lien de la boutique"
-              aria-label="Partager le lien de la boutique"
-              className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-primary/40 hover:text-primary transition-all  cursor-pointer shrink-0"
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
-
-            {shop.instagram && (
-              <a
-                href={shop.instagram}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Page Instagram"
-                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#E1306C]/50 hover:text-[#E1306C] transition-all  shrink-0"
-              >
-                <Instagram className="h-4 w-4" />
-              </a>
-            )}
-
-            {shop.facebook && (
-              <a
-                href={shop.facebook}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Page Facebook"
-                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#1877F2]/50 hover:text-[#1877F2] transition-all  shrink-0"
-              >
-                <Facebook className="h-4 w-4" />
-              </a>
-            )}
+          <div className="border-x border-current/10">
+            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-shop block">+150</span>
+            <span className="text-[11px] sm:text-xs text-shop-muted block mt-0.5">Clients satisfaits</span>
+          </div>
+          <div>
+            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-shop block">Sous 24 h</span>
+            <span className="text-[11px] sm:text-xs text-shop-muted block mt-0.5">Livraison rapide</span>
           </div>
         </div>
+      </div>
 
-        {/* ── DESCRIPTION AVEC DÉPLIAGE FLUIDE ── */}
-        {descText && (
-          <div className="mt-4 max-w-3xl space-y-1">
-            <p
-              className={cn(
-                "text-xs sm:text-sm leading-relaxed text-muted-foreground whitespace-pre-line transition-all",
-                !descExpanded && isLongDesc && "line-clamp-3"
-              )}
-            >
-              {descText}
-            </p>
-            {isLongDesc && (
-              <button
-                type="button"
-                onClick={() => setDescExpanded(!descExpanded)}
-                className="text-xs font-bold text-primary hover:underline cursor-pointer pt-0.5"
-              >
-                {descExpanded ? "Voir moins" : "Lire la suite..."}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ── LOCALISATION & HORAIRES ── */}
-        {(shop.city || shop.hours) && (
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-            {shop.city && (
-              <span className="inline-flex items-center gap-1.5 font-medium">
-                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                <span>{shop.city}</span>
-              </span>
-            )}
-            {shop.hours && (
-              <span className="inline-flex items-center gap-1.5 font-medium">
-                <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
-                <span className="truncate max-w-[280px] sm:max-w-none">{shop.hours}</span>
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* ── BADGES DE RÉASSURANCE CLIENT — grille 2×2 mobile, 3 colonnes desktop ── */}
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 select-none">
-          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5">
-            <div className="h-7 w-7 rounded-lg bg-success/10 text-success dark:text-success flex items-center justify-center shrink-0">
-              <ShieldCheck className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-foreground text-[11px] leading-tight">Direct Vendeur</p>
-              <p className="text-[10px] text-muted-foreground leading-tight truncate">0 intermédiaire</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5">
-            <div className="h-7 w-7 rounded-lg bg-whatsapp/10 text-whatsapp flex items-center justify-center shrink-0">
-              <MessageCircle className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-foreground text-[11px] leading-tight">WhatsApp</p>
-              <p className="text-[10px] text-muted-foreground leading-tight truncate">Commande directe</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5 col-span-2 sm:col-span-1">
-            <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+      {/* ── 4 BADGES DE RÉASSURANCE CLIENT (STYLE VYTRINI) ── */}
+      <div className="mx-auto max-w-5xl px-4 py-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
               <Truck className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-foreground text-[11px] leading-tight">Livraison & Paiement</p>
-              <p className="text-[10px] text-muted-foreground leading-tight truncate">Mobile Money ou Cash</p>
+              <p className="font-bold text-xs text-slate-900 leading-tight">Livraison rapide</p>
+              <p className="text-[10px] text-slate-500 leading-tight mt-0.5">Partout en RDC</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <MapPin className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-xs text-slate-900 leading-tight">Retrait en boutique</p>
+              <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{shop.city || "Disponible sur place"}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Lock className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-xs text-slate-900 leading-tight">Paiement flexible</p>
+              <p className="text-[10px] text-slate-500 leading-tight mt-0.5">Mobile Money & Cash</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <MessageCircle className="h-4 w-4 text-[#25D366]" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-xs text-slate-900 leading-tight">Aide WhatsApp</p>
+              <p className="text-[10px] text-slate-500 leading-tight mt-0.5">Réponse instantanée</p>
             </div>
           </div>
         </div>
-
-        <div className="mt-5 h-px bg-border/40" />
       </div>
     </header>
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   2. FICHE PRODUIT STANDARD (EN GRILLE OU LISTE)
+   ══════════════════════════════════════════════════════════════════════════ */
 export function ProductCard({
   product,
   onAdd,
@@ -337,20 +268,20 @@ export function ProductCard({
   }
 
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-shop-card shadow-xs hover:shadow-lift hover:-translate-y-1 transition-all duration-300">
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-300">
       
       {/* ── IMAGE DU PRODUIT ── */}
-      <div className="relative aspect-square overflow-hidden bg-muted/20">
+      <div className="relative aspect-square overflow-hidden bg-slate-50">
         {img ? (
           <img
             src={img}
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition-transform duration-500 ease-out "
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-103"
           />
         ) : (
-          <div className="grid h-full place-items-center text-muted-foreground/30">
+          <div className="grid h-full place-items-center text-slate-300">
             <Package className="h-10 w-10 opacity-40" />
           </div>
         )}
@@ -358,12 +289,12 @@ export function ProductCard({
         {/* Badges d'état (Promo, Top, Rupture) */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1">
           {product.discount_badge && (
-            <span className="inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-[10px] font-black text-primary-foreground shadow-md">
+            <span className="inline-flex items-center rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-black text-white shadow-xs">
               {product.discount_badge}
             </span>
           )}
           {product.featured && !product.discount_badge && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-shop px-2 py-0.5 text-[10px] font-bold text-shop-foreground shadow-xs">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#4F46E5] px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
               <Star className="h-2.5 w-2.5 fill-current" />
               <span>Coup de cœur</span>
             </span>
@@ -372,8 +303,8 @@ export function ProductCard({
 
         {/* Masque Rupture de Stock */}
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-overlay/40 backdrop-blur-xs">
-            <span className="rounded-full bg-background/95 px-3 py-1 text-xs font-bold text-muted-foreground shadow-md">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-xs">
+            <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white shadow-md">
               Rupture de stock
             </span>
           </div>
@@ -387,10 +318,10 @@ export function ProductCard({
               onClick={handleQuickAdd}
               aria-label={`Ajouter ${product.name} au panier`}
               className={cn(
-                "w-full h-10 rounded-xl font-bold text-xs shadow-lift flex items-center justify-center gap-1.5 transition-transform  cursor-pointer",
+                "w-full h-10 rounded-full font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition-transform cursor-pointer",
                 addedAnim
-                  ? "bg-success text-primary-foreground"
-                  : "bg-shop text-shop-foreground hover:brightness-105"
+                  ? "bg-[#4F46E5] text-white"
+                  : "bg-slate-900 hover:bg-slate-800 text-white"
               )}
             >
               {addedAnim ? (
@@ -410,41 +341,36 @@ export function ProductCard({
       </div>
 
       {/* ── INFORMATIONS PRODUIT ── */}
-      <div className="p-3 sm:p-4 space-y-2 flex-1 flex flex-col justify-between">
+      <div className="p-3.5 sm:p-4 space-y-2 flex-1 flex flex-col justify-between">
         <div className="space-y-1">
-          <h3 className="line-clamp-2 text-xs sm:text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+          <h3 className="line-clamp-2 text-xs sm:text-sm font-bold text-slate-900 leading-snug group-hover:text-[#4F46E5] transition-colors">
             {product.name}
           </h3>
         </div>
 
-        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
           <div className="flex flex-col min-w-0">
             {isDiscounted && (
-              <span className="text-[11px] text-muted-foreground line-through font-mono">
+              <span className="text-[11px] text-slate-400 line-through">
                 {formatPrice(Number(product.price), product.currency)}
               </span>
             )}
-            <span
-              className={cn(
-                "text-sm sm:text-base font-black font-mono text-primary truncate",
-                isDiscounted && "text-destructive dark:text-destructive"
-              )}
-            >
+            <span className="text-sm sm:text-base font-extrabold text-slate-900 truncate">
               {formatPrice(displayPrice, product.currency)}
             </span>
           </div>
 
-          {/* Bouton Mobile : Ajout rapide tactile */}
+          {/* Bouton Mobile : Ajout tactile */}
           {onAdd && !isOutOfStock && (
             <button
               type="button"
               onClick={handleQuickAdd}
               aria-label={`Ajouter ${product.name} au panier`}
               className={cn(
-                "sm:hidden relative z-10 grid h-8 w-8 place-items-center rounded-xl shadow-xs transition-transform  cursor-pointer",
+                "sm:hidden relative z-10 grid h-8 w-8 place-items-center rounded-full shadow-xs transition-transform cursor-pointer",
                 addedAnim
-                  ? "bg-success text-primary-foreground"
-                  : "bg-shop text-shop-foreground"
+                  ? "bg-[#4F46E5] text-white"
+                  : "bg-[#4F46E5] text-white"
               )}
             >
               {addedAnim ? <Check className="h-4 w-4 stroke-[3]" /> : <Plus className="h-4 w-4 stroke-[3]" />}
@@ -455,5 +381,59 @@ export function ProductCard({
 
       {href}
     </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3. SECTION ATOUTS (POURQUOI NOUS CHOISIR)
+   ══════════════════════════════════════════════════════════════════════════ */
+export function StoreFeaturesSection({ shopName }: { shopName: string }) {
+  const atouts = [
+    {
+      title: "Qualité garantie",
+      desc: "Chaque article est rigoureusement sélectionné et vérifié avant expédition.",
+      icon: CheckCircle2,
+    },
+    {
+      title: "Conseils personnalisés",
+      desc: "Nous vous guidons par message pour choisir exactement ce qui vous convient.",
+      icon: Headphones,
+    },
+    {
+      title: "Disponibilité immédiate",
+      desc: "Stock réel en boutique avec préparation de votre commande sans délai.",
+      icon: Zap,
+    },
+    {
+      title: "Paiement sécurisé",
+      desc: "Réglez en toute confiance par Mobile Money ou en espèces à la livraison.",
+      icon: ShieldCheck,
+    },
+  ];
+
+  return (
+    <section className="mt-14 pt-10 border-t border-slate-200/80">
+      <div className="text-center max-w-xl mx-auto mb-8">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-[#4F46E5]">Atouts</p>
+        <h2 className="mt-1 font-shop-heading text-xl sm:text-2xl font-extrabold text-slate-900">
+          Pourquoi choisir {shopName}
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {atouts.map((a) => {
+          const Icon = a.icon;
+          return (
+            <div key={a.title} className="p-5 rounded-3xl bg-white border border-slate-200/70 shadow-xs space-y-2.5">
+              <div className="h-10 w-10 rounded-2xl bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="font-bold text-sm text-slate-900">{a.title}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">{a.desc}</p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
