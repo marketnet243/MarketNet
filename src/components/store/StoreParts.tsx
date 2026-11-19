@@ -46,7 +46,7 @@ type ShopLike = Pick<
 >;
 
 /* ══════════════════════════════════════════════════════════════════════════
-   1. HERO SECTION HAUT DE GAMME AVEC BANNIÈRE EN BACKGROUND
+   1. HERO SECTION HAUT DE GAMME AVEC BANNIÈRE EN BACKGROUND & OMBRE NETTE
    ══════════════════════════════════════════════════════════════════════════ */
 export function StoreHeader({
   shop,
@@ -60,7 +60,6 @@ export function StoreHeader({
   isSuspended?: boolean;
 }) {
   const banner = mediaUrl(shop.banner_url);
-  const logo = mediaUrl(shop.logo_url);
   const hasWhatsapp = (shop.whatsapp?.replace(/\D/g, "") || "").length >= 8;
 
   function handleShare() {
@@ -83,8 +82,8 @@ export function StoreHeader({
 
   return (
     <header className="relative overflow-hidden">
-      {/* ── HERO BANNER AVEC BACKGROUND IMAGE & OVERLAY SUBTIL ── */}
-      <div className="relative isolate overflow-hidden bg-slate-900 text-white min-h-[380px] sm:min-h-[440px] flex items-center">
+      {/* ── HERO BANNER AVEC BACKGROUND IMAGE & OVERLAY MINIMALISTE ── */}
+      <div className="relative isolate overflow-hidden bg-slate-900 text-white min-h-[340px] sm:min-h-[400px] flex items-center justify-center">
         {/* Image de fond bannière */}
         {banner ? (
           <img
@@ -94,45 +93,39 @@ export function StoreHeader({
             fetchPriority="high"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950" />
         )}
 
-        {/* Dégradé sombre et élégant pour lisibilité parfaite */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/70 to-slate-900/50 backdrop-blur-[1px]" />
+        {/* Double overlay pour garantir un contraste parfait quel que soit l'image */}
+        <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40" />
 
-        {/* Contenu centré et soigné */}
-        <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 py-12 sm:py-16 text-center space-y-4 sm:space-y-5">
+        {/* Contenu textuel sans logo au milieu (le logo est déjà dans la navbar) */}
+        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 text-center space-y-4">
           {/* Badge Catégorie */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-4 py-1 text-xs font-bold text-white shadow-xs">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1 text-xs font-semibold text-white shadow-xs">
             <span className="h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse" />
             <span>{getShopCategoryLabel(shop) || "Boutique Officielle"}</span>
           </div>
 
-          {/* Logo en pastille si présent */}
-          {logo && (
-            <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden border-2 border-white/30 shadow-xl bg-white/10 backdrop-blur-md p-1">
-              <img src={logo} alt={shop.name} className="h-full w-full object-cover rounded-2xl" />
-            </div>
-          )}
-
           {/* Titre Principal de la Boutique */}
-          <h1 className="font-shop-heading text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm">
+          <h1 className="font-shop-heading text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
             {shop.name}
           </h1>
 
           {/* Description */}
-          <p className="text-sm sm:text-base text-slate-200 max-w-2xl mx-auto leading-relaxed drop-shadow-xs font-medium">
+          <p className="text-xs sm:text-sm md:text-base text-slate-200 max-w-xl mx-auto leading-relaxed drop-shadow-sm">
             {descText || "Votre boutique en ligne officielle. Découvrez nos produits et passez commande directement sur WhatsApp."}
           </p>
 
-          {/* Actions Clés en Pilules */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          {/* Actions Clés Responsive : boutons compacts et bien taillés sur mobile */}
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3 pt-2">
             <Link
               to="/b/$slug/produits"
               params={{ slug: shop.slug }}
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 h-11 px-5 sm:px-6 rounded-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold text-xs sm:text-sm shadow-md transition-all cursor-pointer whitespace-nowrap"
             >
-              <ShoppingBag className="h-4 w-4" />
+              <ShoppingBag className="h-4 w-4 shrink-0" />
               <span>Voir la boutique</span>
             </Link>
 
@@ -143,10 +136,10 @@ export function StoreHeader({
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-white/90 hover:bg-white text-slate-900 font-bold text-sm shadow-md transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 h-11 px-4 sm:px-5 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm shadow-md transition-colors whitespace-nowrap"
               >
-                <MessageCircle className="h-4 w-4 text-[#25D366]" />
-                <span>WhatsApp direct</span>
+                <MessageCircle className="h-4 w-4 text-[#25D366] shrink-0" />
+                <span>WhatsApp</span>
               </a>
             )}
 
@@ -155,7 +148,7 @@ export function StoreHeader({
               onClick={handleShare}
               title="Partager le lien"
               aria-label="Partager"
-              className="grid h-12 w-12 place-items-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/25 text-white shadow-md transition-colors cursor-pointer"
+              className="grid h-11 w-11 place-items-center rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 text-white shadow-md transition-colors cursor-pointer shrink-0"
             >
               <Share2 className="h-4 w-4" />
             </button>
@@ -164,8 +157,8 @@ export function StoreHeader({
       </div>
 
       {/* ── CHIFFRES CLÉS (Metrics Bar) ── */}
-      <div className="border-b border-slate-200 bg-white py-5 shadow-xs">
-        <div className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-3 text-center">
+      <div className="border-b border-slate-200 bg-white py-4 sm:py-5 shadow-xs">
+        <div className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
           <div>
             <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">+200</span>
             <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Produits vendus</span>
@@ -182,10 +175,10 @@ export function StoreHeader({
       </div>
 
       {/* ── 4 BADGES DE RÉASSURANCE CLIENT ── */}
-      <div className="mx-auto max-w-5xl px-4 py-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="mx-auto max-w-5xl px-4 py-5 sm:py-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="h-9 w-9 rounded-xl bg-indigo-50 text-[#4F46E5] flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-indigo-50 text-[#4F46E5] flex items-center justify-center shrink-0">
               <Truck className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -195,7 +188,7 @@ export function StoreHeader({
           </div>
 
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
               <MapPin className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -205,7 +198,7 @@ export function StoreHeader({
           </div>
 
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
               <Lock className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -215,7 +208,7 @@ export function StoreHeader({
           </div>
 
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <MessageCircle className="h-4 w-4 text-[#25D366]" />
             </div>
             <div className="min-w-0">
@@ -230,7 +223,7 @@ export function StoreHeader({
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   2. FICHE PRODUIT STANDARD
+   2. FICHE PRODUIT STANDARD (DESIGN SYSTEM MARKETNET INDIGO)
    ══════════════════════════════════════════════════════════════════════════ */
 export function ProductCard({
   product,
@@ -336,7 +329,7 @@ export function ProductCard({
       </div>
 
       {/* ── INFORMATIONS PRODUIT ── */}
-      <div className="p-3.5 sm:p-4 space-y-2 flex-1 flex flex-col justify-between">
+      <div className="p-3 sm:p-4 space-y-2 flex-1 flex flex-col justify-between">
         <div className="space-y-1">
           <h3 className="line-clamp-2 text-xs sm:text-sm font-bold text-slate-900 leading-snug group-hover:text-[#4F46E5] transition-colors">
             {product.name}

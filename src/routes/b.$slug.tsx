@@ -86,10 +86,10 @@ function ShopLayout() {
         className={cn(`theme-${shop.theme || "savane"}`, "site-root min-h-screen text-slate-800 bg-[#f4f8fa] font-sans selection:bg-[#4F46E5] selection:text-white")}
         style={shopStyle(shop.primary_color || "#4F46E5")}
       >
-        {/* ── 1. BANDEAU TICKER DÉFILANT EN HAUT (STYLE VYTRINI) ── */}
+        {/* ── 1. BANDEAU TICKER DÉFILANT EN HAUT ── */}
         <VytriniAnnouncementTicker shop={shop} />
 
-        {/* ── 2. NAVBAR PILULE FLOTTANTE HAUT DE GAMME (STYLE VYTRINI) ── */}
+        {/* ── 2. NAVBAR PILULE FLOTTANTE AVEC MENU MOBILE DÉROULANT ── */}
         <VytriniFloatingNavbar
           shop={shop}
           slug={slug}
@@ -97,7 +97,7 @@ function ShopLayout() {
           onOpenSearch={() => setSearchOpen(true)}
         />
 
-        {/* ── MODAL RECHERCHE FLUIDE (STYLE VYTRINI) ── */}
+        {/* ── MODAL RECHERCHE FLUIDE (DESIGN SYSTEM MARKETNET INDIGO) ── */}
         <VytriniSearchModal
           open={searchOpen}
           onClose={() => setSearchOpen(false)}
@@ -110,7 +110,7 @@ function ShopLayout() {
           <Outlet />
         </main>
 
-        {/* ── 4. FOOTER OFFICIEL RAFFINÉ (STYLE VYTRINI) ── */}
+        {/* ── 4. FOOTER OFFICIEL SANS NUMÉRO EN CLAIR ── */}
         <VytriniStoreFooter shop={shop} />
 
         {/* ── 5. TIROIR PANIER LATÉRAL ── */}
@@ -118,7 +118,7 @@ function ShopLayout() {
           <CartSheet shop={shop} origin={origin || (typeof window !== "undefined" ? window.location.origin : "")} />
         )}
 
-        {/* ── 6. BARRE STICKY DU PANIER MOBILE (STYLE VYTRINI) ── */}
+        {/* ── 6. BARRE STICKY DU PANIER MOBILE ── */}
         {!isOffline && <VytriniStickyCartBar currency={shop.currency} />}
       </div>
     </CartProvider>
@@ -126,7 +126,7 @@ function ShopLayout() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   1. BANNIÈRE ANNONCES TICKER EN TÊTE (STYLE VYTRINI)
+   1. BANNIÈRE ANNONCES TICKER EN TÊTE
    ══════════════════════════════════════════════════════════════════════════ */
 function VytriniAnnouncementTicker({ shop }: { shop: any }) {
   const annonces = [
@@ -173,7 +173,7 @@ function VytriniAnnouncementTicker({ shop }: { shop: any }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   2. NAVBAR PILULE FLOTTANTE DÉCOLLÉE (STYLE VYTRINI)
+   2. NAVBAR PILULE FLOTTANTE AVEC MENU MOBILE PROPRE
    ══════════════════════════════════════════════════════════════════════════ */
 function VytriniFloatingNavbar({
   shop,
@@ -187,64 +187,65 @@ function VytriniFloatingNavbar({
   onOpenSearch: () => void;
 }) {
   const { items, setOpen } = useCart();
+  const [menuOpen, setMenuOpen] = useState(false);
   const count = items.reduce((s, i) => s + i.qty, 0);
   const logo = mediaUrl(shop.logo_url);
 
   return (
     <header className="fixed top-9 sm:top-10 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pt-2 pointer-events-none">
-      <div className="w-full max-w-5xl rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-md px-4 sm:px-6 h-13 sm:h-14 flex items-center justify-between gap-3 pointer-events-auto transition-all">
+      <div className="relative w-full max-w-5xl rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-md px-3.5 sm:px-6 h-13 sm:h-14 flex items-center justify-between gap-2 sm:gap-3 pointer-events-auto transition-all">
         
         {/* GAUCHE : IDENTITÉ DE LA BOUTIQUE */}
         <Link
           to="/b/$slug"
           params={{ slug }}
-          className="flex items-center gap-2.5 group shrink-0"
+          className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0"
         >
           {logo ? (
-            <img src={logo} alt={shop.name} className="h-8 w-8 rounded-full object-cover border border-slate-200 shadow-xs" />
+            <img src={logo} alt={shop.name} className="h-8 w-8 rounded-full object-cover border border-slate-200 shadow-xs shrink-0" />
           ) : (
-            <div className="h-8 w-8 rounded-full bg-[#4F46E5] text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
+            <div className="h-8 w-8 rounded-full bg-[#4F46E5] text-white font-extrabold text-xs flex items-center justify-center shadow-xs shrink-0">
               {shop.name.slice(0, 2).toUpperCase()}
             </div>
           )}
-          <span className="font-bold text-sm sm:text-base text-slate-900 truncate max-w-[150px] sm:max-w-xs group-hover:text-[#4F46E5] transition-colors">
+          <span className="font-bold text-xs sm:text-base text-slate-900 truncate max-w-[120px] sm:max-w-xs group-hover:text-[#4F46E5] transition-colors">
             {shop.name}
           </span>
           <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="En ligne" />
         </Link>
 
-        {/* CENTRE : LIENS DE NAVIGATION RAPIDE */}
+        {/* CENTRE : LIENS DE NAVIGATION RAPIDE (DESKTOP) */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
           <Link
             to="/b/$slug"
             params={{ slug }}
-            className="hover:text-slate-900 transition-colors"
+            className="hover:text-[#4F46E5] transition-colors"
           >
             Accueil
           </Link>
           <Link
             to="/b/$slug/produits"
             params={{ slug }}
-            className="hover:text-slate-900 transition-colors"
+            className="hover:text-[#4F46E5] transition-colors"
           >
             Tous les produits
           </Link>
           <a
             href="#contact"
-            className="hover:text-slate-900 transition-colors"
+            className="hover:text-[#4F46E5] transition-colors"
           >
             Contact
           </a>
         </nav>
 
-        {/* DROITE : ACTIONS (RECHERCHE & PANIER) */}
-        <div className="flex items-center gap-2">
+        {/* DROITE : ACTIONS (RECHERCHE, PANIER, MENU BURGER) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={onOpenSearch}
             title="Rechercher un produit"
             aria-label="Rechercher un produit"
-            className="h-9 w-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+            className="h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
           >
             <Search className="h-4 w-4" />
           </button>
@@ -254,25 +255,64 @@ function VytriniFloatingNavbar({
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Voir le panier"
-              className="relative h-9 px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              className="relative h-8 sm:h-9 px-3 sm:px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center gap-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
-              <span>Panier</span>
+              <span className="hidden sm:inline">Panier</span>
               {count > 0 && (
-                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-[#4F46E5] text-[10px] font-black text-white">
+                <span className="px-1.5 py-0.2 rounded-full bg-[#4F46E5] text-[10px] font-black text-white">
                   {count}
                 </span>
               )}
             </button>
           )}
+
+          {/* MENU BURGER (MOBILE) */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Menu"
+            className="md:hidden h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-700 cursor-pointer"
+          >
+            {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
         </div>
+
+        {/* TIROIR DU MENU MOBILE */}
+        {menuOpen && (
+          <div className="md:hidden absolute top-15 right-2 w-56 rounded-3xl bg-white border border-slate-200/90 shadow-xl p-3 space-y-1 animate-in zoom-in-95 duration-150">
+            <Link
+              to="/b/$slug"
+              params={{ slug }}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
+            >
+              <span>Accueil</span>
+            </Link>
+            <Link
+              to="/b/$slug/produits"
+              params={{ slug }}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
+            >
+              <span>Tous les produits</span>
+            </Link>
+            <a
+              href="#contact"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
+            >
+              <span>Contact & Infos</span>
+            </a>
+          </div>
+        )}
       </div>
     </header>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   MODAL DE RECHERCHE FLOTTANT (STYLE VYTRINI CONFORME AUX CAPTURES)
+   MODAL DE RECHERCHE FLOTTANT (DESIGN SYSTEM MARKETNET INDIGO)
    ══════════════════════════════════════════════════════════════════════════ */
 function VytriniSearchModal({
   open,
@@ -287,7 +327,6 @@ function VytriniSearchModal({
 }) {
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (open) {
@@ -311,14 +350,14 @@ function VytriniSearchModal({
       <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Champ de recherche en haut */}
-        <div className="relative flex items-center px-4 py-3 border-b border-slate-100">
-          <Search className="h-5 w-5 text-amber-500 shrink-0 mr-3" />
+        <div className="relative flex items-center px-4 py-3.5 border-b border-slate-100">
+          <Search className="h-5 w-5 text-[#4F46E5] shrink-0 mr-3" />
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Rechercher un produit…"
-            className="w-full text-base font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            className="w-full text-sm sm:text-base font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
           />
           <button
             type="button"
@@ -329,7 +368,7 @@ function VytriniSearchModal({
           </button>
         </div>
 
-        {/* Liste des résultats interactifs (Exactement comme dans la capture) */}
+        {/* Liste des résultats interactifs (Couleurs Indigo #4F46E5 de MarketNet) */}
         <div className="p-3 max-h-[380px] overflow-y-auto space-y-2">
           {q.trim() && results.length === 0 ? (
             <div className="py-8 text-center text-xs text-slate-400">
@@ -352,7 +391,7 @@ function VytriniSearchModal({
                   to="/b/$slug/p/$productId"
                   params={{ slug, productId: p.id }}
                   onClick={onClose}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/90 transition-colors group cursor-pointer"
+                  className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/80 hover:bg-[#EEF2FF]/50 border border-transparent hover:border-[#E0E7FF] transition-colors group cursor-pointer"
                 >
                   <div className="flex items-center gap-3 min-w-0 pr-2">
                     <div className="h-12 w-12 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
@@ -370,7 +409,7 @@ function VytriniSearchModal({
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-extrabold text-xs sm:text-sm text-amber-600">
+                    <span className="font-extrabold text-xs sm:text-sm text-[#4F46E5]">
                       {formatPrice(displayPrice, p.currency)}
                     </span>
                     {p.discount_badge && (
@@ -400,7 +439,7 @@ function VytriniSearchModal({
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   3. BARRE FLOTTANTE DU PANIER MOBILE (STICKY BOTTOM VYTRINI)
+   3. BARRE FLOTTANTE DU PANIER MOBILE (STICKY BOTTOM)
    ══════════════════════════════════════════════════════════════════════════ */
 function VytriniStickyCartBar({ currency }: { currency?: string }) {
   const { items, setOpen } = useCart();
@@ -415,17 +454,17 @@ function VytriniStickyCartBar({ currency }: { currency?: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full h-13 rounded-full bg-slate-900 text-white shadow-xl px-5 flex items-center justify-between font-bold text-sm transition-transform active:scale-[0.98] border border-white/20 cursor-pointer animate-in fade-in slide-in-from-bottom-3 duration-300 select-none"
+        className="w-full h-12 rounded-full bg-slate-900 text-white shadow-xl px-4 flex items-center justify-between font-bold text-xs sm:text-sm transition-transform active:scale-[0.98] border border-white/20 cursor-pointer animate-in fade-in slide-in-from-bottom-3 duration-300 select-none"
       >
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4F46E5] text-xs font-black text-white">
+        <div className="flex items-center gap-2">
+          <span className="flex h-5.5 w-5.5 items-center justify-center rounded-full bg-[#4F46E5] text-[10px] font-black text-white">
             {count}
           </span>
           <span>Voir le panier</span>
         </div>
         <div className="flex items-center gap-1.5 font-bold">
           <span>{formatPrice(total, curr)}</span>
-          <ArrowRight className="h-4 w-4 text-slate-300" />
+          <ArrowRight className="h-3.5 w-3.5 text-slate-300" />
         </div>
       </button>
     </aside>
@@ -433,7 +472,7 @@ function VytriniStickyCartBar({ currency }: { currency?: string }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   4. FOOTER OFFICIEL RAFFINÉ (STYLE VYTRINI)
+   4. FOOTER OFFICIEL SANS NUMÉRO EN CLAIR (BOUTON WHATSAPP PUR)
    ══════════════════════════════════════════════════════════════════════════ */
 function VytriniStoreFooter({ shop }: { shop: any }) {
   const whatsappDigits = shop.whatsapp?.replace(/\D/g, "") || "";
@@ -457,25 +496,17 @@ function VytriniStoreFooter({ shop }: { shop: any }) {
             )}
           </div>
 
+          {/* Contact direct : WhatsApp fait tout le travail, pas de numéro brut affiché */}
           <div className="flex flex-col sm:flex-row md:justify-end gap-3 items-start sm:items-center">
             {whatsappDigits && (
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 h-11 px-5 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs shadow-xs transition-colors"
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-colors"
               >
                 <MessageCircle className="h-4 w-4 fill-white" />
                 <span>Écrire sur WhatsApp</span>
-              </a>
-            )}
-            {shop.whatsapp && (
-              <a
-                href={`tel:${shop.whatsapp}`}
-                className="inline-flex items-center gap-2 h-11 px-5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors"
-              >
-                <Phone className="h-3.5 w-3.5 text-slate-600" />
-                <span>{shop.whatsapp}</span>
               </a>
             )}
           </div>
