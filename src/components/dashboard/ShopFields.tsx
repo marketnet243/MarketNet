@@ -287,13 +287,26 @@ export function AppearanceFields({ draft, set }: P) {
   const [selectedFont, setSelectedFont] = useState<string>("sans");
   const [selectedGrid, setSelectedGrid] = useState<string>("grid-2");
 
+  // États pliables accordéon pour chaque bloc (comme Vytrini)
+  const [openModel, setOpenModel] = useState(false);
+  const [openThemes, setOpenThemes] = useState(false);
+  const [openColors, setOpenColors] = useState(false);
+  const [openFonts, setOpenFonts] = useState(false);
+  const [openGrid, setOpenGrid] = useState(false);
+
+  // Labels dynamiques pour résumer la sélection quand la section est fermée
+  const currentModelObj = SHOP_PAGE_MODELS.find((m) => m.id === selectedModel);
+  const currentThemeObj = THEMES.find((t) => t.id === draft.theme);
+  const currentFontObj = SHOP_FONTS.find((f) => f.id === selectedFont);
+  const currentGridObj = PRODUCT_GRID_STYLES.find((g) => g.id === selectedGrid);
+
   return (
-    <div className="space-y-7 min-w-0 max-w-full">
+    <div className="space-y-4 min-w-0 max-w-full">
       {/* ── VISUELS CLÉS (Logo & Bannière) ── */}
-      <div>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
         <div className="mb-3">
           <h3 className="text-sm font-bold text-slate-900">Images de marque</h3>
-          <p className="text-xs text-slate-500">Logo carré et grande bannière d'en-tête</p>
+          <p className="text-xs text-slate-500">Logo carré et grande bannière d'en-tête de votre vitrine</p>
         </div>
         <div className="grid grid-cols-2 gap-3 min-w-0">
           <ImageField label="Logo" value={draft.logo_url} onChange={(v) => set({ logo_url: v })} square />
@@ -301,246 +314,348 @@ export function AppearanceFields({ draft, set }: P) {
         </div>
       </div>
 
-      {/* ── 1. MODÈLES DE PAGE (Inspiré Vytrini) ── */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <LayoutTemplate className="h-4 w-4 text-[#4F46E5]" />
-              Modèle de page
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Réorganise ta vitrine sans toucher à tes textes ni produits.
-            </p>
+      {/* ── 1. MODÈLES DE PAGE (Pliable) ── */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => setOpenModel(!openModel)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <LayoutTemplate className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">Modèle de page</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  {currentModelObj?.name || "Généraliste"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Architecture & structure de la vitrine</p>
+            </div>
           </div>
-        </div>
+          <ChevronDown
+            className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", openModel && "rotate-180 text-slate-700")}
+          />
+        </button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {SHOP_PAGE_MODELS.map((m) => {
-            const isSelected = selectedModel === m.id;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setSelectedModel(m.id)}
-                className={cn(
-                  "flex items-start gap-3 p-3.5 rounded-2xl border text-left transition cursor-pointer relative",
-                  isSelected
-                    ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs"
-                    : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50"
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-                    isSelected ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600"
-                  )}
+        {openModel && (
+          <div className="p-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+            <p className="text-xs text-slate-500 mb-3">
+              Réorganise ta vitrine sans toucher à tes textes ni à tes produits.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {SHOP_PAGE_MODELS.map((m) => {
+                const isSelected = selectedModel === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSelectedModel(m.id)}
+                    className={cn(
+                      "flex items-start gap-3 p-3.5 rounded-2xl border text-left transition cursor-pointer relative",
+                      isSelected
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs ring-1 ring-[#4F46E5]/30"
+                        : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl",
+                        isSelected ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600"
+                      )}
+                    >
+                      {m.id === "generaliste" && <Store className="h-4 w-4" />}
+                      {m.id === "mode" && <Sparkles className="h-4 w-4" />}
+                      {m.id === "beaute" && <Heart className="h-4 w-4" />}
+                      {m.id === "vitrine" && <Layers className="h-4 w-4" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="font-bold text-xs sm:text-sm text-slate-900 truncate">{m.name}</p>
+                        {isSelected && <span className="h-2 w-2 rounded-full bg-[#4F46E5] shrink-0" />}
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
+                        {m.desc}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── 2. THÈMES RECOMMANDÉS (Pliable) ── */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => setOpenThemes(!openThemes)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">Thème & Atmosphère</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  {currentThemeObj?.name || "Épure Pro"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Ambiance visuelle globale de la vitrine</p>
+            </div>
+          </div>
+          <ChevronDown
+            className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", openThemes && "rotate-180 text-slate-700")}
+          />
+        </button>
+
+        {openThemes && (
+          <div className="p-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+            <p className="text-xs text-slate-500 mb-3">Styles modernes sans encombrement</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 min-w-0">
+              {THEMES.map((t) => {
+                const isSelected = draft.theme === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => set({ theme: t.id })}
+                    className={cn(
+                      "rounded-2xl border-2 p-2.5 sm:p-3 text-left transition cursor-pointer min-w-0",
+                      isSelected
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/40 shadow-xs ring-1 ring-[#4F46E5]/30"
+                        : "border-slate-200/80 bg-white hover:border-slate-300"
+                    )}
+                  >
+                    <div className="flex h-8 overflow-hidden rounded-xl shadow-xs border border-slate-200/50">
+                      {t.swatch.map((c, i) => (
+                        <span key={i} className="flex-1" style={{ background: c }} />
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs font-bold text-slate-900 truncate">{t.name}</p>
+                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{t.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── 3. PALETTES DE COULEURS (Pliable) ── */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => setOpenColors(!openColors)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <Palette className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">Couleurs & Accent</span>
+                <span
+                  className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                  style={{ background: draft.primary_color }}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Teintes principales des boutons et badges</p>
+            </div>
+          </div>
+          <ChevronDown
+            className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", openColors && "rotate-180 text-slate-700")}
+          />
+        </button>
+
+        {openColors && (
+          <div className="p-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+            <p className="text-xs text-slate-500 mb-3">Combinaisons étudiées pour une boutique professionnelle</p>
+            {/* Exemples de palettes en bandeaux cliquables */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+              {SHOP_COLOR_PALETTES.map((pal) => {
+                const isSelected = draft.primary_color.toUpperCase() === pal.primary.toUpperCase();
+                return (
+                  <button
+                    key={pal.name}
+                    type="button"
+                    onClick={() => set({ primary_color: pal.primary })}
+                    className={cn(
+                      "p-2.5 rounded-2xl border text-left transition cursor-pointer",
+                      isSelected
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/50 ring-2 ring-[#4F46E5]/20 shadow-xs"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    )}
+                  >
+                    <div className="flex h-5 rounded-lg overflow-hidden border border-slate-200/80 mb-1.5">
+                      <span className="flex-1" style={{ background: pal.primary }} />
+                      <span className="w-3.5" style={{ background: pal.accent }} />
+                      <span className="w-3.5" style={{ background: pal.card }} />
+                    </div>
+                    <p className="text-[11px] font-bold text-slate-800 truncate">{pal.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Sélecteur de couleur personnalisée */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-200/60">
+              <span className="text-xs text-slate-500 font-semibold mr-1">Couleur directe :</span>
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={c}
+                  onClick={() => set({ primary_color: c })}
+                  className="grid h-7 w-7 place-items-center rounded-full transition-transform cursor-pointer relative"
+                  style={{
+                    background: c,
+                    boxShadow: draft.primary_color.toUpperCase() === c.toUpperCase() ? `0 0 0 2px #fff, 0 0 0 4px ${c}` : undefined,
+                  }}
                 >
-                  {m.id === "generaliste" && <Store className="h-4 w-4" />}
-                  {m.id === "mode" && <Sparkles className="h-4 w-4" />}
-                  {m.id === "beaute" && <Heart className="h-4 w-4" />}
-                  {m.id === "vitrine" && <Layers className="h-4 w-4" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <p className="font-bold text-xs sm:text-sm text-slate-900 truncate">{m.name}</p>
-                    {isSelected && <span className="h-2 w-2 rounded-full bg-[#4F46E5] shrink-0" />}
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
-                    {m.desc}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── 2. THÈMES RECOMMANDÉS ── */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="mb-3">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <Sparkles className="h-4 w-4 text-[#4F46E5]" />
-            Thème & Atmosphère
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">Styles épurés, modernes et sans encombrement</p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 min-w-0">
-          {THEMES.map((t) => {
-            const isSelected = draft.theme === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => set({ theme: t.id })}
-                className={cn(
-                  "rounded-2xl border-2 p-2.5 sm:p-3 text-left transition cursor-pointer min-w-0",
-                  isSelected
-                    ? "border-[#4F46E5] bg-[#EEF2FF]/40 shadow-xs"
-                    : "border-slate-200/80 bg-white hover:border-slate-300"
-                )}
-              >
-                <div className="flex h-9 overflow-hidden rounded-xl shadow-xs border border-slate-200/50">
-                  {t.swatch.map((c, i) => (
-                    <span key={i} className="flex-1" style={{ background: c }} />
-                  ))}
-                </div>
-                <p className="mt-2 text-xs font-bold text-slate-900 truncate">{t.name}</p>
-                <p className="text-[10px] text-slate-500 truncate mt-0.5">{t.desc}</p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── 3. PALETTES DE COULEURS HARMONIEUSES (Inspiré Vytrini) ── */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="mb-3">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <Palette className="h-4 w-4 text-[#4F46E5]" />
-            Palettes harmonieuses
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">Combinaisons étudiées pour une boutique professionnelle</p>
-        </div>
-
-        {/* Exemples de palettes en bandeaux cliquables */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-          {SHOP_COLOR_PALETTES.map((pal) => {
-            const isSelected = draft.primary_color.toUpperCase() === pal.primary.toUpperCase();
-            return (
-              <button
-                key={pal.name}
-                type="button"
-                onClick={() => set({ primary_color: pal.primary })}
-                className={cn(
-                  "p-2.5 rounded-2xl border text-left transition cursor-pointer",
-                  isSelected
-                    ? "border-[#4F46E5] bg-[#EEF2FF]/50 ring-2 ring-[#4F46E5]/20 shadow-xs"
-                    : "border-slate-200 bg-white hover:border-slate-300"
-                )}
-              >
-                <div className="flex h-6 rounded-lg overflow-hidden border border-slate-200/80 mb-2">
-                  <span className="flex-1" style={{ background: pal.primary }} />
-                  <span className="w-4" style={{ background: pal.accent }} />
-                  <span className="w-4" style={{ background: pal.card }} />
-                </div>
-                <p className="text-[11px] font-bold text-slate-800 truncate">{pal.name}</p>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Sélecteur de couleur personnalisée */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-xs text-slate-500 font-semibold mr-1">Ou couleur directe :</span>
-          {PRESET_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              aria-label={c}
-              onClick={() => set({ primary_color: c })}
-              className="grid h-8 w-8 place-items-center rounded-full transition-transform cursor-pointer relative"
-              style={{
-                background: c,
-                boxShadow: draft.primary_color === c ? `0 0 0 2px #fff, 0 0 0 4px ${c}` : undefined,
-              }}
-            >
-              {draft.primary_color.toUpperCase() === c.toUpperCase() && (
-                <Check className="h-3.5 w-3.5 text-white" />
-              )}
-            </button>
-          ))}
-          <label
-            title="Couleur personnalisée"
-            className="relative grid h-8 w-8 place-items-center rounded-full border border-dashed border-slate-300 cursor-pointer hover:border-[#4F46E5] transition-colors overflow-hidden"
-          >
-            <input
-              type="color"
-              value={draft.primary_color}
-              onChange={(e) => set({ primary_color: e.target.value.toUpperCase() })}
-              className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
-              aria-label="Couleur personnalisée"
-            />
-            <span className="text-xs font-bold text-slate-500 select-none">+</span>
-          </label>
-        </div>
-      </div>
-
-      {/* ── 4. POLICES DE CARACTÈRES ── */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="mb-3">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <Type className="h-4 w-4 text-[#4F46E5]" />
-            Typographie
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">Style d'écriture pour les titres et les prix</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {SHOP_FONTS.map((f) => {
-            const isSelected = selectedFont === f.id;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setSelectedFont(f.id)}
-                className={cn(
-                  "p-3 rounded-2xl border text-left transition cursor-pointer",
-                  isSelected
-                    ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs"
-                    : "border-slate-200/80 bg-white hover:border-slate-300"
-                )}
-              >
-                <p className="text-lg font-bold text-slate-900">{f.preview}</p>
-                <p className="text-xs font-semibold text-slate-700 mt-1 truncate">{f.name}</p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── 5. DISPOSITION GRILLE PRODUIT ── */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="mb-3">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <Grid className="h-4 w-4 text-[#4F46E5]" />
-            Affichage de la grille produit
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">Choisissez comment vos articles apparaissent pour les clients</p>
-        </div>
-
-        <div className="space-y-2">
-          {PRODUCT_GRID_STYLES.map((g) => {
-            const isSelected = selectedGrid === g.id;
-            return (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => setSelectedGrid(g.id)}
-                className={cn(
-                  "flex items-center justify-between w-full p-3.5 rounded-2xl border text-left transition cursor-pointer",
-                  isSelected
-                    ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs"
-                    : "border-slate-200/80 bg-white hover:border-slate-300"
-                )}
-              >
-                <div className="min-w-0 pr-2">
-                  <p className="text-xs sm:text-sm font-bold text-slate-900">{g.name}</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">{g.desc}</p>
-                </div>
-                <div
-                  className={cn(
-                    "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0",
-                    isSelected ? "border-[#4F46E5] bg-[#4F46E5]" : "border-slate-300 bg-white"
+                  {draft.primary_color.toUpperCase() === c.toUpperCase() && (
+                    <Check className="h-3 w-3 text-white" />
                   )}
-                >
-                  {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              ))}
+              <label
+                title="Couleur personnalisée"
+                className="relative grid h-7 w-7 place-items-center rounded-full border border-dashed border-slate-300 cursor-pointer hover:border-[#4F46E5] transition-colors overflow-hidden"
+              >
+                <input
+                  type="color"
+                  value={draft.primary_color}
+                  onChange={(e) => set({ primary_color: e.target.value.toUpperCase() })}
+                  className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                  aria-label="Couleur personnalisée"
+                />
+                <span className="text-xs font-bold text-slate-500 select-none">+</span>
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── 4. POLICES DE CARACTÈRES (Pliable) ── */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => setOpenFonts(!openFonts)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <Type className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">Typographie</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  {currentFontObj?.name.split(" ")[0] || "Moderne"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Style d'écriture pour les titres et les prix</p>
+            </div>
+          </div>
+          <ChevronDown
+            className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", openFonts && "rotate-180 text-slate-700")}
+          />
+        </button>
+
+        {openFonts && (
+          <div className="p-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {SHOP_FONTS.map((f) => {
+                const isSelected = selectedFont === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setSelectedFont(f.id)}
+                    className={cn(
+                      "p-3 rounded-2xl border text-left transition cursor-pointer",
+                      isSelected
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs ring-1 ring-[#4F46E5]/30"
+                        : "border-slate-200/80 bg-white hover:border-slate-300"
+                    )}
+                  >
+                    <p className="text-lg font-bold text-slate-900">{f.preview}</p>
+                    <p className="text-xs font-semibold text-slate-700 mt-1 truncate">{f.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── 5. DISPOSITION GRILLE PRODUIT (Pliable) ── */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden transition-all">
+        <button
+          type="button"
+          onClick={() => setOpenGrid(!openGrid)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <Grid className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-bold text-slate-900">Affichage grille produit</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  {currentGridObj?.name.split(" ")[0] || "Grille"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">Disposition des fiches dans le catalogue</p>
+            </div>
+          </div>
+          <ChevronDown
+            className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", openGrid && "rotate-180 text-slate-700")}
+          />
+        </button>
+
+        {openGrid && (
+          <div className="p-4 pt-1 border-t border-slate-100 bg-slate-50/30">
+            <div className="space-y-2">
+              {PRODUCT_GRID_STYLES.map((g) => {
+                const isSelected = selectedGrid === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setSelectedGrid(g.id)}
+                    className={cn(
+                      "flex items-center justify-between w-full p-3.5 rounded-2xl border text-left transition cursor-pointer",
+                      isSelected
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs ring-1 ring-[#4F46E5]/30"
+                        : "border-slate-200/80 bg-white hover:border-slate-300"
+                    )}
+                  >
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs sm:text-sm font-bold text-slate-900">{g.name}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{g.desc}</p>
+                    </div>
+                    <div
+                      className={cn(
+                        "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0",
+                        isSelected ? "border-[#4F46E5] bg-[#4F46E5]" : "border-slate-300 bg-white"
+                      )}
+                    >
+                      {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
