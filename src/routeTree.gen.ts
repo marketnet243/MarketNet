@@ -47,6 +47,7 @@ import { Route as ApiPublicBroadcastTrackRouteImport } from './routes/api/public
 import { Route as ApiPublicInvoicePdfRouteImport } from './routes/api/public/invoice-pdf'
 import { Route as ApiPublicWebhookSaspayRouteImport } from './routes/api/public/webhook-saspay'
 import { Route as BSlugIndexRouteImport } from './routes/b.$slug.index'
+import { Route as BSlugProduitsRouteImport } from './routes/b.$slug.produits'
 import { Route as AuthenticatedAdminBoutiquesShopIdRouteImport } from './routes/_authenticated/admin.boutiques_.$shopId'
 import { Route as AuthenticatedAdminSupportTicketIdRouteImport } from './routes/_authenticated/admin.support_.$ticketId'
 import { Route as AuthenticatedDashboardCommandesOrderIdRouteImport } from './routes/_authenticated/dashboard.commandes_.$orderId'
@@ -261,6 +262,11 @@ const BSlugIndexRoute = BSlugIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BSlugRoute,
 } as any)
+const BSlugProduitsRoute = BSlugProduitsRouteImport.update({
+  id: '/produits',
+  path: '/produits',
+  getParentRoute: () => BSlugRoute,
+} as any)
 const AuthenticatedAdminBoutiquesShopIdRoute =
   AuthenticatedAdminBoutiquesShopIdRouteImport.update({
     id: '/boutiques_/$shopId',
@@ -342,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
   '/api/public/webhook-saspay': typeof ApiPublicWebhookSaspayRoute
+  '/b/$slug/produits': typeof BSlugProduitsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/b/$slug/': typeof BSlugIndexRoute
@@ -386,6 +393,7 @@ export interface FileRoutesByTo {
   '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
   '/api/public/webhook-saspay': typeof ApiPublicWebhookSaspayRoute
+  '/b/$slug/produits': typeof BSlugProduitsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/b/$slug': typeof BSlugIndexRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/api/public/broadcast-track': typeof ApiPublicBroadcastTrackRoute
   '/api/public/invoice-pdf': typeof ApiPublicInvoicePdfRoute
   '/api/public/webhook-saspay': typeof ApiPublicWebhookSaspayRoute
+  '/b/$slug/produits': typeof BSlugProduitsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/b/$slug/': typeof BSlugIndexRoute
@@ -484,6 +493,7 @@ export interface FileRouteTypes {
     | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
     | '/api/public/webhook-saspay'
+    | '/b/$slug/produits'
     | '/admin/'
     | '/dashboard/'
     | '/b/$slug/'
@@ -528,6 +538,7 @@ export interface FileRouteTypes {
     | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
     | '/api/public/webhook-saspay'
+    | '/b/$slug/produits'
     | '/admin'
     | '/dashboard'
     | '/b/$slug'
@@ -576,6 +587,7 @@ export interface FileRouteTypes {
     | '/api/public/broadcast-track'
     | '/api/public/invoice-pdf'
     | '/api/public/webhook-saspay'
+    | '/b/$slug/produits'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/b/$slug/'
@@ -879,6 +891,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BSlugIndexRouteImport
       parentRoute: typeof BSlugRoute
     }
+    '/b/$slug/produits': {
+      id: '/b/$slug/produits'
+      path: '/produits'
+      fullPath: '/b/$slug/produits'
+      preLoaderRoute: typeof BSlugProduitsRouteImport
+      parentRoute: typeof BSlugRoute
+    }
     '/_authenticated/admin/boutiques_/$shopId': {
       id: '/_authenticated/admin/boutiques_/$shopId'
       path: '/boutiques/$shopId'
@@ -1038,12 +1057,14 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface BSlugRouteChildren {
+  BSlugProduitsRoute: typeof BSlugProduitsRoute
   BSlugIndexRoute: typeof BSlugIndexRoute
   BSlugPProductIdRoute: typeof BSlugPProductIdRoute
   BSlugPromoPromoIdRoute: typeof BSlugPromoPromoIdRoute
 }
 
 const BSlugRouteChildren: BSlugRouteChildren = {
+  BSlugProduitsRoute: BSlugProduitsRoute,
   BSlugIndexRoute: BSlugIndexRoute,
   BSlugPProductIdRoute: BSlugPProductIdRoute,
   BSlugPromoPromoIdRoute: BSlugPromoPromoIdRoute,

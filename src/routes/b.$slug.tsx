@@ -1,6 +1,6 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   ShoppingBag,
   ArrowRight,
@@ -64,8 +64,10 @@ export const Route = createFileRoute("/b/$slug")({
 function ShopLayout() {
   const { slug } = Route.useParams();
   const { data } = useSuspenseQuery(publicShopQuery(slug));
-  const { shop, origin } = data;
+  const { shop, products, origin } = data;
   const visitFn = useServerFn(recordShopVisit);
+
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined" || !slug) return;
@@ -88,7 +90,20 @@ function ShopLayout() {
         <VytriniAnnouncementTicker shop={shop} />
 
         {/* ── 2. NAVBAR PILULE FLOTTANTE HAUT DE GAMME (STYLE VYTRINI) ── */}
-        <VytriniFloatingNavbar shop={shop} slug={slug} isOffline={isOffline} />
+        <VytriniFloatingNavbar
+          shop={shop}
+          slug={slug}
+          isOffline={isOffline}
+          onOpenSearch={() => setSearchOpen(true)}
+        />
+
+        {/* ── MODAL RECHERCHE FLUIDE (STYLE VYTRINI) ── */}
+        <VytriniSearchModal
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          products={products}
+          slug={slug}
+        />
 
         {/* ── 3. CONTENU DES PAGES (VITRINE / PRODUITS) ── */}
         <main className="pt-24 sm:pt-28">
@@ -164,21 +179,16 @@ function VytriniFloatingNavbar({
   shop,
   slug,
   isOffline,
+  onOpenSearch,
 }: {
   shop: any;
   slug: string;
   isOffline?: boolean;
+  onOpenSearch: () => void;
 }) {
   const { items, setOpen } = useCart();
   const count = items.reduce((s, i) => s + i.qty, 0);
   const logo = mediaUrl(shop.logo_url);
-
-  function scrollToSection(id: string) {
-    if (typeof window !== "undefined") {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    }
-  }
 
   return (
     <header className="fixed top-9 sm:top-10 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pt-2 pointer-events-none">
@@ -205,35 +215,34 @@ function VytriniFloatingNavbar({
 
         {/* CENTRE : LIENS DE NAVIGATION RAPIDE */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
-          <button
-            type="button"
-            onClick={() => scrollToSection("catalogue")}
-            className="hover:text-slate-900 transition-colors cursor-pointer"
+          <Link
+            to="/b/$slug"
+            params={{ slug }}
+            className="hover:text-slate-900 transition-colors"
           >
-            Catalogue
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection("atouts")}
-            className="hover:text-slate-900 transition-colors cursor-pointer"
+            Accueil
+          </Link>
+          <Link
+            to="/b/$slug/produits"
+            params={{ slug }}
+            className="hover:text-slate-900 transition-colors"
           >
-            Pourquoi nous
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection("contact")}
-            className="hover:text-slate-900 transition-colors cursor-pointer"
+            Tous les produits
+          </Link>
+          <a
+            href="#contact"
+            className="hover:text-slate-900 transition-colors"
           >
             Contact
-          </button>
+          </a>
         </nav>
 
         {/* DROITE : ACTIONS (RECHERCHE & PANIER) */}
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => scrollToSection("catalogue")}
-            title="Rechercher"
+            onClick={onOpenSearch}
+            title="Rechercher un produit"
             aria-label="Rechercher un produit"
             className="h-9 w-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
           >
@@ -259,6 +268,134 @@ function VytriniFloatingNavbar({
         </div>
       </div>
     </header>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MODAL DE RECHERCHE FLOTTANT (STYLE VYTRINI CONFORME AUX CAPTURES)
+   ══════════════════════════════════════════════════════════════════════════ */
+function VytriniSearchModal({
+  open,
+  onClose,
+  products,
+  slug,
+}: {
+  open: boolean;
+  onClose: () => void;
+  products: any[];
+  slug: string;
+}) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } else {
+      setQ("");
+    }
+  }, [open]);
+
+  const results = useMemo(() => {
+    if (!q.trim()) return [];
+    return products
+      .filter((p) => p.name.toLowerCase().includes(q.toLowerCase()))
+      .slice(0, 6);
+  }, [q, products]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-70 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
+        
+        {/* Champ de recherche en haut */}
+        <div className="relative flex items-center px-4 py-3 border-b border-slate-100">
+          <Search className="h-5 w-5 text-amber-500 shrink-0 mr-3" />
+          <input
+            ref={inputRef}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Rechercher un produit…"
+            className="w-full text-base font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-full text-slate-400 hover:text-slate-700 cursor-pointer"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Liste des résultats interactifs (Exactement comme dans la capture) */}
+        <div className="p-3 max-h-[380px] overflow-y-auto space-y-2">
+          {q.trim() && results.length === 0 ? (
+            <div className="py-8 text-center text-xs text-slate-400">
+              Aucun résultat pour « {q} »
+            </div>
+          ) : !q.trim() ? (
+            <div className="py-8 text-center text-xs text-slate-400">
+              Tapez le nom d'un article pour rechercher…
+            </div>
+          ) : (
+            results.map((p) => {
+              const img = mediaUrl(p.images?.[0]);
+              const isDiscounted =
+                p.discounted_price != null && p.discounted_price < Number(p.price);
+              const displayPrice = isDiscounted ? p.discounted_price! : Number(p.price);
+
+              return (
+                <Link
+                  key={p.id}
+                  to="/b/$slug/p/$productId"
+                  params={{ slug, productId: p.id }}
+                  onClick={onClose}
+                  className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/90 transition-colors group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
+                    <div className="h-12 w-12 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                      {img ? (
+                        <img src={img} alt={p.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <Package className="h-5 w-5 text-slate-300" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-xs sm:text-sm text-slate-900 truncate group-hover:text-[#4F46E5] transition-colors">
+                        {p.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-extrabold text-xs sm:text-sm text-amber-600">
+                      {formatPrice(displayPrice, p.currency)}
+                    </span>
+                    {p.discount_badge && (
+                      <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-black text-white">
+                        {p.discount_badge}
+                      </span>
+                    )}
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer du modal */}
+        {q.trim() && (
+          <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50 text-right">
+            <span className="text-[11px] font-medium text-slate-400">
+              {results.length} résultat{results.length > 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -23,6 +23,7 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 import type { Shop, Product } from "@/hooks/useMyShop";
 import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ import React, { useState } from "react";
 type ShopLike = Pick<
   Shop,
   | "name"
+  | "slug"
   | "description"
   | "logo_url"
   | "banner_url"
@@ -44,7 +46,7 @@ type ShopLike = Pick<
 >;
 
 /* ══════════════════════════════════════════════════════════════════════════
-   1. HERO SECTION MAJEUR (STYLE VYTRINI : 2 COLONNES OU BANNIÈRE ÉPURÉE)
+   1. HERO SECTION HAUT DE GAMME AVEC BANNIÈRE EN BACKGROUND
    ══════════════════════════════════════════════════════════════════════════ */
 export function StoreHeader({
   shop,
@@ -57,7 +59,6 @@ export function StoreHeader({
   isPublished?: boolean;
   isSuspended?: boolean;
 }) {
-  const [descExpanded, setDescExpanded] = useState(false);
   const banner = mediaUrl(shop.banner_url);
   const logo = mediaUrl(shop.logo_url);
   const hasWhatsapp = (shop.whatsapp?.replace(/\D/g, "") || "").length >= 8;
@@ -78,119 +79,113 @@ export function StoreHeader({
     }
   }
 
-  function scrollToCatalogue() {
-    if (typeof window !== "undefined") {
-      const el = document.getElementById("catalogue");
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    }
-  }
-
   const descText = shop.description?.trim() || "";
 
   return (
-    <header className="relative overflow-hidden bg-shop-bg text-shop-fg">
-      {/* ── HERO BANNER 2 COLONNES HAUT DE GAMME (STYLE VYTRINI) ── */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-6 sm:pt-10 pb-8 sm:pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          
-          {/* COLONNE GAUCHE : TEXTE & ACTIONS */}
-          <div className="space-y-5 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 rounded-full bg-shop/10 px-3.5 py-1 text-xs font-bold text-shop mx-auto lg:mx-0">
-              <span className="h-2 w-2 rounded-full bg-shop animate-pulse" />
-              <span>{getShopCategoryLabel(shop) || "Boutique Officielle"}</span>
-            </div>
+    <header className="relative overflow-hidden">
+      {/* ── HERO BANNER AVEC BACKGROUND IMAGE & OVERLAY SUBTIL ── */}
+      <div className="relative isolate overflow-hidden bg-slate-900 text-white min-h-[380px] sm:min-h-[440px] flex items-center">
+        {/* Image de fond bannière */}
+        {banner ? (
+          <img
+            src={banner}
+            alt={shop.name}
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            fetchPriority="high"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900" />
+        )}
 
-            <h1 className="font-shop-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15]">
-              {shop.name}
-            </h1>
+        {/* Dégradé sombre et élégant pour lisibilité parfaite */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/70 to-slate-900/50 backdrop-blur-[1px]" />
 
-            <p className="text-sm sm:text-base text-shop-muted max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              {descText || "Découvrez notre sélection de produits exclusifs et passez commande directement sur WhatsApp en quelques clics."}
-            </p>
-
-            {/* BOUTONS D'ACTION CLÉS */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
-              <button
-                type="button"
-                onClick={scrollToCatalogue}
-                className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-shop text-shop-foreground font-bold text-sm shadow-md hover:brightness-105 transition-all cursor-pointer"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span>Voir la boutique</span>
-              </button>
-
-              {hasWhatsapp && (
-                <a
-                  href={`https://wa.me/${shop.whatsapp?.replace(/\D/g, "")}?text=${encodeURIComponent(
-                    `Bonjour ${shop.name}, je vous contacte depuis votre boutique en ligne.`
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm shadow-xs transition-colors"
-                >
-                  <MessageCircle className="h-4 w-4 text-[#25D366]" />
-                  <span>WhatsApp direct</span>
-                </a>
-              )}
-
-              <button
-                type="button"
-                onClick={handleShare}
-                title="Partager"
-                aria-label="Partager le lien"
-                className="grid h-12 w-12 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-slate-300 transition-colors cursor-pointer"
-              >
-                <Share2 className="h-4 w-4" />
-              </button>
-            </div>
+        {/* Contenu centré et soigné */}
+        <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 py-12 sm:py-16 text-center space-y-4 sm:space-y-5">
+          {/* Badge Catégorie */}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-4 py-1 text-xs font-bold text-white shadow-xs">
+            <span className="h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse" />
+            <span>{getShopCategoryLabel(shop) || "Boutique Officielle"}</span>
           </div>
 
-          {/* COLONNE DROITE : VISUEL HERO SOIGNÉ (OU BANNIÈRE) */}
-          <div className="relative aspect-4/3 sm:aspect-16/10 rounded-3xl overflow-hidden shadow-lift border border-slate-200/80 bg-slate-100 group">
-            {banner ? (
-              <img
-                src={banner}
-                alt={shop.name}
-                className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
-                fetchPriority="high"
-              />
-            ) : logo ? (
-              <div className="h-full w-full flex items-center justify-center bg-slate-50 p-8">
-                <img src={logo} alt={shop.name} className="max-h-48 max-w-48 object-contain drop-shadow-md" />
-              </div>
-            ) : (
-              <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50/50 to-slate-100 text-slate-300">
-                <Package className="h-16 w-16 opacity-40 mb-2" />
-                <span className="font-bold text-sm text-slate-400">Vitrine en ligne officielle</span>
-              </div>
+          {/* Logo en pastille si présent */}
+          {logo && (
+            <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden border-2 border-white/30 shadow-xl bg-white/10 backdrop-blur-md p-1">
+              <img src={logo} alt={shop.name} className="h-full w-full object-cover rounded-2xl" />
+            </div>
+          )}
+
+          {/* Titre Principal de la Boutique */}
+          <h1 className="font-shop-heading text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-sm">
+            {shop.name}
+          </h1>
+
+          {/* Description */}
+          <p className="text-sm sm:text-base text-slate-200 max-w-2xl mx-auto leading-relaxed drop-shadow-xs font-medium">
+            {descText || "Votre boutique en ligne officielle. Découvrez nos produits et passez commande directement sur WhatsApp."}
+          </p>
+
+          {/* Actions Clés en Pilules */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              to="/b/$slug/produits"
+              params={{ slug: shop.slug }}
+              className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all cursor-pointer"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              <span>Voir la boutique</span>
+            </Link>
+
+            {hasWhatsapp && (
+              <a
+                href={`https://wa.me/${shop.whatsapp?.replace(/\D/g, "")}?text=${encodeURIComponent(
+                  `Bonjour ${shop.name}, je vous contacte depuis votre boutique en ligne.`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-white/90 hover:bg-white text-slate-900 font-bold text-sm shadow-md transition-colors"
+              >
+                <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                <span>WhatsApp direct</span>
+              </a>
             )}
+
+            <button
+              type="button"
+              onClick={handleShare}
+              title="Partager le lien"
+              aria-label="Partager"
+              className="grid h-12 w-12 place-items-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/25 text-white shadow-md transition-colors cursor-pointer"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── CHIFFRES CLÉS (STYLE VYTRINI : +200 Produits vendus, +150 Clients satisfaits, Sous 24h) ── */}
-      <div className="border-y border-current/10 bg-shop-card/40 py-5">
+      {/* ── CHIFFRES CLÉS (Metrics Bar) ── */}
+      <div className="border-b border-slate-200 bg-white py-5 shadow-xs">
         <div className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-3 text-center">
           <div>
-            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-shop block">+200</span>
-            <span className="text-[11px] sm:text-xs text-shop-muted block mt-0.5">Produits vendus</span>
+            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">+200</span>
+            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Produits vendus</span>
           </div>
-          <div className="border-x border-current/10">
-            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-shop block">+150</span>
-            <span className="text-[11px] sm:text-xs text-shop-muted block mt-0.5">Clients satisfaits</span>
+          <div className="border-x border-slate-100">
+            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">+150</span>
+            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Clients satisfaits</span>
           </div>
           <div>
-            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-shop block">Sous 24 h</span>
-            <span className="text-[11px] sm:text-xs text-shop-muted block mt-0.5">Livraison rapide</span>
+            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">Sous 24 h</span>
+            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Livraison rapide</span>
           </div>
         </div>
       </div>
 
-      {/* ── 4 BADGES DE RÉASSURANCE CLIENT (STYLE VYTRINI) ── */}
+      {/* ── 4 BADGES DE RÉASSURANCE CLIENT ── */}
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
-            <div className="h-9 w-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-indigo-50 text-[#4F46E5] flex items-center justify-center shrink-0">
               <Truck className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -235,7 +230,7 @@ export function StoreHeader({
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   2. FICHE PRODUIT STANDARD (EN GRILLE OU LISTE)
+   2. FICHE PRODUIT STANDARD
    ══════════════════════════════════════════════════════════════════════════ */
 export function ProductCard({
   product,
@@ -412,7 +407,7 @@ export function StoreFeaturesSection({ shopName }: { shopName: string }) {
   ];
 
   return (
-    <section className="mt-14 pt-10 border-t border-slate-200/80">
+    <section id="atouts" className="mt-14 pt-10 border-t border-slate-200/80">
       <div className="text-center max-w-xl mx-auto mb-8">
         <p className="text-[11px] font-bold uppercase tracking-wider text-[#4F46E5]">Atouts</p>
         <h2 className="mt-1 font-shop-heading text-xl sm:text-2xl font-extrabold text-slate-900">
