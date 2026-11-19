@@ -1,12 +1,37 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, ImagePlus, Loader2, XCircle } from "lucide-react";
+import {
+  Check,
+  ImagePlus,
+  Loader2,
+  XCircle,
+  Sparkles,
+  LayoutTemplate,
+  Palette,
+  Type,
+  Grid,
+  Store,
+  Heart,
+  Layers,
+  ChevronDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/imported-database";
-import { THEMES, SHOP_CATEGORIES, PRESET_COLORS, mediaUrl, slugify, SLUG_RE } from "@/lib/marketnet";
+import {
+  THEMES,
+  SHOP_PAGE_MODELS,
+  SHOP_COLOR_PALETTES,
+  SHOP_FONTS,
+  PRODUCT_GRID_STYLES,
+  SHOP_CATEGORIES,
+  PRESET_COLORS,
+  mediaUrl,
+  slugify,
+  SLUG_RE,
+} from "@/lib/marketnet";
 import { compressAndUpload } from "@/lib/upload";
 import { cloudinaryUploadSignature } from "@/lib/cloudinary.functions";
 import { cn } from "@/lib/utils";
@@ -22,7 +47,7 @@ export type ShopDraft = {
 export const emptyDraft: ShopDraft = {
   name: "", slug: "", description: "", category: "", category_custom: "", logo_url: null, banner_url: null,
   city: "", address: "", whatsapp: "+243", hours: "", facebook: "", instagram: "", tiktok: "",
-  theme: "savane", primary_color: "#E8590C", currency: "USD",
+  theme: "savane", primary_color: "#4F46E5", currency: "USD",
 };
 
 type P = { draft: ShopDraft; set: (p: Partial<ShopDraft>) => void };
@@ -258,52 +283,177 @@ export function ContactFields({ draft, set }: P) {
 }
 
 export function AppearanceFields({ draft, set }: P) {
+  const [selectedModel, setSelectedModel] = useState<string>("generaliste");
+  const [selectedFont, setSelectedFont] = useState<string>("sans");
+  const [selectedGrid, setSelectedGrid] = useState<string>("grid-2");
+
   return (
-    <div className="space-y-5 min-w-0 max-w-full">
-      <div className="grid grid-cols-2 gap-3 min-w-0">
-        <ImageField label="Logo" value={draft.logo_url} onChange={(v) => set({ logo_url: v })} square />
-        <ImageField label="Bannière" value={draft.banner_url} onChange={(v) => set({ banner_url: v })} />
-      </div>
-      <Field label="Thème">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 min-w-0">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => set({ theme: t.id })}
-              className={cn(
-                "rounded-xl border-2 p-2 sm:p-2.5 text-left transition min-w-0",
-                draft.theme === t.id ? "border-primary bg-primary/5" : "border-border/60 bg-card hover:border-border"
-              )}
-            >
-              <div className="flex h-8 sm:h-10 overflow-hidden rounded-lg shadow-xs">
-                {t.swatch.map((c) => (
-                  <span key={c} className="flex-1" style={{ background: c }} />
-                ))}
-              </div>
-              <p className="mt-1.5 text-xs sm:text-sm font-bold truncate">{t.name}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{t.desc}</p>
-            </button>
-          ))}
+    <div className="space-y-7 min-w-0 max-w-full">
+      {/* ── VISUELS CLÉS (Logo & Bannière) ── */}
+      <div>
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-slate-900">Images de marque</h3>
+          <p className="text-xs text-slate-500">Logo carré et grande bannière d'en-tête</p>
         </div>
-      </Field>
-      <Field label="Couleur principale">
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
+        <div className="grid grid-cols-2 gap-3 min-w-0">
+          <ImageField label="Logo" value={draft.logo_url} onChange={(v) => set({ logo_url: v })} square />
+          <ImageField label="Bannière" value={draft.banner_url} onChange={(v) => set({ banner_url: v })} />
+        </div>
+      </div>
+
+      {/* ── 1. MODÈLES DE PAGE (Inspiré Vytrini) ── */}
+      <div className="pt-4 border-t border-slate-100">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <LayoutTemplate className="h-4 w-4 text-[#4F46E5]" />
+              Modèle de page
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Réorganise ta vitrine sans toucher à tes textes ni produits.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {SHOP_PAGE_MODELS.map((m) => {
+            const isSelected = selectedModel === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setSelectedModel(m.id)}
+                className={cn(
+                  "flex items-start gap-3 p-3.5 rounded-2xl border text-left transition cursor-pointer relative",
+                  isSelected
+                    ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs"
+                    : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50"
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+                    isSelected ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600"
+                  )}
+                >
+                  {m.id === "generaliste" && <Store className="h-4 w-4" />}
+                  {m.id === "mode" && <Sparkles className="h-4 w-4" />}
+                  {m.id === "beaute" && <Heart className="h-4 w-4" />}
+                  {m.id === "vitrine" && <Layers className="h-4 w-4" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="font-bold text-xs sm:text-sm text-slate-900 truncate">{m.name}</p>
+                    {isSelected && <span className="h-2 w-2 rounded-full bg-[#4F46E5] shrink-0" />}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
+                    {m.desc}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── 2. THÈMES RECOMMANDÉS ── */}
+      <div className="pt-4 border-t border-slate-100">
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-[#4F46E5]" />
+            Thème & Atmosphère
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">Styles épurés, modernes et sans encombrement</p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 min-w-0">
+          {THEMES.map((t) => {
+            const isSelected = draft.theme === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => set({ theme: t.id })}
+                className={cn(
+                  "rounded-2xl border-2 p-2.5 sm:p-3 text-left transition cursor-pointer min-w-0",
+                  isSelected
+                    ? "border-[#4F46E5] bg-[#EEF2FF]/40 shadow-xs"
+                    : "border-slate-200/80 bg-white hover:border-slate-300"
+                )}
+              >
+                <div className="flex h-9 overflow-hidden rounded-xl shadow-xs border border-slate-200/50">
+                  {t.swatch.map((c, i) => (
+                    <span key={i} className="flex-1" style={{ background: c }} />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs font-bold text-slate-900 truncate">{t.name}</p>
+                <p className="text-[10px] text-slate-500 truncate mt-0.5">{t.desc}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── 3. PALETTES DE COULEURS HARMONIEUSES (Inspiré Vytrini) ── */}
+      <div className="pt-4 border-t border-slate-100">
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <Palette className="h-4 w-4 text-[#4F46E5]" />
+            Palettes harmonieuses
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">Combinaisons étudiées pour une boutique professionnelle</p>
+        </div>
+
+        {/* Exemples de palettes en bandeaux cliquables */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+          {SHOP_COLOR_PALETTES.map((pal) => {
+            const isSelected = draft.primary_color.toUpperCase() === pal.primary.toUpperCase();
+            return (
+              <button
+                key={pal.name}
+                type="button"
+                onClick={() => set({ primary_color: pal.primary })}
+                className={cn(
+                  "p-2.5 rounded-2xl border text-left transition cursor-pointer",
+                  isSelected
+                    ? "border-[#4F46E5] bg-[#EEF2FF]/50 ring-2 ring-[#4F46E5]/20 shadow-xs"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                )}
+              >
+                <div className="flex h-6 rounded-lg overflow-hidden border border-slate-200/80 mb-2">
+                  <span className="flex-1" style={{ background: pal.primary }} />
+                  <span className="w-4" style={{ background: pal.accent }} />
+                  <span className="w-4" style={{ background: pal.card }} />
+                </div>
+                <p className="text-[11px] font-bold text-slate-800 truncate">{pal.name}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Sélecteur de couleur personnalisée */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-xs text-slate-500 font-semibold mr-1">Ou couleur directe :</span>
           {PRESET_COLORS.map((c) => (
             <button
               key={c}
               type="button"
               aria-label={c}
               onClick={() => set({ primary_color: c })}
-              className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full ring-offset-2 ring-offset-background transition-transform "
-              style={{ background: c, boxShadow: draft.primary_color === c ? `0 0 0 3px ${c}55` : undefined }}
+              className="grid h-8 w-8 place-items-center rounded-full transition-transform cursor-pointer relative"
+              style={{
+                background: c,
+                boxShadow: draft.primary_color === c ? `0 0 0 2px #fff, 0 0 0 4px ${c}` : undefined,
+              }}
             >
-              {draft.primary_color === c && <Check className="h-4 w-4 text-primary-foreground mix-blend-difference" />}
+              {draft.primary_color.toUpperCase() === c.toUpperCase() && (
+                <Check className="h-3.5 w-3.5 text-white" />
+              )}
             </button>
           ))}
           <label
             title="Couleur personnalisée"
-            className="relative grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full border border-dashed border-input cursor-pointer hover:border-primary transition-colors overflow-hidden"
+            className="relative grid h-8 w-8 place-items-center rounded-full border border-dashed border-slate-300 cursor-pointer hover:border-[#4F46E5] transition-colors overflow-hidden"
           >
             <input
               type="color"
@@ -312,10 +462,86 @@ export function AppearanceFields({ draft, set }: P) {
               className="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
               aria-label="Couleur personnalisée"
             />
-            <span className="text-xs font-bold text-muted-foreground select-none">+</span>
+            <span className="text-xs font-bold text-slate-500 select-none">+</span>
           </label>
         </div>
-      </Field>
+      </div>
+
+      {/* ── 4. POLICES DE CARACTÈRES ── */}
+      <div className="pt-4 border-t border-slate-100">
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <Type className="h-4 w-4 text-[#4F46E5]" />
+            Typographie
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">Style d'écriture pour les titres et les prix</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {SHOP_FONTS.map((f) => {
+            const isSelected = selectedFont === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setSelectedFont(f.id)}
+                className={cn(
+                  "p-3 rounded-2xl border text-left transition cursor-pointer",
+                  isSelected
+                    ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs"
+                    : "border-slate-200/80 bg-white hover:border-slate-300"
+                )}
+              >
+                <p className="text-lg font-bold text-slate-900">{f.preview}</p>
+                <p className="text-xs font-semibold text-slate-700 mt-1 truncate">{f.name}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── 5. DISPOSITION GRILLE PRODUIT ── */}
+      <div className="pt-4 border-t border-slate-100">
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <Grid className="h-4 w-4 text-[#4F46E5]" />
+            Affichage de la grille produit
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">Choisissez comment vos articles apparaissent pour les clients</p>
+        </div>
+
+        <div className="space-y-2">
+          {PRODUCT_GRID_STYLES.map((g) => {
+            const isSelected = selectedGrid === g.id;
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => setSelectedGrid(g.id)}
+                className={cn(
+                  "flex items-center justify-between w-full p-3.5 rounded-2xl border text-left transition cursor-pointer",
+                  isSelected
+                    ? "border-[#4F46E5] bg-[#EEF2FF]/60 shadow-xs"
+                    : "border-slate-200/80 bg-white hover:border-slate-300"
+                )}
+              >
+                <div className="min-w-0 pr-2">
+                  <p className="text-xs sm:text-sm font-bold text-slate-900">{g.name}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{g.desc}</p>
+                </div>
+                <div
+                  className={cn(
+                    "h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0",
+                    isSelected ? "border-[#4F46E5] bg-[#4F46E5]" : "border-slate-300 bg-white"
+                  )}
+                >
+                  {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

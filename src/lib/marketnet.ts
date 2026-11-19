@@ -1,10 +1,106 @@
 export const THEMES = [
-  { id: "savane", name: "Savane", desc: "Sobre et naturel", swatch: ["#FAFCFB", "#24634B"] },
-  { id: "minuit", name: "Minuit", desc: "Sombre et élégant", swatch: ["#1B1F2E", "#24634B"] },
-  { id: "boutique", name: "Boutique", desc: "Mode, serif raffiné", swatch: ["#F9F1F0", "#C2255C"] },
-  { id: "marche", name: "Marché", desc: "Coloré et généreux", swatch: ["#F7F0D6", "#2F9E44"] },
-  { id: "pur", name: "Pur", desc: "Minimal, angles nets", swatch: ["#FFFFFF", "#111111"] },
-  { id: "oasis", name: "Oasis", desc: "Frais et lumineux", swatch: ["#EAF6F6", "#1971C2"] },
+  { id: "savane", name: "Épure Pro", desc: "Minimaliste, ultra clair & moderne", swatch: ["#FFFFFF", "#4F46E5", "#0F172A"] },
+  { id: "minuit", name: "Élégance Sombre", desc: "Fond nuit luxueux, contrastes nets", swatch: ["#0F172A", "#818CF8", "#F8FAFC"] },
+  { id: "boutique", name: "Atelier & Mode", desc: "Chic éditorial, typographie raffinée", swatch: ["#FAF8F5", "#C2410C", "#1C1917"] },
+  { id: "marche", name: "Vitalité & Fresh", desc: "Lumineux, convivial et accueillant", swatch: ["#F0FDF4", "#059669", "#064E3B"] },
+  { id: "pur", name: "Haute Couture", desc: "Noir & blanc pur, design galerie", swatch: ["#FFFFFF", "#18181B", "#71717A"] },
+  { id: "oasis", name: "Tech & Futur", desc: "Bleu profond moderne, style studio", swatch: ["#F8FAFC", "#2563EB", "#1E293B"] },
+] as const;
+
+export const SHOP_PAGE_MODELS = [
+  {
+    id: "generaliste",
+    name: "Boutique Généraliste",
+    desc: "Recherche en vue, rayons visibles, meilleures ventes et réassurance client.",
+    icon: "Store",
+  },
+  {
+    id: "mode",
+    name: "Mode & Tendance",
+    desc: "Grandes tuiles de rayons, nouveautés en grille spacieuse, logo centré.",
+    icon: "Sparkles",
+  },
+  {
+    id: "beaute",
+    name: "Beauté & Soins",
+    desc: "Acheter par besoin, best-sellers en avant, avis et résultats visibles.",
+    icon: "Heart",
+  },
+  {
+    id: "vitrine",
+    name: "Vitrine de Présentation",
+    desc: "La page qui raconte avant de vendre : chiffres clés, services et atouts.",
+    icon: "Layers",
+  },
+] as const;
+
+export const SHOP_COLOR_PALETTES = [
+  {
+    name: "Indigo Moderne (Vytrini)",
+    primary: "#4F46E5",
+    accent: "#6366F1",
+    bg: "#FFFFFF",
+    card: "#F8FAFC",
+  },
+  {
+    name: "Bleu Marine Tech",
+    primary: "#1E3A8A",
+    accent: "#3B82F6",
+    bg: "#FFFFFF",
+    card: "#F0F9FF",
+  },
+  {
+    name: "Émeraude Prestige",
+    primary: "#047857",
+    accent: "#10B981",
+    bg: "#FFFFFF",
+    card: "#F0FDF4",
+  },
+  {
+    name: "Terre de Sienne",
+    primary: "#C2410C",
+    accent: "#F97316",
+    bg: "#FFFFFF",
+    card: "#FFF7ED",
+  },
+  {
+    name: "Rose Quartz Glamour",
+    primary: "#BE185D",
+    accent: "#EC4899",
+    bg: "#FFFFFF",
+    card: "#FDF2F8",
+  },
+  {
+    name: "Noir Onyx Minimal",
+    primary: "#18181B",
+    accent: "#71717A",
+    bg: "#FFFFFF",
+    card: "#F4F4F5",
+  },
+] as const;
+
+export const SHOP_FONTS = [
+  { id: "sans", name: "Moderne (Geist / Inter)", preview: "Aa Bb Cc" },
+  { id: "display", name: "Impact (Bricolage Grotesque)", preview: "Aa Bb Cc" },
+  { id: "serif", name: "Luxe & Magazine (Playfair / Instrument)", preview: "Aa Bb Cc" },
+] as const;
+
+export const PRODUCT_GRID_STYLES = [
+  {
+    id: "grid-2",
+    name: "Grille Standard (2 par ligne)",
+    desc: "Équilibrée et familière, idéale pour tout type de catalogue",
+  },
+  {
+    id: "grid-large",
+    name: "Grandes Cartes Visuelles",
+    desc: "Idéale pour la mode, les bijoux et les photos soignées",
+  },
+  {
+    id: "list",
+    name: "Liste Détaillée & Épurée",
+    desc: "Parfaite pour restaurants, épiceries, pièces et menus",
+  },
 ] as const;
 
 export const SHOP_CATEGORIES = [
@@ -12,7 +108,16 @@ export const SHOP_CATEGORIES = [
   "Maison & décoration", "Restaurant & traiteur", "Artisanat", "Santé & pharmacie", "Services", "Autre",
 ];
 
-export const PRESET_COLORS = ["#24634B", "#252A28", "#48645C", "#426078"];
+export const PRESET_COLORS = [
+  "#4F46E5",
+  "#1E3A8A",
+  "#047857",
+  "#C2410C",
+  "#BE185D",
+  "#18181B",
+  "#0284C7",
+  "#7C3AED",
+];
 
 export function formatPrice(n: number, currency: string) {
   if (currency === "MIXTE") return "Montant mixte";

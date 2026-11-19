@@ -127,13 +127,55 @@
   --hero-overlay-mobile: linear-gradient(180deg, rgba(240, 242, 245, 0.97) 0%, rgba(240, 242, 245, 0.94) 48%, rgba(240, 242, 245, 0.12) 76%);
 }
 
-/* ---------- Storefront themes ---------- */
-.theme-savane { --shop-bg: var(--background); --shop-fg: var(--foreground); --shop-card: var(--card); --shop-muted: var(--muted-foreground); --shop-radius: 0.5rem; --shop-heading: var(--font-display); }
-.theme-minuit { --shop-bg: oklch(0.18 0.02 260); --shop-fg: oklch(0.96 0.01 260); --shop-card: oklch(0.24 0.025 260); --shop-muted: oklch(0.7 0.02 260); --shop-radius: 0.75rem; --shop-heading: "Bricolage Grotesque", sans-serif; }
-.theme-boutique { --shop-bg: oklch(0.97 0.012 20); --shop-fg: oklch(0.25 0.03 15); --shop-card: oklch(0.995 0.004 20); --shop-muted: oklch(0.52 0.03 15); --shop-radius: 0.25rem; --shop-heading: "Playfair Display", serif; }
-.theme-marche { --shop-bg: oklch(0.96 0.04 95); --shop-fg: oklch(0.22 0.04 60); --shop-card: oklch(0.99 0.015 95); --shop-muted: oklch(0.45 0.04 60); --shop-radius: 1.75rem; --shop-heading: "Bricolage Grotesque", sans-serif; }
-.theme-pur { --shop-bg: oklch(1 0 0); --shop-fg: oklch(0.15 0 0); --shop-card: oklch(0.97 0 0); --shop-muted: oklch(0.5 0 0); --shop-radius: 0rem; --shop-heading: "Figtree", sans-serif; }
-.theme-oasis { --shop-bg: oklch(0.97 0.02 190); --shop-fg: oklch(0.22 0.04 220); --shop-card: oklch(1 0 0); --shop-muted: oklch(0.48 0.03 220); --shop-radius: 1rem; --shop-heading: "Bricolage Grotesque", sans-serif; }
+/* ---------- Storefront themes (Refondus, épurés et modernes) ---------- */
+.theme-savane {
+  --shop-bg: #FFFFFF;
+  --shop-fg: #0F172A;
+  --shop-card: #F8FAFC;
+  --shop-muted: #64748B;
+  --shop-radius: 1rem;
+  --shop-heading: "Geist", -apple-system, sans-serif;
+}
+.theme-minuit {
+  --shop-bg: #0F172A;
+  --shop-fg: #F8FAFC;
+  --shop-card: #1E293B;
+  --shop-muted: #94A3B8;
+  --shop-radius: 1rem;
+  --shop-heading: "Bricolage Grotesque", sans-serif;
+}
+.theme-boutique {
+  --shop-bg: #FAF8F5;
+  --shop-fg: #1C1917;
+  --shop-card: #FFFFFF;
+  --shop-muted: #78716C;
+  --shop-radius: 0.5rem;
+  --shop-heading: "Playfair Display", "Instrument Serif", serif;
+}
+.theme-marche {
+  --shop-bg: #F0FDF4;
+  --shop-fg: #064E3B;
+  --shop-card: #FFFFFF;
+  --shop-muted: #059669;
+  --shop-radius: 1.25rem;
+  --shop-heading: "Bricolage Grotesque", sans-serif;
+}
+.theme-pur {
+  --shop-bg: #FFFFFF;
+  --shop-fg: #18181B;
+  --shop-card: #F4F4F5;
+  --shop-muted: #71717A;
+  --shop-radius: 0.25rem;
+  --shop-heading: "Geist", sans-serif;
+}
+.theme-oasis {
+  --shop-bg: #F8FAFC;
+  --shop-fg: #0F172A;
+  --shop-card: #FFFFFF;
+  --shop-muted: #475569;
+  --shop-radius: 1rem;
+  --shop-heading: "Bricolage Grotesque", sans-serif;
+}
 
 @layer base {
   * { border-color: var(--color-border); }
