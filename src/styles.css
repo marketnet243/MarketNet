@@ -450,8 +450,29 @@
 .marketnet-nav { font-weight: 500; font-size: 14px; color: color-mix(in oklab, var(--foreground) 70%, transparent); }
 .marketnet-nav a { transition: color var(--motion-duration); }
 .marketnet-nav a:hover { color: var(--foreground); }
-.marketnet-eyebrow { display: inline-flex; width: fit-content; letter-spacing: 0; padding: 6px 12px 6px 10px; border-radius: 999px; background: color-mix(in oklab, var(--highlight) 45%, var(--card)); color: var(--highlight-foreground); border: 1px solid color-mix(in oklab, var(--primary) 18%, transparent); }
-.marketnet-eyebrow::before { width: 6px; height: 6px; border-radius: 999px; background: var(--primary); box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent); }
+.marketnet-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  letter-spacing: 0.02em;
+  padding: 6px 14px 6px 10px;
+  border-radius: 999px;
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid #E0E7FF;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.marketnet-eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
 .marketnet-hero h1 { font-weight: 800; letter-spacing: 0; line-height: 1; }
 .marketnet-hero h1 span { font-family: var(--font-serif); font-weight: 400; letter-spacing: 0; line-height: 1.02; font-size: 1.02em; }
 .marketnet-hero p { font-size: 17px; line-height: 1.65; }

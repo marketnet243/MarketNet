@@ -355,7 +355,7 @@ function PromotionsPage() {
             const liveState = promoLiveState(p);
             const statusBadge =
               liveState === "active"
-                ? { label: "En ligne", cls: "bg-slate-900 text-white" }
+                ? { label: "En ligne", cls: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" }
                 : liveState === "scheduled"
                 ? { label: "Programmée", cls: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" }
                 : liveState === "ended"

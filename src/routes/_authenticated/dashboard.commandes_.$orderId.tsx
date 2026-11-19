@@ -32,7 +32,7 @@ const STATUS_CONFIG: Record<
   Order["status"],
   { label: string; icon: any; badgeClass: string }
 > = {
-  new: { label: "Nouvelle", icon: Clock, badgeClass: "bg-slate-900 text-white" },
+  new: { label: "Nouvelle", icon: Clock, badgeClass: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" },
   confirmed: { label: "Confirmée", icon: CheckCircle2, badgeClass: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" },
   delivered: { label: "Livrée", icon: Truck, badgeClass: "bg-slate-100 text-slate-700 border border-slate-200" },
   cancelled: { label: "Annulée", icon: XCircle, badgeClass: "bg-rose-50 text-rose-700 border border-rose-200" },
@@ -181,7 +181,7 @@ function OrderDetailPage() {
                             <ImageIcon className="h-5 w-5" />
                           </div>
                         )}
-                        <span className="absolute bottom-1 right-1 rounded-full bg-slate-900 px-1.5 py-0.2 text-[9px] font-bold text-white">
+                        <span className="absolute bottom-1 right-1 rounded-full bg-[#4F46E5] px-1.5 py-0.5 text-[9px] font-bold text-white">
                           {it.qty}x
                         </span>
                       </div>

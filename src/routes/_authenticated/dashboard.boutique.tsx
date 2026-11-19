@@ -104,7 +104,7 @@ function ShopSettings() {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-bold text-sm text-slate-900">Boutique en ligne</p>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPublished ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"}`}>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPublished ? "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" : "bg-slate-100 text-slate-500"}`}>
                   {isPublished ? "Visible" : "Privée"}
                 </span>
               </div>
@@ -125,21 +125,21 @@ function ShopSettings() {
           <TabsList className="grid h-12 w-full grid-cols-3 rounded-2xl bg-white border border-slate-200/70 p-1 shadow-xs">
             <TabsTrigger
               value="info"
-              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white transition-all cursor-pointer"
             >
               <Info className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Infos</span>
             </TabsTrigger>
             <TabsTrigger
               value="look"
-              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white transition-all cursor-pointer"
             >
               <Palette className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Apparence</span>
             </TabsTrigger>
             <TabsTrigger
               value="contact"
-              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-[#4F46E5] data-[state=active]:text-white transition-all cursor-pointer"
             >
               <Phone className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Contact</span>

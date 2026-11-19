@@ -170,7 +170,7 @@ function ProductsPage() {
             <button
               type="button"
               onClick={() => setForm(blank())}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4F46E5] text-white text-xs font-bold hover:bg-[#4338CA] transition-colors cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
               Ajouter un produit

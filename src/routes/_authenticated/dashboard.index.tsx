@@ -74,31 +74,44 @@ function Overview() {
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
-      {/* ── 1. BANNIÈRE PRO / ABONNEMENT (Palette Vytrini : Indigo #4F46E5 & Lavande #EEF2FF) ── */}
+      {/* ── 1. BANNIÈRE CROISSANCE / PARTAGE RAPIDE ── */}
       <div className="rounded-3xl bg-[#EEF2FF] border border-[#E0E7FF] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start sm:items-center gap-3.5">
           <div className="h-11 w-11 rounded-2xl bg-[#4F46E5] text-white flex items-center justify-center shrink-0 shadow-sm">
-            <Zap className="h-5 w-5 fill-white" />
+            <Share2 className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-extrabold text-base text-slate-900">Activer mon site</h2>
-              <span className="rounded-full bg-[#4F46E5]/15 text-[#4F46E5] text-[10px] font-extrabold px-2 py-0.5 uppercase tracking-wider">
-                {shop.plan_id ? `Mode ${shop.plan_id}` : "Mode Gratuit"}
+              <h2 className="font-extrabold text-base text-slate-900">Partager ma boutique</h2>
+              <span className="rounded-full bg-[#4F46E5]/15 text-[#4F46E5] text-[10px] font-extrabold px-2.5 py-0.5">
+                {products && products.length > 0 ? "Prête à vendre" : "Configuration rapide"}
               </span>
             </div>
             <p className="text-xs text-slate-600 mt-0.5 leading-relaxed max-w-md">
-              Domaine personnalisé, catalogue illimité et commandes directes pour vendre comme un pro.
+              Envoyez votre lien direct sur WhatsApp et vos réseaux sociaux pour commencer à encaisser dès maintenant.
             </p>
           </div>
         </div>
 
-        <Link
-          to="/dashboard/abonnement"
-          className="self-start sm:self-auto shrink-0 px-5 py-2.5 rounded-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-bold transition-all shadow-xs"
-        >
-          {shop.plan_id ? "Gérer mon abonnement" : "S'abonner – 9,99 $/mois"}
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-[#4F46E5]" /> : <Copy className="h-3.5 w-3.5 text-slate-500" />}
+            <span>{copied ? "Copié !" : "Copier le lien"}</span>
+          </button>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`Bonjour ! Retrouvez nos produits et passez votre commande directement en ligne ici : ${url}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="px-5 py-2.5 rounded-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span>Partager</span>
+          </a>
+        </div>
       </div>
 
       {/* ── 2. BLOC ÉTAT / À FAIRE MAINTENANT ── */}
@@ -206,7 +219,7 @@ function Overview() {
               className="h-12 w-12 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs"
             />
           ) : (
-            <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white font-extrabold text-lg flex items-center justify-center shrink-0 shadow-xs">
+            <div className="h-12 w-12 rounded-2xl bg-[#4F46E5] text-white font-extrabold text-lg flex items-center justify-center shrink-0 shadow-xs">
               {shop.name.charAt(0).toUpperCase()}
             </div>
           )}
