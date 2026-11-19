@@ -221,122 +221,120 @@ function ProductPage() {
     });
   }
 
-  const infoCardClass =
-    "flex flex-col items-center gap-1 rounded-2xl bg-shop-card/60 px-3 py-3 text-center flex-1 min-w-0";
-
   return (
     <div
-      className={cn("theme-" + shop.theme, "min-h-screen")}
-      style={shopStyle(shop.primary_color)}
+      className={cn("theme-" + shop.theme, "min-h-screen text-slate-800 pb-16")}
+      style={shopStyle(shop.primary_color || "#4F46E5")}
     >
-      {/* ── Breadcrumb nav ───────────────────── */}
-      <div className="sticky top-0 z-30 border-b border-current/8 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-12 max-w-5xl items-center gap-2 px-3 sm:px-4">
-          <BackLink slug={slug} shopName={shop.name} />
-          <span className="text-current/20 text-xs">/</span>
-          <span className="line-clamp-1 text-xs font-semibold text-shop-fg opacity-70">
+      {/* ── BREADCRUMB / FIL D'ARIANE NATUREL DANS LE FLUX DE LA PAGE ── */}
+      <div className="mx-auto max-w-5xl px-4 pt-2 pb-3">
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <Link
+            to="/b/$slug"
+            params={{ slug }}
+            className="hover:text-[#4F46E5] transition-colors font-medium"
+          >
+            Accueil
+          </Link>
+          <span className="text-slate-300">/</span>
+          <Link
+            to="/b/$slug/produits"
+            params={{ slug }}
+            className="hover:text-[#4F46E5] transition-colors font-medium"
+          >
+            Produits
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="truncate max-w-[140px] sm:max-w-xs font-semibold text-slate-900">
             {product.name}
           </span>
         </div>
       </div>
 
-      {/* ── Main layout ─────────────────────── */}
-      <div className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-6">
-        <div className="grid gap-5 md:grid-cols-2 md:items-start md:gap-10 lg:gap-14">
+      {/* ── CONTENU PRINCIPAL EN 2 COLONNES HARMONIEUSES ── */}
+      <div className="mx-auto max-w-5xl px-4 py-2 sm:py-4">
+        <div className="grid gap-8 md:grid-cols-2 md:items-start lg:gap-12">
 
-          {/* ── LEFT: Image gallery ─────────── */}
-          <div className="space-y-2.5">
-            {/* Main image */}
-            <div className="relative overflow-hidden rounded-2xl bg-shop-card aspect-square shadow-md">
+          {/* ── COLONNE GAUCHE : GALERIE PRODUIT ULTRA SOIGNÉE ── */}
+          <div className="space-y-3.5">
+            {/* Cadre de l'image principale */}
+            <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 aspect-square shadow-sm flex items-center justify-center">
               {imgs[imgIdx] ? (
                 <img
                   key={imgIdx}
                   src={mediaUrl(imgs[imgIdx])!}
                   alt={product.name}
-                  className="h-full w-full object-cover transition-opacity duration-300"
-                  loading="eager"
+                  className="h-full w-full object-cover object-center transition-all duration-300"
+                  fetchPriority="high"
                 />
               ) : (
-                <div className="grid h-full place-items-center">
-                  <Package className="h-16 w-16 opacity-20 text-shop-muted" />
+                <div className="grid h-full place-items-center text-slate-300">
+                  <Package className="h-16 w-16 opacity-30" />
                 </div>
               )}
 
-              {/* Discount badge */}
+              {/* Badges sur l'image */}
               {isDiscounted && (
-                <div className="absolute left-2.5 top-2.5 rounded-full bg-destructive px-2.5 py-0.5 text-xs font-black text-primary-foreground shadow-md">
+                <div className="absolute left-3.5 top-3.5 rounded-full bg-rose-500 px-3 py-1 text-xs font-black text-white shadow-md">
                   -{discountPct}%
                 </div>
               )}
 
-              {/* Out of stock overlay */}
               {out && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                  <span className="rounded-full border-2 border-current/30 bg-background/90 px-4 py-1.5 text-xs font-bold tracking-normal">
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs">
+                  <span className="rounded-full bg-white px-4 py-2 text-xs font-extrabold text-slate-900 shadow-lg">
                     Rupture de stock
                   </span>
                 </div>
               )}
 
-              {/* Featured badge */}
               {product.featured && !out && (
-                <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-warning px-2.5 py-0.5 text-[11px] font-black text-warning shadow-md">
-                  <Star className="h-3 w-3 fill-current" /> Coup de cœur
+                <div className="absolute right-3.5 top-3.5 flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-xs font-black text-white shadow-md">
+                  <Star className="h-3.5 w-3.5 fill-current" /> Coup de cœur
                 </div>
               )}
 
-              {/* Nav arrows (multi-image) */}
+              {/* Flèches de navigation multi-images */}
               {imgs.length > 1 && (
                 <>
                   <button
+                    type="button"
                     onClick={() => setImgIdx((i) => Math.max(0, i - 1))}
                     disabled={imgIdx === 0}
-                    className="absolute left-2.5 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-full bg-background/80 shadow-md backdrop-blur-sm transition-all hover:bg-background disabled:opacity-30"
+                    aria-label="Image précédente"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-md text-slate-800 hover:bg-white disabled:opacity-30 transition-all cursor-pointer"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => setImgIdx((i) => Math.min(imgs.length - 1, i + 1))}
                     disabled={imgIdx === imgs.length - 1}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-full bg-background/80 shadow-md backdrop-blur-sm transition-all hover:bg-background disabled:opacity-30"
+                    aria-label="Image suivante"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-md text-slate-800 hover:bg-white disabled:opacity-30 transition-all cursor-pointer"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-5 w-5" />
                   </button>
                 </>
               )}
-
-              {/* Dot indicator */}
-              {imgs.length > 1 && (
-                <div className="absolute bottom-2.5 left-1/2 flex -translate-x-1/2 gap-1.5">
-                  {imgs.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setImgIdx(i)}
-                      className={cn(
-                        "h-1.5 rounded-full transition-all duration-300",
-                        i === imgIdx ? "w-4 bg-shop" : "w-1.5 bg-current/30 hover:bg-current/50"
-                      )}
-                    />
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* Thumbnails */}
+            {/* Miniatures d'images */}
             {imgs.length > 1 && (
               <div
                 ref={thumbnailRef}
-                className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                className="flex gap-2.5 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               >
-                {imgs.map((im, i) => (
+                {imgs.map((im: string, i: number) => (
                   <button
                     key={im}
+                    type="button"
                     onClick={() => setImgIdx(i)}
                     className={cn(
-                      "h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200",
+                      "h-16 w-16 shrink-0 overflow-hidden rounded-2xl border-2 transition-all duration-200 cursor-pointer",
                       i === imgIdx
-                        ? "border-shop ring-2 ring-shop/30 shadow-sm scale-105"
-                        : "border-transparent opacity-60 hover:opacity-100"
+                        ? "border-[#4F46E5] ring-2 ring-[#4F46E5]/25 shadow-sm scale-102"
+                        : "border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-300"
                     )}
                   >
                     <img src={mediaUrl(im)!} alt="" loading="lazy" className="h-full w-full object-cover" />
@@ -345,151 +343,171 @@ function ProductPage() {
               </div>
             )}
 
-            {/* Trust row — desktop below image */}
-            <div className="hidden md:flex gap-2">
-              {[
-                { icon: <Truck className="h-4 w-4 text-shop" />, label: "Livraison rapide" },
-                { icon: <ShieldCheck className="h-4 w-4 text-shop" />, label: "Paiement sécurisé" },
-                { icon: <MessageCircle className="h-4 w-4 text-shop" />, label: "Support WhatsApp" },
-              ].map((b) => (
-                <div key={b.label} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-current/10 bg-shop-card/60 px-2 py-2.5 text-center">
-                  {b.icon}
-                  <span className="text-[11px] font-semibold text-shop-fg/80">{b.label}</span>
+            {/* Blocs de réassurance (Desktop) */}
+            <div className="hidden md:grid grid-cols-3 gap-3 pt-2">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-slate-200/80 text-center shadow-2xs">
+                <div className="h-8 w-8 rounded-full bg-[#EEF2FF] grid place-items-center text-[#4F46E5]">
+                  <Truck className="h-4 w-4" />
                 </div>
-              ))}
+                <span className="text-xs font-bold text-slate-800">Livraison rapide</span>
+                <span className="text-[10px] text-slate-500">Partout en RDC</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-slate-200/80 text-center shadow-2xs">
+                <div className="h-8 w-8 rounded-full bg-[#EEF2FF] grid place-items-center text-[#4F46E5]">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-800">Paiement sécurisé</span>
+                <span className="text-[10px] text-slate-500">À la réception</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-slate-200/80 text-center shadow-2xs">
+                <div className="h-8 w-8 rounded-full bg-[#EEF2FF] grid place-items-center text-[#4F46E5]">
+                  <MessageCircle className="h-4 w-4" />
+                </div>
+                <span className="text-xs font-bold text-slate-800">Support réactif</span>
+                <span className="text-[10px] text-slate-500">Direct WhatsApp</span>
+              </div>
             </div>
           </div>
 
-          {/* ── RIGHT: Product info ──────────── */}
-          <div className="space-y-4">
-            {/* Category + actions row */}
-            <div className="flex items-start justify-between gap-3">
-              <span className="inline-flex items-center gap-1 rounded-full bg-shop/10 px-2.5 py-1 text-[11px] font-bold text-shop">
+          {/* ── COLONNE DROITE : DÉTAILS, PRIX & COMMANDES ── */}
+          <div className="space-y-5">
+            {/* En-tête produit : Catégorie & Partage */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EEF2FF] px-3 py-1 text-xs font-bold text-[#4F46E5]">
                 {product.category_id
-                  ? ((data as any).categories?.find((c: any) => c.id === product.category_id)?.name ?? "Produit")
-                  : "Produit"}
+                  ? ((data as any).categories?.find((c: any) => c.id === product.category_id)?.name ?? "Article")
+                  : "Article"}
               </span>
-              <div className="flex items-center gap-1.5">
+
+              <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setLiked((v) => !v)}
                   className={cn(
-                    "grid h-8 w-8 place-items-center rounded-xl border border-current/15 transition-all duration-200",
-                    liked ? "bg-destructive border-destructive text-destructive" : "bg-shop-card/60 text-shop-muted hover:border-current/30"
+                    "grid h-9 w-9 place-items-center rounded-full border transition-all cursor-pointer",
+                    liked
+                      ? "bg-rose-50 border-rose-200 text-rose-500"
+                      : "bg-white border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   )}
-                  aria-label="Favoris"
+                  aria-label="Ajouter aux favoris"
                 >
-                  <Heart className={cn("h-3.5 w-3.5", liked && "fill-current")} />
+                  <Heart className={cn("h-4 w-4", liked && "fill-current")} />
                 </button>
                 <button
+                  type="button"
                   onClick={handleShare}
-                  className="grid h-8 w-8 place-items-center rounded-xl border border-current/15 bg-shop-card/60 text-shop-muted transition-all hover:border-current/30"
-                  aria-label="Partager"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all cursor-pointer"
+                  aria-label="Partager ce produit"
                 >
-                  <Share2 className="h-3.5 w-3.5" />
+                  <Share2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
-            {/* Product name */}
+            {/* Titre & Info vendeur */}
             <div>
-              <h1 className="font-shop-heading text-xl font-extrabold leading-tight sm:text-2xl">
+              <h1 className="font-shop-heading text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
                 {product.name}
               </h1>
-              <div className="mt-1.5 flex items-center gap-1.5">
+              <div className="mt-2 flex items-center gap-2">
                 {shop.logo_url ? (
-                  <img src={mediaUrl(shop.logo_url)!} alt={shop.name} className="h-4 w-4 rounded-full object-cover ring-1 ring-current/10" />
+                  <img
+                    src={mediaUrl(shop.logo_url)!}
+                    alt={shop.name}
+                    className="h-5 w-5 rounded-full object-cover border border-slate-200"
+                  />
                 ) : (
-                  <BadgeCheck className="h-4 w-4 text-shop" />
+                  <BadgeCheck className="h-5 w-5 text-[#4F46E5]" />
                 )}
-                <span className="text-xs text-shop-muted">
-                  Vendu par <span className="font-semibold text-shop-fg">{shop.name}</span>
+                <span className="text-xs text-slate-500">
+                  Vendu par <span className="font-bold text-slate-800">{shop.name}</span>
                 </span>
               </div>
             </div>
 
-            {/* ── Price block ─────────────────── */}
-            <div className="rounded-xl bg-shop-card/60 p-3.5 border border-current/8">
-              <div className="flex items-baseline gap-2.5 flex-wrap">
-                <span className={cn("text-2xl font-black", isDiscounted ? "text-destructive dark:text-destructive" : "text-shop")}>
+            {/* Bloc Prix & Disponibilité */}
+            <div className="rounded-3xl bg-white p-5 border border-slate-200/90 shadow-xs space-y-3">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className={cn("text-3xl sm:text-4xl font-black tracking-tight", isDiscounted ? "text-rose-600" : "text-[#4F46E5]")}>
                   {priceStr}
                 </span>
                 {isDiscounted && (
-                  <>
-                    <span className="text-sm text-shop-muted line-through">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base text-slate-400 line-through">
                       {formatPrice(Number(product.price), product.currency)}
                     </span>
-                    <span className="rounded-full bg-destructive px-2 py-0.5 text-[11px] font-black text-destructive dark:bg-destructive/40 dark:text-destructive">
-                      -{discountPct}%
+                    <span className="rounded-full bg-rose-100 text-rose-700 px-2.5 py-0.5 text-xs font-black">
+                      Économisez {discountPct}%
                     </span>
-                  </>
+                  </div>
                 )}
               </div>
-              {(product as any).promo_ends_at && (
-                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-shop-muted">
-                  <Clock className="h-3 w-3 text-warning" />
-                  Offre jusqu'au{" "}
-                  <span className="font-semibold text-warning">
-                    {new Date((product as any).promo_ends_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
-                  </span>
-                </div>
-              )}
-              <div className="mt-2.5">
+
+              {/* Statut Stock */}
+              <div className="pt-1">
                 {out ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-current/10 px-2.5 py-0.5 text-xs font-semibold text-shop-muted">
-                    <span className="h-1.5 w-1.5 rounded-full bg-current/40" />
-                    Rupture de stock
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
+                    Rupture de stock momentanée
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-2.5 py-0.5 text-xs font-semibold text-success dark:bg-success/30 dark:text-success">
-                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                    En stock — livraison disponible
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-100">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    En stock • Disponible immédiatement
                   </span>
                 )}
               </div>
             </div>
 
-            {/* ── Description ─────────────────── */}
+            {/* Description Produit avec "Voir plus" fluide */}
             {product.description && (
-              <div>
-                <h3 className="mb-1.5 text-[11px] font-bold uppercase tracking-normal text-shop-muted">
-                  Description
+              <div className="rounded-3xl bg-white p-5 border border-slate-200/90 shadow-xs space-y-2">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                  Description du produit
                 </h3>
-                <div className={cn(
-                  "relative overflow-hidden whitespace-pre-line text-sm leading-relaxed text-shop-fg/80 transition-all duration-500",
-                  !expanded && descLong ? "max-h-20" : "max-h-[800px]"
-                )}>
+                <div
+                  className={cn(
+                    "relative overflow-hidden whitespace-pre-line text-sm leading-relaxed text-slate-700 transition-all duration-300",
+                    !expanded && descLong ? "max-h-24" : "max-h-[1000px]"
+                  )}
+                >
                   {product.description}
                   {!expanded && descLong && (
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
+                    <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                   )}
                 </div>
                 {descLong && (
-                  <button onClick={() => setExpanded((v) => !v)} className="mt-1 text-xs font-semibold text-shop hover:underline">
-                    {expanded ? "Voir moins ↑" : "Voir plus ↓"}
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((v) => !v)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#4F46E5] hover:underline pt-1 cursor-pointer"
+                  >
+                    <span>{expanded ? "Voir moins ↑" : "Voir plus ↓"}</span>
                   </button>
                 )}
               </div>
             )}
 
-            {/* ── Variants ────────────────────── */}
+            {/* Variantes (Tailles, Couleurs, etc.) */}
             {variants.map((v) => (
-              <div key={v.name}>
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-[11px] font-bold uppercase tracking-normal text-shop-muted">{v.name}</h3>
+              <div key={v.name} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">{v.name}</span>
                   {choice[v.name] && (
-                    <span className="rounded-full bg-shop/10 px-2 py-0.5 text-xs font-bold text-shop">{choice[v.name]}</span>
+                    <span className="text-xs font-bold text-[#4F46E5]">{choice[v.name]}</span>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {v.options.map((o) => (
                     <button
                       key={o}
+                      type="button"
                       onClick={() => setChoice((c) => ({ ...c, [v.name]: o }))}
                       className={cn(
-                        "h-9 min-w-12 rounded-xl border-2 px-3 text-sm font-semibold transition-all duration-200 ",
+                        "h-10 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer",
                         choice[v.name] === o
-                          ? "border-shop bg-shop text-shop-foreground shadow-sm"
-                          : "border-current/15 bg-shop-card/60 hover:border-shop/50"
+                          ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] shadow-xs"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                       )}
                     >
                       {o}
@@ -499,41 +517,58 @@ function ProductPage() {
               </div>
             ))}
 
-            {/* ── Quantité + Ajouter ──────────── */}
+            {/* Quantité & Actions d'achat */}
             {!out && (
-              <div className="space-y-3">
-                {/* Qty */}
+              <div className="space-y-4 pt-1">
+                {/* Sélecteur de Quantité */}
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] font-bold uppercase tracking-normal text-shop-muted">Quantité</span>
-                  <div className="flex items-center rounded-full border-2 border-current/15 bg-shop-card/60">
-                    <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-9 w-9 place-items-center rounded-full text-shop-muted hover:text-shop-fg " aria-label="Moins">
+                  <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">Quantité :</span>
+                  <div className="flex items-center rounded-full border border-slate-200 bg-white p-1 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      className="h-8 w-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 grid place-items-center transition-colors cursor-pointer"
+                      aria-label="Moins"
+                    >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
-                    <span className="w-8 text-center text-sm font-black">{qty}</span>
-                    <button onClick={() => setQty((q) => Math.min(99, q + 1))} className="grid h-9 w-9 place-items-center rounded-full text-shop-muted hover:text-shop-fg " aria-label="Plus">
+                    <span className="w-10 text-center text-sm font-extrabold text-slate-900">{qty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQty((q) => Math.min(99, q + 1))}
+                      className="h-8 w-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 grid place-items-center transition-colors cursor-pointer"
+                      aria-label="Plus"
+                    >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   {qty > 1 && (
-                    <span className="text-xs text-shop-muted">
-                      Total : <span className="font-bold text-shop">{formatPrice(effectivePrice * qty, product.currency)}</span>
+                    <span className="text-xs text-slate-500">
+                      Total : <strong className="text-[#4F46E5]">{formatPrice(effectivePrice * qty, product.currency)}</strong>
                     </span>
                   )}
                 </div>
 
-                {/* CTA buttons */}
-                <div className="flex flex-col gap-2 sm:flex-row">
+                {/* Boutons d'Action Harmonieux aux Couleurs MarketNet */}
+                <div className="flex flex-col sm:flex-row gap-3">
                   <button
+                    type="button"
                     onClick={addToCart}
                     className={cn(
-                      "flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-md transition-all duration-200  bg-shop text-shop-foreground hover:opacity-90",
-                      addedAnim && "scale-95 opacity-80"
+                      "flex-1 h-13 px-6 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.99] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-indigo-500/20 transition-all cursor-pointer",
+                      addedAnim && "scale-95 bg-emerald-600"
                     )}
                   >
                     {addedAnim ? (
-                      <><CheckCircle2 className="h-4 w-4" /> Ajouté !</>
+                      <>
+                        <CheckCircle2 className="h-5 w-5" />
+                        <span>Ajouté avec succès !</span>
+                      </>
                     ) : (
-                      <><ShoppingBag className="h-4 w-4" /> Ajouter au panier</>
+                      <>
+                        <ShoppingBag className="h-5 w-5" />
+                        <span>Ajouter au panier</span>
+                      </>
                     )}
                   </button>
 
@@ -542,73 +577,107 @@ function ProductPage() {
                       href={buildWhatsAppUrl(shop.whatsapp, product.name, priceStr, shop.name)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-success px-5 py-3 text-sm font-bold text-primary-foreground shadow-md transition-all hover:bg-success "
+                      className="flex-1 h-13 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.99] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-500/20 transition-all"
                     >
-                      <MessageCircle className="h-4 w-4" />
-                      Commander WhatsApp
+                      <MessageCircle className="h-5 w-5 fill-current" />
+                      <span>Commander sur WhatsApp</span>
                     </a>
                   )}
                 </div>
 
-                <p className="text-center text-[11px] text-shop-muted">
-                  Paiement et livraison convenus directement avec le vendeur
+                <p className="text-center text-[11px] text-slate-500">
+                  Commandez en toute confiance • Assistance directe avec le commerçant
                 </p>
               </div>
             )}
 
-            {/* Trust row mobile */}
-            <div className="flex gap-2 md:hidden">
-              {[
-                { icon: <Truck className="h-4 w-4 text-shop" />, label: "Livraison" },
-                { icon: <ShieldCheck className="h-4 w-4 text-shop" />, label: "Sécurisé" },
-                { icon: <MessageCircle className="h-4 w-4 text-shop" />, label: "WhatsApp" },
-              ].map((b) => (
-                <div key={b.label} className="flex flex-1 flex-col items-center gap-1 rounded-xl border border-current/10 bg-shop-card/60 py-2.5">
-                  {b.icon}
-                  <span className="text-[10px] font-semibold text-shop-fg/70">{b.label}</span>
-                </div>
-              ))}
+            {/* Réassurance sur Mobile */}
+            <div className="grid grid-cols-3 gap-2 md:hidden pt-2">
+              <div className="flex flex-col items-center gap-1 p-2.5 rounded-2xl bg-white border border-slate-200/80 text-center shadow-2xs">
+                <Truck className="h-4 w-4 text-[#4F46E5]" />
+                <span className="text-[11px] font-bold text-slate-800">Livraison</span>
+                <span className="text-[9px] text-slate-500">Partout en RDC</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-2.5 rounded-2xl bg-white border border-slate-200/80 text-center shadow-2xs">
+                <ShieldCheck className="h-4 w-4 text-[#4F46E5]" />
+                <span className="text-[11px] font-bold text-slate-800">Sécurisé</span>
+                <span className="text-[9px] text-slate-500">À la réception</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-2.5 rounded-2xl bg-white border border-slate-200/80 text-center shadow-2xs">
+                <MessageCircle className="h-4 w-4 text-[#4F46E5]" />
+                <span className="text-[11px] font-bold text-slate-800">WhatsApp</span>
+                <span className="text-[9px] text-slate-500">Réponse rapide</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Autres articles ─────────── */}
-        {data.products.filter((p) => p.id !== productId).length > 0 && (
-          <section className="mt-10 md:mt-14">
-            <div className="mb-4 flex items-center justify-between">
+        {/* ── AUTRES PRODUITS DE LA BOUTIQUE ── */}
+        {data.products.filter((p: any) => p.id !== productId).length > 0 && (
+          <section className="mt-14 sm:mt-18 pt-8 border-t border-slate-200/80">
+            <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-normal text-shop/60">Boutique</p>
-                <h2 className="mt-0.5 font-shop-heading text-lg font-extrabold">Autres articles</h2>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#4F46E5]">Dans la même boutique</p>
+                <h2 className="font-shop-heading text-lg sm:text-xl font-extrabold text-slate-900">
+                  Ces articles pourraient vous plaire
+                </h2>
               </div>
-              <Link to="/b/$slug" params={{ slug }} className="flex items-center gap-1 text-xs font-bold text-shop hover:underline">
-                Voir tout <ChevronRight className="h-3.5 w-3.5" />
+              <Link
+                to="/b/$slug/produits"
+                params={{ slug }}
+                className="flex items-center gap-1 text-xs font-bold text-[#4F46E5] hover:underline"
+              >
+                <span>Voir tout le catalogue</span>
+                <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 sm:-mx-4 sm:px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
               {data.products
-                .filter((p) => p.id !== productId)
-                .slice(0, 8)
-                .map((p) => {
+                .filter((p: any) => p.id !== productId)
+                .slice(0, 4)
+                .map((p: any) => {
                   const pDisc = (p as any).discounted_price != null && (p as any).discounted_price < Number(p.price);
                   const pPrice = pDisc ? (p as any).discounted_price : Number(p.price);
                   return (
-                    <Link key={p.id} to="/b/$slug/p/$productId" params={{ slug, productId: p.id }} className="group w-[140px] shrink-0 snap-start sm:w-[165px]">
-                      <div className="overflow-hidden rounded-2xl bg-shop-card shadow-xs transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-0.5">
-                        <div className="aspect-square overflow-hidden bg-shop-card/50">
-                          {p.images[0] ? (
-                            <img src={mediaUrl(p.images[0])!} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 " />
-                          ) : (
-                            <div className="grid h-full place-items-center">
-                              <Package className="h-6 w-6 opacity-20" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-2.5">
-                          <p className="line-clamp-2 text-xs font-semibold leading-snug">{p.name}</p>
-                          <div className="mt-1 flex items-baseline gap-1">
-                            <span className={cn("text-sm font-black", pDisc && "text-destructive")}>{formatPrice(pPrice, p.currency)}</span>
-                            {pDisc && <span className="text-[11px] line-through text-shop-muted">{formatPrice(Number(p.price), p.currency)}</span>}
+                    <Link
+                      key={p.id}
+                      to="/b/$slug/p/$productId"
+                      params={{ slug, productId: p.id }}
+                      className="group rounded-3xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-all overflow-hidden flex flex-col"
+                    >
+                      <div className="aspect-square bg-slate-50 overflow-hidden relative">
+                        {p.images[0] ? (
+                          <img
+                            src={mediaUrl(p.images[0])!}
+                            alt={p.name}
+                            loading="lazy"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="grid h-full place-items-center text-slate-300">
+                            <Package className="h-8 w-8" />
                           </div>
+                        )}
+                        {pDisc && (
+                          <span className="absolute top-2 left-2 rounded-full bg-rose-500 text-white text-[10px] font-black px-2 py-0.5">
+                            Promo
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-3.5 flex flex-col flex-1 justify-between">
+                        <p className="font-bold text-xs sm:text-sm text-slate-900 line-clamp-2 leading-snug group-hover:text-[#4F46E5] transition-colors">
+                          {p.name}
+                        </p>
+                        <div className="mt-2 flex items-baseline gap-1.5">
+                          <span className={cn("text-xs sm:text-sm font-extrabold", pDisc ? "text-rose-600" : "text-[#4F46E5]")}>
+                            {formatPrice(pPrice, p.currency)}
+                          </span>
+                          {pDisc && (
+                            <span className="text-[10px] text-slate-400 line-through">
+                              {formatPrice(Number(p.price), p.currency)}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </Link>
@@ -619,24 +688,35 @@ function ProductPage() {
         )}
       </div>
 
-      {/* ── Sticky Bottom CTA mobile ───────── */}
+      {/* ── BARRE STICKY BOTTOM SUR MOBILE ── */}
       {!out && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-current/10 bg-background/95 px-4 pb-5 pt-3 backdrop-blur-md md:hidden">
+        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md md:hidden shadow-lg">
           <div className="mx-auto flex max-w-sm items-center gap-3">
-            <div className="flex flex-col justify-center">
-              <span className="text-[10px] text-shop-muted">Prix</span>
-              <span className={cn("text-base font-black leading-tight", isDiscounted ? "text-destructive dark:text-destructive" : "text-shop")}>
+            <div className="flex flex-col justify-center min-w-0">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase">Prix unitaire</span>
+              <span className={cn("text-base font-black truncate", isDiscounted ? "text-rose-600" : "text-[#4F46E5]")}>
                 {priceStr}
               </span>
             </div>
             <button
+              type="button"
               onClick={addToCart}
               className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-xl bg-shop py-2.5 text-sm font-bold text-shop-foreground shadow-soft transition-all ",
-                addedAnim && "scale-95 opacity-80"
+                "flex-1 h-11 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.98] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 transition-all cursor-pointer",
+                addedAnim && "bg-emerald-600"
               )}
             >
-              {addedAnim ? <><CheckCircle2 className="h-4 w-4" /> Ajouté !</> : <><ShoppingBag className="h-4 w-4" /> Ajouter au panier</>}
+              {addedAnim ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Ajouté !</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="h-4 w-4" />
+                  <span>Ajouter au panier</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -650,10 +730,10 @@ function BackLink({ slug, shopName }: { slug: string; shopName: string }) {
     <Link
       to="/b/$slug"
       params={{ slug }}
-      className="inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-semibold text-shop-muted transition-colors hover:bg-shop-card/60 hover:text-shop-fg"
+      className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
     >
-      <ArrowLeft className="h-4 w-4" />
-      <span className="max-w-[120px] truncate sm:max-w-none">{shopName}</span>
+      <ArrowLeft className="h-3.5 w-3.5" />
+      <span className="max-w-[140px] truncate sm:max-w-none">{shopName}</span>
     </Link>
   );
 }

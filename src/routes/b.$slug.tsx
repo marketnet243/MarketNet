@@ -12,6 +12,7 @@ import {
   Phone,
   Store,
   Menu,
+  Package,
 } from "lucide-react";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { recordShopVisit } from "@/lib/storefront.functions";
@@ -278,33 +279,42 @@ function VytriniFloatingNavbar({
           </button>
         </div>
 
-        {/* TIROIR DU MENU MOBILE */}
+        {/* BACKDROP FLUIDE & TIROIR DU MENU MOBILE (FERMETURE AU CLIC HORS SECTION) */}
         {menuOpen && (
-          <div className="md:hidden absolute top-15 right-2 w-56 rounded-3xl bg-white border border-slate-200/90 shadow-xl p-3 space-y-1 animate-in zoom-in-95 duration-150">
-            <Link
-              to="/b/$slug"
-              params={{ slug }}
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[2px] md:hidden pointer-events-auto transition-opacity"
               onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
-            >
-              <span>Accueil</span>
-            </Link>
-            <Link
-              to="/b/$slug/produits"
-              params={{ slug }}
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
-            >
-              <span>Tous les produits</span>
-            </Link>
-            <a
-              href="#contact"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 hover:bg-slate-50 transition-colors"
-            >
-              <span>Contact & Infos</span>
-            </a>
-          </div>
+            />
+            <div className="md:hidden absolute top-15 right-2 z-50 w-60 rounded-3xl bg-white border border-slate-200/90 shadow-2xl p-3 space-y-1 animate-in zoom-in-95 duration-150 pointer-events-auto">
+              <div className="px-3 py-1 border-b border-slate-100 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Navigation</span>
+              </div>
+              <Link
+                to="/b/$slug"
+                params={{ slug }}
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
+              >
+                <span>Accueil</span>
+              </Link>
+              <Link
+                to="/b/$slug/produits"
+                params={{ slug }}
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
+              >
+                <span>Tous les produits</span>
+              </Link>
+              <a
+                href="#contact"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
+              >
+                <span>Contact & Infos</span>
+              </a>
+            </div>
+          </>
         )}
       </div>
     </header>

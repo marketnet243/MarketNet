@@ -79,6 +79,8 @@ export function StoreHeader({
   }
 
   const descText = shop.description?.trim() || "";
+  const [descExpanded, setDescExpanded] = useState(false);
+  const isLongDesc = descText.length > 130;
 
   return (
     <header className="relative overflow-hidden">
@@ -97,11 +99,11 @@ export function StoreHeader({
         )}
 
         {/* Double overlay pour garantir un contraste parfait quel que soit l'image */}
-        <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[2px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40" />
+        <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60" />
 
         {/* Contenu textuel sans logo au milieu (le logo est déjà dans la navbar) */}
-        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16 text-center space-y-4">
+        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14 text-center space-y-3.5">
           {/* Badge Catégorie */}
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1 text-xs font-semibold text-white shadow-xs">
             <span className="h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse" />
@@ -113,10 +115,26 @@ export function StoreHeader({
             {shop.name}
           </h1>
 
-          {/* Description */}
-          <p className="text-xs sm:text-sm md:text-base text-slate-200 max-w-xl mx-auto leading-relaxed drop-shadow-sm">
-            {descText || "Votre boutique en ligne officielle. Découvrez nos produits et passez commande directement sur WhatsApp."}
-          </p>
+          {/* Description avec gestion intelligente des textes longs pour ne pas casser le Hero */}
+          <div className="max-w-xl mx-auto">
+            <p
+              className={cn(
+                "text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed drop-shadow-sm transition-all duration-200",
+                isLongDesc && !descExpanded && "line-clamp-2 sm:line-clamp-3"
+              )}
+            >
+              {descText || "Votre boutique en ligne officielle. Découvrez nos produits et passez commande directement sur WhatsApp."}
+            </p>
+            {isLongDesc && (
+              <button
+                type="button"
+                onClick={() => setDescExpanded(!descExpanded)}
+                className="mt-1.5 inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-indigo-300 hover:text-white underline underline-offset-4 decoration-indigo-400/60 transition-colors cursor-pointer"
+              >
+                <span>{descExpanded ? "Réduire ↑" : "Lire la suite..."}</span>
+              </button>
+            )}
+          </div>
 
           {/* Actions Clés Responsive : boutons compacts et bien taillés sur mobile */}
           <div className="flex items-center justify-center gap-2.5 sm:gap-3 pt-2">
