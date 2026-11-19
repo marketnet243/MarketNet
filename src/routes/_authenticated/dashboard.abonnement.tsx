@@ -438,7 +438,7 @@ function DashboardAbonnementPage() {
                           ? "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30"
                           : subLimits?.is_attributed
                             ? "bg-info/15 text-info dark:text-info border-info/30"
-                            : "bg-success/15 text-success dark:text-success border-success/30"
+                            : "bg-[#EEF2FF] text-[#4F46E5] border-[#E0E7FF]"
                     )}
                   >
                     {isGrace
@@ -623,7 +623,7 @@ function DashboardAbonnementPage() {
                     <ul className="space-y-2 pt-2 border-t text-xs text-muted-foreground">
                       {features.map((f) => (
                         <li key={f.text} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                          <CheckCircle2 className="h-4 w-4 text-[#4F46E5] shrink-0" />
                           {f.strong ? <strong>{f.text}</strong> : f.text}
                         </li>
                       ))}

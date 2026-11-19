@@ -144,7 +144,7 @@ function DashboardLayout() {
             href={shopUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-semibold shadow-xs hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#4F46E5] text-white text-xs font-semibold shadow-xs hover:bg-[#4338CA] transition-colors"
           >
             <span>Voir le site</span>
             <ExternalLink className="h-3 w-3" />
@@ -171,7 +171,7 @@ function DashboardLayout() {
             </div>
             <span className="text-slate-300">|</span>
             <div className="flex items-center gap-2 bg-slate-100/80 px-3 py-1 rounded-full text-xs font-semibold text-slate-700 max-w-[220px] truncate">
-              <span className={cn("h-2 w-2 rounded-full shrink-0", shop.is_published ? "bg-slate-900" : "bg-amber-400")} />
+              <span className={cn("h-2 w-2 rounded-full shrink-0", shop.is_published ? "bg-[#4F46E5]" : "bg-amber-400")} />
               <span className="truncate">{shop.name}</span>
             </div>
           </div>
@@ -215,7 +215,7 @@ function DashboardLayout() {
               className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/70 border border-slate-200/80 rounded-full px-2.5 py-1 text-xs font-semibold text-slate-800 transition-colors"
               title="Paramètres du compte"
             >
-              <div className="h-6 w-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+              <div className="h-6 w-6 rounded-full bg-[#4F46E5] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <span className="max-w-[120px] truncate">{userName}</span>
@@ -256,7 +256,7 @@ function DashboardLayout() {
                     <item.icon className={cn("h-4.5 w-4.5 shrink-0 transition-colors", isActive ? "text-[#4F46E5]" : "text-slate-500")} />
                     <span className="truncate">{item.label}</span>
                     {item.count > 0 && (
-                      <span className="ml-auto flex h-4 min-w-[16px] items-center justify-center rounded-full bg-slate-900 px-1 text-[9px] font-bold text-white">
+                      <span className="ml-auto flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#4F46E5] px-1 text-[9px] font-bold text-white">
                         {item.count}
                       </span>
                     )}
@@ -383,7 +383,7 @@ function DashboardLayout() {
           <div className="relative">
             <ShoppingBag className={cn("h-5 w-5", currentPath.startsWith("/dashboard/commandes") ? "text-[#4F46E5]" : "text-slate-400")} />
             {(newOrdersCount || 0) > 0 && (
-              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-slate-900 px-1 text-[9px] font-bold text-white">
+              <span className="absolute -top-1 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#4F46E5] px-1 text-[9px] font-bold text-white">
                 {newOrdersCount}
               </span>
             )}

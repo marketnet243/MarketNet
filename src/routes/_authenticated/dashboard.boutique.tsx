@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts, useShopPromotions } from "@/hooks/useMyShop";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IdentityFields, ContactFields, AppearanceFields, type ShopDraft } from "@/components/dashboard/ShopFields";
@@ -23,9 +22,16 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard/boutique")({
-  head: () => ({ meta: [
+  head: () => ({
+    meta: [
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },{ title: "Ma boutique — MarketNet" }, { name: "description", content: "Personnalisez votre boutique." }, { property: "og:title", content: "Ma boutique — MarketNet" }, { property: "og:description", content: "Personnalisation de la boutique." }] }),
+      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Ma boutique — MarketNet" },
+      { name: "description", content: "Personnalisez votre boutique." },
+      { property: "og:title", content: "Ma boutique — MarketNet" },
+      { property: "og:description", content: "Personnalisation de la boutique." },
+    ],
+  }),
   component: ShopSettings,
 });
 
@@ -38,12 +44,14 @@ function ShopSettings() {
   const [isPublished, setIsPublished] = useState(shop?.is_published ?? true);
   const [busy, setBusy] = useState(false);
   const [confirmSlugChange, setConfirmSlugChange] = useState(false);
+
   useEffect(() => {
     if (shop) {
       setDraft(draftFromShop(shop));
       setIsPublished(shop.is_published);
     }
   }, [shop]);
+
   if (!shop || !draft) return null;
   const set = (p: Partial<ShopDraft>) => setDraft((d) => (d ? { ...d, ...p } : d));
 
@@ -80,27 +88,32 @@ function ShopSettings() {
   }
 
   return (
-    <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_390px] pb-12 min-w-0 max-w-full">
-      <div className="space-y-6 min-w-0 max-w-full">
+    <div className="grid gap-6 lg:grid-cols-[1fr_390px] pb-12 min-w-0 max-w-full">
+      <div className="space-y-5 min-w-0 max-w-full">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-normal">Ma boutique</h1>
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Personnalisez votre vitrine, votre identité et vos coordonnées.</p>
+          <h1 className="text-xl font-extrabold text-slate-900">Ma boutique</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Personnalisez votre vitrine, identité visuelle et coordonnées.</p>
         </div>
 
         {/* Visibilité de la boutique */}
-        <div className="flex items-center justify-between rounded-2xl border bg-card p-4 sm:p-5 shadow-sm min-w-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <div className="flex items-center justify-between rounded-3xl bg-white border border-slate-200/70 p-4 sm:p-5 shadow-xs min-w-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
               <Eye className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-sm sm:text-base">Boutique en ligne</p>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-sm text-slate-900">Boutique en ligne</p>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPublished ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"}`}>
+                  {isPublished ? "Visible" : "Privée"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5 truncate">
                 {shop.is_suspended
                   ? "Suspendue par l'administration"
                   : isPublished
-                  ? "Votre boutique est visible et accessible au public"
-                  : "Votre boutique est masquée (mode privé)"}
+                  ? "Accessible aux clients via votre lien public"
+                  : "Vitrine masquée temporairement"}
               </p>
             </div>
           </div>
@@ -109,59 +122,67 @@ function ShopSettings() {
 
         {/* Onglets d'édition */}
         <Tabs defaultValue="info" className="w-full min-w-0">
-          <TabsList className="grid h-11 w-full grid-cols-3 rounded-xl bg-muted/70 p-1">
-            <TabsTrigger value="info" className="flex items-center gap-1.5 text-xs sm:text-sm rounded-lg truncate">
+          <TabsList className="grid h-12 w-full grid-cols-3 rounded-2xl bg-white border border-slate-200/70 p-1 shadow-xs">
+            <TabsTrigger
+              value="info"
+              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all cursor-pointer"
+            >
               <Info className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Infos</span>
             </TabsTrigger>
-            <TabsTrigger value="look" className="flex items-center gap-1.5 text-xs sm:text-sm rounded-lg truncate">
+            <TabsTrigger
+              value="look"
+              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all cursor-pointer"
+            >
               <Palette className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Apparence</span>
             </TabsTrigger>
-            <TabsTrigger value="contact" className="flex items-center gap-1.5 text-xs sm:text-sm rounded-lg truncate">
+            <TabsTrigger
+              value="contact"
+              className="flex items-center justify-center gap-1.5 text-xs font-bold rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all cursor-pointer"
+            >
               <Phone className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">Contact</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="mt-5 rounded-2xl border bg-card p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
+          <TabsContent value="info" className="mt-4 rounded-3xl bg-white border border-slate-200/70 p-5 sm:p-6 shadow-xs min-w-0 overflow-hidden">
             <IdentityFields draft={draft} set={set} slugLocked={shop.slug_changed} currentSlug={shop.slug} />
           </TabsContent>
 
-          <TabsContent value="look" className="mt-5 rounded-2xl border bg-card p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
+          <TabsContent value="look" className="mt-4 rounded-3xl bg-white border border-slate-200/70 p-5 sm:p-6 shadow-xs min-w-0 overflow-hidden">
             <AppearanceFields draft={draft} set={set} />
           </TabsContent>
 
-          <TabsContent value="contact" className="mt-5 rounded-2xl border bg-card p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
+          <TabsContent value="contact" className="mt-4 rounded-3xl bg-white border border-slate-200/70 p-5 sm:p-6 shadow-xs min-w-0 overflow-hidden">
             <ContactFields draft={draft} set={set} />
           </TabsContent>
         </Tabs>
 
         {/* Bouton Enregistrer */}
-        <div className="sticky bottom-20 z-10 -mx-4 border-t bg-background/95 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
-          <Button
-            variant="hero"
-            size="lg"
-            className="w-full h-11 rounded-xl shadow-md font-bold"
+        <div className="sticky bottom-20 z-10 -mx-4 border-t border-slate-200/80 bg-white/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
+          <button
+            type="button"
+            className="flex items-center justify-center gap-2 w-full h-12 rounded-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-bold text-sm shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
             onClick={save}
             disabled={busy}
           >
             {busy ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Enregistrement…
               </>
             ) : (
               <>
-                <Check className="mr-2 h-4 w-4" />
+                <Check className="h-4 w-4" />
                 Enregistrer les modifications
               </>
             )}
-          </Button>
+          </button>
         </div>
 
-        {/* Aperçu mobile tout en bas sur petit écran */}
-        <div className="mt-8 pt-6 border-t lg:hidden">
+        {/* Aperçu mobile */}
+        <div className="mt-8 pt-6 border-t border-slate-200 lg:hidden">
           <ShopPreview draft={draft} products={products} promotions={promotions} isPublished={isPublished} isSuspended={shop.is_suspended} />
         </div>
       </div>
@@ -172,18 +193,18 @@ function ShopSettings() {
       </div>
 
       <AlertDialog open={confirmSlugChange} onOpenChange={setConfirmSlugChange}>
-        <AlertDialogContent className="rounded-3xl max-w-md">
+        <AlertDialogContent className="rounded-3xl max-w-md border-0 shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold">Modifier le lien de votre boutique ?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-lg font-extrabold text-slate-900">Modifier le lien de votre boutique ?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-slate-500">
               Le lien personnalisé ne pourra plus être modifié ensuite. Vos clients devront utiliser cette nouvelle adresse pour accéder à votre boutique.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-full border-slate-200 font-semibold">Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={performSave}
-              className="rounded-xl"
+              className="rounded-full bg-[#4F46E5] text-white hover:bg-[#4338CA] font-bold"
             >
               Confirmer
             </AlertDialogAction>

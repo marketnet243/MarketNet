@@ -101,15 +101,15 @@ function Overview() {
         </Link>
       </div>
 
-      {/* ── 2. BLOC ÉTAT / À FAIRE MAINTENANT (Sobre, sans vert criard) ── */}
+      {/* ── 2. BLOC ÉTAT / À FAIRE MAINTENANT ── */}
       <div className="rounded-2xl bg-white border border-slate-200/80 px-4 sm:px-5 py-3 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5">
-          <span className="h-2 w-2 rounded-full bg-slate-900" />
+          <span className="h-2 w-2 rounded-full bg-[#4F46E5]" />
           <span className="text-xs font-bold text-slate-800">
             {products && products.length > 0 ? "Tout est à jour" : "Ajoutez vos premiers produits dans le catalogue"}
           </span>
         </div>
-        <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+        <span className="text-[11px] font-semibold text-[#4F46E5] bg-[#EEF2FF] border border-[#E0E7FF] px-2.5 py-0.5 rounded-full">
           {products?.length ?? 0} produit(s) en ligne
         </span>
       </div>
@@ -122,14 +122,14 @@ function Overview() {
             <span>ENCAISSÉ &amp; ACTIVITÉ</span>
           </div>
 
-          {/* Filtres de période (Vytrini style : pilule noire active) */}
+          {/* Filtres de période (Style Vytrini : Indigo actif) */}
           <div className="flex items-center bg-slate-100/90 p-0.5 rounded-full text-xs font-semibold self-start sm:self-auto">
             <button
               type="button"
               onClick={() => setPeriod("today")}
               className={cn(
                 "px-3 py-1 rounded-full transition-all cursor-pointer",
-                period === "today" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                period === "today" ? "bg-[#4F46E5] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
               Aujourd'hui
@@ -139,7 +139,7 @@ function Overview() {
               onClick={() => setPeriod("7d")}
               className={cn(
                 "px-3 py-1 rounded-full transition-all cursor-pointer",
-                period === "7d" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                period === "7d" ? "bg-[#4F46E5] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
               7 jours
@@ -149,7 +149,7 @@ function Overview() {
               onClick={() => setPeriod("30d")}
               className={cn(
                 "px-3 py-1 rounded-full transition-all cursor-pointer",
-                period === "30d" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                period === "30d" ? "bg-[#4F46E5] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
               30 jours
@@ -159,7 +159,7 @@ function Overview() {
               onClick={() => setPeriod("all")}
               className={cn(
                 "px-3 py-1 rounded-full transition-all cursor-pointer",
-                period === "all" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                period === "all" ? "bg-[#4F46E5] text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
               )}
             >
               Depuis le début
@@ -361,7 +361,7 @@ function Overview() {
           <div className="divide-y divide-slate-100">
             {recentOrders.map((order: any) => {
               const statusLabels: Record<string, { label: string; class: string }> = {
-                new: { label: "Nouveau", class: "bg-slate-900 text-white border-slate-900" },
+                new: { label: "Nouveau", class: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" },
                 processing: { label: "En cours", class: "bg-blue-50 text-blue-700 border-blue-200" },
                 completed: { label: "Terminée", class: "bg-slate-100 text-slate-700 border-slate-200" },
                 cancelled: { label: "Annulée", class: "bg-rose-50 text-rose-700 border-rose-200" },

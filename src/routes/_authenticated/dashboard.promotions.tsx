@@ -355,19 +355,19 @@ function PromotionsPage() {
             const liveState = promoLiveState(p);
             const statusBadge =
               liveState === "active"
-                ? { label: "En ligne", cls: "bg-success/15 text-success dark:text-success" }
+                ? { label: "En ligne", cls: "bg-slate-900 text-white" }
                 : liveState === "scheduled"
-                ? { label: "Programmée", cls: "bg-info/15 text-info dark:text-info" }
+                ? { label: "Programmée", cls: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" }
                 : liveState === "ended"
-                ? { label: "Terminée", cls: "bg-muted text-muted-foreground" }
-                : PROMO_STATUS[p.status] || { label: p.status, cls: "bg-muted text-muted-foreground" };
+                ? { label: "Terminée", cls: "bg-slate-100 text-slate-500 border border-slate-200" }
+                : PROMO_STATUS[p.status] || { label: p.status, cls: "bg-slate-100 text-slate-500 border border-slate-200" };
 
             const disc = discountLabel(p.discount_type, p.discount_value, shop.currency);
 
             return (
               <div
                 key={p.id}
-                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md transition-all"
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white p-4 sm:p-5 shadow-xs transition-all"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   {/* Order control */}
@@ -467,7 +467,7 @@ function PromotionsPage() {
                       const text = `🔥 Offre exclusive : « ${p.title} »${discText} sur ${shop.name} !\n👉 Cliquez ici pour en profiter : ${link}`;
                       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
                     }}
-                    className="rounded-xl h-8 px-2.5 text-xs gap-1 text-success border-success/25 hover:bg-success/10 dark:text-success"
+                    className="rounded-xl h-8 px-2.5 text-xs gap-1 border-slate-200 text-slate-700 hover:bg-slate-50"
                     title="Partager sur WhatsApp"
                   >
                     <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
@@ -1228,7 +1228,7 @@ function PromoFormModal({
             <div className="lg:hidden mt-8 pt-5 border-t border-border/80 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-normal">
-                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                  <span className="h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse" />
                   Aperçu en direct
                 </span>
                 <span className="text-[11px] font-semibold text-primary">
@@ -1246,7 +1246,7 @@ function PromoFormModal({
             <div className="sticky top-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-normal">
-                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                  <span className="h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse" />
                   Aperçu en direct
                 </span>
 
