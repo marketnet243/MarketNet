@@ -16,7 +16,7 @@ export type DeletionReason = typeof DELETION_REASONS[number]["value"];
 // ─── Merchant : creer une demande ────────────────────────────────────────────
 export const requestAccountDeletion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       reason:       z.enum(["trop_cher", "plus_besoin", "autre_outil", "probleme_technique", "autre"]),
       reason_other: z.string().optional(),
@@ -35,7 +35,7 @@ export const requestAccountDeletion = createServerFn({ method: "POST" })
 
     // Envoyer email de confirmation (non bloquant)
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { supabaseAdmin } = await import("@/lib/imported-database.server");
       const { data: userRecord } = await supabaseAdmin.auth.admin.getUserById(userId);
       const { data: shopRecord } = await supabaseAdmin.from("shops").select("name").eq("owner_id", userId).maybeSingle();
       const email     = userRecord?.user?.email ?? "";
@@ -68,7 +68,7 @@ export const getMyDeletionRequest = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("account_deletion_requests")
       .select("id, status, requested_at, scheduled_deletion_at, cancelled_at")
       .eq("user_id", userId)
@@ -81,7 +81,7 @@ export const getMyDeletionRequest = createServerFn({ method: "GET" })
 // ─── Admin : liste toutes les demandes ───────────────────────────────────────
 export const adminListDeletionRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       statusFilter: z.string().optional(),
     }).parse(d ?? {})
@@ -91,7 +91,7 @@ export const adminListDeletionRequests = createServerFn({ method: "GET" })
     const { data: isAdmin } = await (supabase as any).rpc("has_role", { _user_id: userId, _role: "admin" });
     if (!isAdmin) throw new Error("Acces refuse");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("@/lib/imported-database.server");
 
     let query = supabaseAdmin
       .from("account_deletion_requests")
@@ -139,7 +139,7 @@ export const adminListDeletionRequests = createServerFn({ method: "GET" })
 // ─── Admin : traiter une demande (suspension) ────────────────────────────────
 export const adminProcessDeletion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       requestId:         z.string().uuid(),
       scheduledDeletion: z.string(),          // ISO datetime
@@ -160,7 +160,7 @@ export const adminProcessDeletion = createServerFn({ method: "POST" })
 
     // Email au commerçant (non bloquant)
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { supabaseAdmin } = await import("@/lib/imported-database.server");
       const { data: req } = await supabaseAdmin
         .from("account_deletion_requests")
         .select("user_id, scheduled_deletion_at")
@@ -188,7 +188,7 @@ export const adminProcessDeletion = createServerFn({ method: "POST" })
 // ─── Admin : restaurer un compte ─────────────────────────────────────────────
 export const adminRestoreAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       requestId: z.string().uuid(),
       adminNote: z.string().optional(),
@@ -207,7 +207,7 @@ export const adminRestoreAccount = createServerFn({ method: "POST" })
 
     // Email restauration (non bloquant)
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { supabaseAdmin } = await import("@/lib/imported-database.server");
       const { data: req } = await supabaseAdmin
         .from("account_deletion_requests")
         .select("user_id")
@@ -234,7 +234,7 @@ export const adminRestoreAccount = createServerFn({ method: "POST" })
 // ─── Admin : modifier la date de suppression ─────────────────────────────────
 export const adminUpdateDeletionDate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       requestId:       z.string().uuid(),
       newScheduledDate: z.string(),

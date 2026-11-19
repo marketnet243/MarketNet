@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts, useShopPromotions } from "@/hooks/useMyShop";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -23,7 +23,9 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard/boutique")({
-  head: () => ({ meta: [{ title: "Ma boutique — MarketNet" }, { name: "description", content: "Personnalisez votre boutique." }, { property: "og:title", content: "Ma boutique — MarketNet" }, { property: "og:description", content: "Personnalisation de la boutique." }] }),
+  head: () => ({ meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Ma boutique — MarketNet" }, { name: "description", content: "Personnalisez votre boutique." }, { property: "og:title", content: "Ma boutique — MarketNet" }, { property: "og:description", content: "Personnalisation de la boutique." }] }),
   component: ShopSettings,
 });
 
@@ -81,7 +83,7 @@ function ShopSettings() {
     <div className="grid gap-6 sm:gap-8 lg:grid-cols-[1fr_390px] pb-12 min-w-0 max-w-full">
       <div className="space-y-6 min-w-0 max-w-full">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Ma boutique</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold tracking-normal">Ma boutique</h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Personnalisez votre vitrine, votre identité et vos coordonnées.</p>
         </div>
 

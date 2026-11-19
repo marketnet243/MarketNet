@@ -8,7 +8,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { recordShopVisit } from "@/lib/storefront.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -140,7 +140,7 @@ function ShopLayout() {
 
         {/* ── FOOTER OFFICIEL DE LA BOUTIQUE ── */}
         <footer className="mt-20 border-t border-current/10 py-12 px-4 text-center space-y-3 text-xs text-shop-muted">
-          <p className="font-bold text-shop-foreground text-sm tracking-tight">
+          <p className="font-bold text-shop-foreground text-sm tracking-normal">
             {shop.name}
           </p>
           {shop.city && (
@@ -187,7 +187,7 @@ function FloatingCartBar({ currency }: { currency?: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full h-13 rounded-2xl bg-shop text-shop-foreground shadow-2xl px-4 flex items-center justify-between font-bold text-sm transition-transform active:scale-98 border-2 border-white/20 cursor-pointer animate-in fade-in slide-in-from-bottom-3 duration-300 select-none"
+        className="w-full h-13 rounded-2xl bg-shop text-shop-foreground shadow-lift px-4 flex items-center justify-between font-bold text-sm transition-transform  border-2 border-white/20 cursor-pointer animate-in fade-in slide-in-from-bottom-3 duration-300 select-none"
       >
         <div className="flex items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-shop-foreground/20 text-xs font-black">
@@ -242,9 +242,9 @@ function TopBar({
         <Link
           to="/b/$slug"
           params={{ slug }}
-          className="flex items-center gap-2.5 font-shop-heading font-black text-sm sm:text-base group tracking-tight"
+          className="flex items-center gap-2.5 font-shop-heading font-black text-sm sm:text-base group tracking-normal"
         >
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span className="h-2.5 w-2.5 rounded-full bg-success animate-pulse shrink-0" />
           <span className="truncate max-w-[170px] sm:max-w-xs group-hover:opacity-80 transition-opacity">
             {shop.name}
           </span>
@@ -269,7 +269,7 @@ function TopBar({
               type="button"
               onClick={() => setOpen(true)}
               aria-label="Voir le panier"
-              className="relative flex h-10 items-center justify-center rounded-xl bg-shop/10 hover:bg-shop/15 px-3 text-xs sm:text-sm font-bold text-shop transition-all active:scale-95 cursor-pointer gap-2"
+              className="relative flex h-10 items-center justify-center rounded-xl bg-shop/10 hover:bg-shop/15 px-3 text-xs sm:text-sm font-bold text-shop transition-all  cursor-pointer gap-2"
             >
               <ShoppingBag className="h-4.5 w-4.5" />
               <span className="hidden sm:inline font-bold">Panier</span>
@@ -302,11 +302,11 @@ function TopBar({
 
       {/* ── MENU COULISSANT ÉPURÉ (EXACTEMENT COMME SUR LA CAPTURE VITRINI) ── */}
       {menuOpen && (
-        <div className="border-b border-current/15 bg-shop-card/98 backdrop-blur-xl px-6 py-6 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+        <div className="border-b border-current/15 bg-shop-card/98 backdrop-blur-xl px-6 py-6 shadow-lift animate-in slide-in-from-top-2 duration-200">
           <div className="mx-auto max-w-md space-y-4">
             
             {/* Liste de navigation numérotée — 2 items seulement */}
-            <nav className="divide-y divide-current/10 text-xs sm:text-sm font-black tracking-wider uppercase">
+            <nav className="divide-y divide-current/10 text-xs sm:text-sm font-black tracking-normal uppercase">
               <button
                 type="button"
                 onClick={() => scrollToSection("catalogue")}
@@ -334,7 +334,7 @@ function TopBar({
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => setMenuOpen(false)}
-                  className="w-full h-12 rounded-full bg-[#10b981] hover:bg-[#059669] text-white flex items-center justify-center gap-2 font-black text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-emerald-500/25 transition-transform active:scale-98 cursor-pointer select-none"
+                  className="w-full h-12 rounded-full bg-[#10b981] hover:bg-[#059669] text-primary-foreground flex items-center justify-center gap-2 font-black text-xs sm:text-sm tracking-normal uppercase shadow-soft shadow-success/25 transition-transform  cursor-pointer select-none"
                 >
                   <MessageCircle className="h-4.5 w-4.5 fill-white" />
                   <span>ÉCRIRE SUR WHATSAPP</span>
@@ -368,7 +368,7 @@ function AnnouncementBanner({ shop }: { shop: any }) {
   if (slides.length === 0) return null;
 
   return (
-    <div className="bg-[#0f172a] text-white select-none overflow-hidden" style={{ height: "38px" }}>
+    <div className="bg-[#0f172a] text-primary-foreground select-none overflow-hidden" style={{ height: "38px" }}>
       <div className="relative h-full mx-auto max-w-xl px-6">
         {slides.map((s, i) => (
           <div
@@ -395,7 +395,7 @@ function AnnouncementBanner({ shop }: { shop: any }) {
                 key={i}
                 className={
                   "block h-0.5 rounded-full transition-all duration-500 " +
-                  (i === idx ? "w-4 bg-white/70" : "w-1.5 bg-white/20")
+                  (i === idx ? "w-4 bg-card/70" : "w-1.5 bg-card/20")
                 }
               />
             ))}

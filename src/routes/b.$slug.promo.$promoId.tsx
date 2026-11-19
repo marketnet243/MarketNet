@@ -174,7 +174,7 @@ function DedicatedPromoPage() {
                   const text = `🔥 Offre exclusive : « ${promo.title} » sur ${shop.name} !\n👉 Découvrez-la ici : ${url}`;
                   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
                 }}
-                className="rounded-xl h-8 px-3 text-xs gap-1.5 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 dark:text-emerald-400"
+                className="rounded-xl h-8 px-3 text-xs gap-1.5 text-success border-success/30 hover:bg-success/10 dark:text-success"
               >
                 <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
               </Button>
@@ -184,8 +184,8 @@ function DedicatedPromoPage() {
 
         {/* Expired alert if applicable */}
         {isEnded && (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 text-center space-y-2">
-            <p className="font-bold text-amber-700 dark:text-amber-400">Cette offre est terminée</p>
+          <div className="rounded-2xl border border-warning/30 bg-warning/10 p-5 text-center space-y-2">
+            <p className="font-bold text-warning dark:text-warning">Cette offre est terminée</p>
             <p className="text-xs text-muted-foreground">
               Les prix normaux s'appliquent désormais à ces articles.
             </p>
@@ -197,7 +197,7 @@ function DedicatedPromoPage() {
 
         {/* Promo Hero visual (using exact shop theme tokens and PromoSlide design) */}
         {promo && (
-          <div className="overflow-hidden rounded-3xl border border-current/10 shadow-lg">
+          <div className="overflow-hidden rounded-3xl border border-current/10 shadow-soft">
             <PromoSlide
               promo={promo}
               currency={shop.currency}

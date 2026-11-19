@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Button } from "@/components/ui/button";
 import { logAction } from "@/hooks/useIsAdmin";
 import { Store, ShieldAlert, Eye, Search, X, Filter } from "lucide-react";
@@ -20,7 +20,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/admin/boutiques")({ component: Shops });
+export const Route = createFileRoute("/_authenticated/admin/boutiques")({
+  head: () => ({ meta: [{ title: 'Boutiques — MarketNet' }, { name: "description", content: 'Consultez et gérez boutiques sur MarketNet.' }, { property: "og:title", content: 'Boutiques — MarketNet' }, { property: "og:description", content: 'Consultez et gérez boutiques sur MarketNet.' }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: Shops });
 
 function Shops() {
   const qc = useQueryClient();
@@ -61,13 +62,13 @@ function Shops() {
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Boutiques & Signalements</h1>
+        <h1 className="text-2xl font-bold tracking-normal">Boutiques & Signalements</h1>
         <p className="mt-1 text-sm text-muted-foreground">Supervisez l'activite des boutiques et moderez les contenus signales.</p>
       </div>
 
       <section>
         <div className="flex items-center gap-2 mb-4">
-          <ShieldAlert className="h-5 w-5 text-amber-500" />
+          <ShieldAlert className="h-5 w-5 text-warning" />
           <h2 className="text-lg font-bold">Signalements a traiter ({data?.reports.length ?? 0})</h2>
         </div>
         
@@ -148,23 +149,23 @@ function ReportRow({ report: r, shop: s }: { report: any, shop: any }) {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-amber-200/50 bg-amber-50/30 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-warning/50 bg-warning/30 p-4 dark:border-warning/30 dark:bg-warning/20">
       <div>
         <div className="flex items-center gap-2">
           <p className="font-semibold">{s?.name || "Boutique supprimee"}</p>
           <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
         </div>
-        <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">Motif : {r.reason}</p>
+        <p className="text-sm text-warning dark:text-warning mt-1">Motif : {r.reason}</p>
       </div>
       <div className="flex items-center gap-2">
         {s && (
           <Link to="/admin/boutiques/$shopId" params={{ shopId: s.id }}>
-            <Button size="sm" variant="outline" className="text-amber-700 border-amber-300 hover:bg-amber-100">Voir la boutique</Button>
+            <Button size="sm" variant="outline" className="text-warning border-warning hover:bg-warning">Voir la boutique</Button>
           </Link>
         )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600">Marquer traite</Button>
+            <Button size="sm" className="bg-success hover:bg-success">Marquer traite</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -173,7 +174,7 @@ function ReportRow({ report: r, shop: s }: { report: any, shop: any }) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Annuler</AlertDialogCancel>
-              <AlertDialogAction className="bg-emerald-600 hover:bg-emerald-700" onClick={() => resolve(r.id)}>Confirmer</AlertDialogAction>
+              <AlertDialogAction className="bg-success hover:bg-success" onClick={() => resolve(r.id)}>Confirmer</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -186,7 +187,7 @@ function ShopRow({ shop: s }: { shop: any }) {
   return (
     <Link to="/admin/boutiques/$shopId" params={{ shopId: s.id }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 hover:bg-muted/30 transition-colors group">
       <div className="flex items-start gap-4 min-w-0">
-        <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${s.is_suspended ? 'bg-destructive' : 'bg-emerald-500'}`} />
+        <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${s.is_suspended ? 'bg-destructive' : 'bg-success'}`} />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-semibold truncate group-hover:text-primary transition-colors">{s.name}</span>

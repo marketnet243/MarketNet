@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/lib/imported-database";
+import type { Tables } from "@/lib/imported-database";
 
 export type Shop = Tables<"shops">;
 export type Product = Tables<"products">;

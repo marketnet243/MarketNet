@@ -32,7 +32,7 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
           aria-hidden="true"
           className={cn(
             "pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full blur-3xl opacity-30",
-            isSuspended ? "bg-red-500" : "bg-amber-500"
+            isSuspended ? "bg-destructive" : "bg-warning"
           )}
         />
 
@@ -42,8 +42,8 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
             className={cn(
               "flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl shadow-sm ring-8 transition-transform",
               isSuspended
-                ? "bg-red-500/10 text-red-600 ring-red-500/5 dark:text-red-400"
-                : "bg-amber-500/10 text-amber-600 ring-amber-500/5 dark:text-amber-400"
+                ? "bg-destructive/10 text-destructive ring-destructive/5 dark:text-destructive"
+                : "bg-warning/10 text-warning ring-warning/5 dark:text-warning"
             )}
           >
             {isSuspended ? (
@@ -55,16 +55,16 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
 
           <span
             className={cn(
-              "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide uppercase shadow-xs",
+              "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-normal uppercase shadow-xs",
               isSuspended
-                ? "bg-red-500/15 text-red-700 dark:text-red-300"
-                : "bg-amber-500/15 text-amber-800 dark:text-amber-300"
+                ? "bg-destructive/15 text-destructive dark:text-destructive"
+                : "bg-warning/15 text-warning dark:text-warning"
             )}
           >
             <span
               className={cn(
                 "h-2 w-2 rounded-full",
-                isSuspended ? "bg-red-500" : "bg-amber-500 animate-pulse"
+                isSuspended ? "bg-destructive" : "bg-warning animate-pulse"
               )}
             />
             {isSuspended ? "Boutique suspendue" : "Boutique hors ligne (Mode privé)"}
@@ -72,7 +72,7 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
         </div>
 
         {/* Titre et Explications réalistes */}
-        <h2 className="font-shop-heading text-lg sm:text-2xl font-black tracking-tight text-shop-fg">
+        <h2 className="font-shop-heading text-lg sm:text-2xl font-black tracking-normal text-shop-fg">
           {isSuspended
             ? "Vitrine momentanément indisponible"
             : "Cette boutique est actuellement fermée"}
@@ -87,7 +87,7 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
         {/* Bloc Contact Direct Marchand (Présent même si la boutique est fermée) */}
         {!isSuspended && (
           <div className="mt-6 rounded-2xl border border-current/8 bg-shop-bg/60 p-4 sm:p-5 text-left">
-            <p className="text-xs font-bold uppercase tracking-wider text-shop-muted">
+            <p className="text-xs font-bold uppercase tracking-normal text-shop-muted">
               Contacter le commerçant
             </p>
             <p className="mt-0.5 text-xs text-shop-fg">
@@ -102,7 +102,7 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
                   )}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] px-4 text-xs font-bold text-white shadow-sm transition hover:scale-[1.02] active:scale-95"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-whatsapp hover:bg-whatsapp/90 px-4 text-xs font-bold text-primary-foreground shadow-sm transition  "
                 >
                   <MessageCircle className="h-4 w-4" />
                   <span>Écrire sur WhatsApp</span>

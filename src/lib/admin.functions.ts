@@ -4,13 +4,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const deleteMerchant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) => z.object({ userId: z.string().uuid() }).parse(d))
+  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    const { data: isAdmin } = await (context.supabase as any).rpc("has_role", { _user_id: context.userId, _role: "admin" });
     if (!isAdmin) throw new Error("Accès refusé");
     if (data.userId === context.userId) throw new Error("Impossible de supprimer votre propre compte");
     
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("@/lib/imported-database.server");
 
     // 1. Récupérer les informations du profil et de la boutique avant suppression pour le mail
     let merchantEmail = "";
@@ -51,7 +51,7 @@ export const deleteMerchant = createServerFn({ method: "POST" })
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
-    await context.supabase.from("audit_log").insert({ actor_id: context.userId, action: "merchant.delete", target: data.userId });
+    await (context.supabase as any).from("audit_log").insert({ actor_id: context.userId, action: "merchant.delete", target: data.userId });
     return { ok: true };
   });
 
@@ -61,7 +61,7 @@ export const deleteMerchant = createServerFn({ method: "POST" })
  * lors de la suppression. L'email, le nom et la boutique sont passés explicitement.
  */
 export const notifyMerchantAccountDeletion = createServerFn({ method: "POST" })
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       email: z.string().email(),
       fullName: z.string().optional(),
@@ -90,7 +90,7 @@ export const notifyMerchantAccountDeletion = createServerFn({ method: "POST" })
  */
 export const notifyNewUserRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       email: z.string().email(),
       fullName: z.string().optional(),
@@ -114,7 +114,7 @@ export const notifyNewUserRegistration = createServerFn({ method: "POST" })
  */
 export const notifyMerchantWelcome = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .inputValidator((d) =>
     z.object({
       merchantEmail: z.string().email(),
       merchantName: z.string().optional(),

@@ -1,14 +1,14 @@
 import nodemailer from "nodemailer";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 
 /**
  * Réutilise exactement le même transporteur SMTP Google que invoices.server.ts
  */
 function createSmtpTransporter() {
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASSWORD?.replace(/"/g, "")?.trim();
+  const host = process.env["SMTP_HOST"] || "smtp.gmail.com";
+  const port = Number(process.env["SMTP_PORT"]) || 465;
+  const user = process.env["SMTP_USER"]?.trim();
+  const pass = process.env["SMTP_PASSWORD"]?.replace(/"/g, "")?.trim();
   if (!user || !pass) {
     console.warn("[SupportEmail] Identifiants SMTP non configurés.");
     return null;
@@ -28,7 +28,7 @@ async function getSupportAdminEmail(): Promise<string> {
     .select("value")
     .eq("key", "support_email")
     .maybeSingle();
-  const fromEnv = process.env.MARKETNET_ADMIN_EMAIL || process.env.SMTP_USER || "support@marketnet.cd";
+  const fromEnv = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
   if (!data?.value) return fromEnv;
   const v = typeof data.value === "string" ? data.value : JSON.stringify(data.value);
   const cleaned = v.replace(/^"|"$/g, "").trim();
@@ -43,8 +43,8 @@ function buildEmailShell(params: {
   ctaLabel?: string;
   ctaUrl?: string;
 }): string {
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
-  const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
+  const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
   return `<!DOCTYPE html>
 <html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -305,8 +305,8 @@ async function sendWithRetry(params: {
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const transporter = createSmtpTransporter();
   if (!transporter) return { success: false, error: "SMTP non configuré" };
-  const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
-  const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
+  const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
+  const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
 
   let lastError = "";
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -369,7 +369,7 @@ export async function sendNewTicketAdminNotification(params: {
   whatsapp?: string;
   texteMessage: string;
 }): Promise<void> {
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
   const adminEmail = await getSupportAdminEmail();
   const subject = `[MarketNet Support] Nouveau ticket ${params.numero} — ${params.titre}`;
   const html = buildNewTicketAdminHtml({
@@ -400,7 +400,7 @@ export async function sendAdminReplyNotification(params: {
   merchantEmail: string;
 }): Promise<void> {
   if (!params.merchantEmail || !params.merchantEmail.includes("@")) return;
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
   const subject = `[MarketNet] Réponse à votre ticket ${params.numero} — ${params.titre}`;
   const html = buildAdminReplyHtml({
     numero: params.numero,
@@ -435,7 +435,7 @@ export async function sendSubscriptionReminderEmail(params: {
   if (!params.merchantEmail || !params.merchantEmail.includes("@")) {
     return { success: false };
   }
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
   const LABELS: Record<string, string> = {
     j_moins_7: "Abonnement expirant dans 7 jours",
     j_moins_3: "Abonnement expirant dans 3 jours",
@@ -502,7 +502,7 @@ export async function sendBroadcastEmailNotification(params: {
   if (!params.recipientEmail || !params.recipientEmail.includes("@")) {
     return { success: false, error: "Adresse email invalide" };
   }
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
   const subject = `[MarketNet Annonce] ${params.titre}`;
 
   const trackingPixelUrl = params.merchantId

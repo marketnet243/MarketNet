@@ -6,10 +6,10 @@ import nodemailer from "nodemailer";
  */
 
 function createSmtpTransporter() {
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASSWORD?.replace(/"/g, "")?.trim();
+  const host = process.env["SMTP_HOST"] || "smtp.gmail.com";
+  const port = Number(process.env["SMTP_PORT"]) || 465;
+  const user = process.env["SMTP_USER"]?.trim();
+  const pass = process.env["SMTP_PASSWORD"]?.replace(/"/g, "")?.trim();
   if (!user || !pass) {
     console.warn("[AccountDeletionEmail] Identifiants SMTP non configures.");
     return null;
@@ -30,8 +30,8 @@ function buildEmailShell(params: {
   ctaLabel?: string;
   ctaUrl?: string;
 }): string {
-  const siteUrl  = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
-  const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
+  const siteUrl  = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
+  const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
   const cta = params.ctaLabel && params.ctaUrl ? `
     <div style="text-align: center; margin: 28px 0 12px;">
       <a href="${params.ctaUrl}" style="display: inline-block; background-color: #1e293b; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 10px;">
@@ -120,9 +120,9 @@ function buildEmailShell(params: {
 async function sendEmail(params: { to: string; subject: string; html: string }) {
   const transporter = createSmtpTransporter();
   if (!transporter) return { success: false, error: "SMTP non configure" };
-  const from = process.env.SMTP_FROM_NAME
-    ? `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`
-    : process.env.SMTP_USER;
+  const from = process.env["SMTP_FROM_NAME"]
+    ? `"${process.env["SMTP_FROM_NAME"]}" <${process.env["SMTP_USER"]}>`
+    : process.env["SMTP_USER"];
   try {
     await transporter.sendMail({ from, to: params.to, subject: params.subject, html: params.html });
     return { success: true };
@@ -140,7 +140,7 @@ export async function sendDeletionRequestEmail(params: {
   fullName: string;
   shopName: string;
 }) {
-  const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || process.env.SMTP_USER || "support@marketnet.cd";
+  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Votre demande a ete reçue</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>
@@ -166,7 +166,7 @@ export async function sendDeletionRequestEmail(params: {
     title: "Demande de suppression de compte",
     body,
     ctaLabel: "Acceder a mes reglages",
-    ctaUrl: (process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app") + "/dashboard/reglages",
+    ctaUrl: (process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app") + "/dashboard/reglages",
   });
   return sendEmail({ to: params.email, subject: "Votre demande de suppression de compte a ete reçue — MarketNet", html });
 }
@@ -180,7 +180,7 @@ export async function sendDeletionProcessedEmail(params: {
   shopName: string;
   deletionDate: string;
 }) {
-  const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || process.env.SMTP_USER || "support@marketnet.cd";
+  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Votre compte est suspendu</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>
@@ -222,7 +222,7 @@ export async function sendDeletionReminderEmail(params: {
   shopName: string;
   deletionDate: string;
 }) {
-  const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || process.env.SMTP_USER || "support@marketnet.cd";
+  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Rappel : suppression dans 7 jours</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>
@@ -277,7 +277,7 @@ export async function sendDeletionCompletedEmail(params: {
     title: "Votre compte MarketNet a ete supprime",
     body,
     ctaLabel: "Revenir sur MarketNet",
-    ctaUrl: process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app",
+    ctaUrl: process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app",
   });
   return sendEmail({ to: params.email, subject: "Votre compte MarketNet a ete supprime — confirmation", html });
 }
@@ -290,7 +290,7 @@ export async function sendDeletionRestoredEmail(params: {
   fullName: string;
   shopName: string;
 }) {
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Votre compte a ete restaure</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>
@@ -327,12 +327,12 @@ export async function sendDeletionAdminNotificationEmail(params: {
 }) {
   const transporter = createSmtpTransporter();
   if (!transporter) return { success: false };
-  const adminEmail = process.env.MARKETNET_ADMIN_EMAIL || process.env.SMTP_USER;
+  const adminEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"];
   if (!adminEmail) return { success: false };
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
-  const from = process.env.SMTP_FROM_NAME
-    ? `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_USER}>`
-    : process.env.SMTP_USER;
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
+  const from = process.env["SMTP_FROM_NAME"]
+    ? `"${process.env["SMTP_FROM_NAME"]}" <${process.env["SMTP_USER"]}>`
+    : process.env["SMTP_USER"];
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Nouvelle demande de suppression</h2>
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:20px;">

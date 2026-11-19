@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/public/invoice-pdf")({
           const inv = await getInvoiceData(paymentId);
           if (inv) {
             const pdfBuffer = await generateInvoicePdf(inv);
-            return new Response(pdfBuffer, {
+            return new Response(new Uint8Array(pdfBuffer), {
               status: 200,
               headers: {
                 "Content-Type": "application/pdf",
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/invoice-pdf")({
           const letter = await getAssignmentLetterData(paymentId);
           if (letter) {
             const pdfBuffer = await generateAssignmentLetterPdf(letter);
-            return new Response(pdfBuffer, {
+            return new Response(new Uint8Array(pdfBuffer), {
               status: 200,
               headers: {
                 "Content-Type": "application/pdf",

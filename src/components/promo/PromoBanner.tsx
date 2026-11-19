@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { PromoSlide, type SlidePromo } from "./PromoSlide";
 import { cn } from "@/lib/utils";
 

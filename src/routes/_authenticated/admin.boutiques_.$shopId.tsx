@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { ArrowLeft, Store, MapPin, Eye, Globe, Mail, AlertTriangle, Ban, CheckCircle2, Trash2, Settings, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -24,6 +24,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { deleteMerchant } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/boutiques_/$shopId")({
+  head: () => ({ meta: [{ title: 'Boutiques · shopid — MarketNet' }, { name: "description", content: 'Consultez et gérez boutiques · shopid sur MarketNet.' }, { property: "og:title", content: 'Boutiques · shopid — MarketNet' }, { property: "og:description", content: 'Consultez et gérez boutiques · shopid sur MarketNet.' }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
   component: ShopDetail,
 });
 
@@ -110,7 +111,7 @@ function ShopDetail() {
                   <Globe className="h-3.5 w-3.5" /> /b/{shop.slug}
                 </a>
                 <span>&bull;</span>
-                <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border ${shop.is_suspended ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
+                <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-normal border ${shop.is_suspended ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-success/10 text-success border-success/20'}`}>
                   {shop.is_suspended ? "Suspendue" : "Active"}
                 </span>
               </div>
@@ -127,7 +128,7 @@ function ShopDetail() {
             {shop.is_suspended ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" className="rounded-xl h-9 bg-emerald-500 hover:bg-emerald-600 text-white"><CheckCircle2 className="mr-2 h-4 w-4" /> Reactiver</Button>
+                  <Button size="sm" className="rounded-xl h-9 bg-success hover:bg-success text-primary-foreground"><CheckCircle2 className="mr-2 h-4 w-4" /> Reactiver</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -136,26 +137,26 @@ function ShopDetail() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction className="bg-emerald-600 hover:bg-emerald-700" onClick={() => suspendShop(false)}>Confirmer</AlertDialogAction>
+                    <AlertDialogAction className="bg-success hover:bg-success" onClick={() => suspendShop(false)}>Confirmer</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             ) : (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="rounded-xl h-9 text-amber-600 border-amber-200 hover:bg-amber-50">
+                  <Button size="sm" variant="outline" className="rounded-xl h-9 text-warning border-warning hover:bg-warning">
                     <Ban className="mr-2 h-4 w-4" /> Suspendre
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2 text-amber-600"><AlertTriangle className="h-5 w-5" /> Suspendre cette boutique ?</AlertDialogTitle>
+                    <AlertDialogTitle className="flex items-center gap-2 text-warning"><AlertTriangle className="h-5 w-5" /> Suspendre cette boutique ?</AlertDialogTitle>
                     <AlertDialogDescription>Veuillez taper <strong>{shop.name}</strong> ci-dessous pour confirmer la suspension.</AlertDialogDescription>
                     <Input placeholder={shop.name} value={confirmName} onChange={(e) => setConfirmName(e.target.value)} />
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setConfirmName("")}>Annuler</AlertDialogCancel>
-                    <AlertDialogAction disabled={confirmName !== shop.name} className="bg-amber-600 hover:bg-amber-700" onClick={() => suspendShop(true)}>Oui, suspendre</AlertDialogAction>
+                    <AlertDialogAction disabled={confirmName !== shop.name} className="bg-warning hover:bg-warning" onClick={() => suspendShop(true)}>Oui, suspendre</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -205,7 +206,7 @@ function ShopDetail() {
               </div>
               <div className="flex justify-between border-b pb-3 pt-1 items-center">
                 <span className="text-muted-foreground">Plan actuel</span>
-                <span className="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide bg-primary/10 text-primary border border-primary/20 shadow-sm">
+                <span className="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-normal bg-primary/10 text-primary border border-primary/20 shadow-sm">
                   {shop.plan_id}
                 </span>
               </div>
@@ -229,17 +230,17 @@ function ShopDetail() {
             <h3 className="font-semibold flex items-center gap-2"><Eye className="h-4 w-4 text-muted-foreground" /> Statistiques</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border bg-gradient-to-br from-muted/30 to-muted/10 p-5 text-center shadow-sm">
-                <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">Vues totales</p>
+                <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-normal">Vues totales</p>
                 <p className="text-3xl font-extrabold text-foreground">{shop.views}</p>
               </div>
               <div className="rounded-2xl border bg-gradient-to-br from-muted/30 to-muted/10 p-5 text-center shadow-sm">
-                <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">Produits</p>
+                <p className="text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-normal">Produits</p>
                 <p className="text-3xl font-extrabold text-foreground">{shop.products?.[0]?.count ?? 0}</p>
               </div>
             </div>
             {shop.description && (
               <div className="mt-5">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Description de la boutique</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-normal">Description de la boutique</span>
                 <p className="text-sm mt-2 bg-muted/20 p-4 rounded-xl border leading-relaxed text-muted-foreground">
                   {shop.description}
                 </p>

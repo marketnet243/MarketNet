@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 
 const staticPaths = ["/", "/terms", "/privacy", "/data-deletion"];
 
@@ -17,11 +17,11 @@ function normalizeLastmod(value?: string | null): string {
   return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
 }
 
-export const Route = createFileRoute("/sitemap.xml")({
+export const Route = createFileRoute("/sitemap/xml")({
   server: {
     handlers: {
       GET: async () => {
-        const siteUrl = process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "https://appmarketnet.vercel.app";
+        const siteUrl = process.env["MARKETNET_SITE_URL"] || process.env["VITE_PUBLIC_URL"] || "https://appmarketnet.vercel.app";
 
         const { data: shops } = await supabaseAdmin
           .from("shops")

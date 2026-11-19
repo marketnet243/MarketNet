@@ -1,4 +1,4 @@
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables } from "@/lib/imported-database";
 
 export type Promotion = Tables<"promotions">;
 export type PromotionProduct = Tables<"promotion_products">;

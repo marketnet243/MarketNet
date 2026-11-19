@@ -8,10 +8,11 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-
+import { Button } from "@/components/ui/button";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -21,10 +22,15 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page introuvable</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Cette page n'existe pas ou a été déplacée.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Cette page n’existe pas ou a été déplacée.
+        </p>
         <div className="mt-6">
-          <Link to="/" className="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground">
-            Retour à l'accueil
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Retour à l’accueil
           </Link>
         </div>
       </div>
@@ -33,49 +39,36 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error("Route error:", error);
+  console.error(error);
   const router = useRouter();
-  const [retrying, setRetrying] = useState(false);
-
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-
-    // Auto-retry once on hydration/network glitch
-    const timer = setTimeout(() => {
-      try {
-        setRetrying(true);
-        router.invalidate();
-        reset();
-      } catch {
-        setRetrying(false);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleRetry = () => {
-    setRetrying(true);
-    router.invalidate();
-    reset();
-    setTimeout(() => setRetrying(false), 1000);
-  };
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold text-foreground">Cette page n'a pas pu se charger</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Vérifiez votre connexion et réessayez.</p>
-        <div className="mt-6 flex justify-center gap-2">
-          <button
-            onClick={handleRetry}
-            disabled={retrying}
-            className="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        <h1 className="text-xl font-semibold tracking-normal text-foreground">
+          La page n’a pas pu se charger
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Vous pouvez réessayer ou revenir à l’accueil.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <Button
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {retrying ? "Rechargement…" : "Réessayer"}
-          </button>
-          <a href="/" className="inline-flex h-11 items-center rounded-xl border border-input bg-card px-5 text-sm font-semibold">
-            Accueil
+            Réessayer
+          </Button>
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            Retour à l’accueil
           </a>
         </div>
       </div>
@@ -84,47 +77,33 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => {
-    const origin =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "https://appmarketnet.vercel.app");
-    const ogImage = `${origin}/favicon.jpg`;
-    return {
-      meta: [
-        { charSet: "utf-8" },
-        { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { name: "google-site-verification", content: "fxXPuRZ8hZZ38VE1PfyLlBBhLYlSrTh6H1enOT3S_Nk" },
-        { title: "MarketNet — Votre boutique en ligne, vos commandes sur WhatsApp" },
-        { name: "description", content: "Créez votre boutique en ligne en quelques minutes et recevez vos commandes sur WhatsApp." },
-        { property: "og:site_name", content: "MarketNet" },
-        { property: "og:type", content: "website" },
-        { property: "og:title", content: "MarketNet — Boutiques en ligne africaines" },
-        { property: "og:description", content: "Créez votre boutique en ligne en quelques minutes et recevez vos commandes sur WhatsApp." },
-        { property: "og:url", content: origin },
-        { property: "og:image", content: ogImage },
-        { property: "og:image:secure_url", content: ogImage },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: "MarketNet — Logo" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "MarketNet — Boutiques en ligne africaines" },
-        { name: "twitter:description", content: "Créez votre boutique en ligne en quelques minutes et recevez vos commandes sur WhatsApp." },
-        { name: "twitter:image", content: ogImage },
-        { name: "theme-color", content: "#E8590C" },
-      ],
-      links: [
-        { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: "/favicon.jpg", type: "image/jpeg" },
-        { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap",
-        },
-      ],
-    };
-  },
+  head: () => ({
+    // Replace these placeholders with the app's name and description when first building the app.
+    // Each content route, / included, must still set its own head(). Never add og:image or
+    // twitter:image here: every page without its own would inherit the root's preview image.
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "MarketNet" },
+      { name: "description", content: "Votre boutique en ligne, vos commandes sur WhatsApp." },
+      { name: "author", content: "MarketNet" },
+      { property: "og:title", content: "MarketNet" },
+      { property: "og:description", content: "Votre boutique en ligne, vos commandes sur WhatsApp." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+
+    ],
+    links: [
+      {
+        rel: "stylesheet",
+        href: appCss,
+      },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@500;700&family=Playfair+Display:wght@600;700&display=swap" },
+    ],
+  }),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -138,6 +117,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a href="#main-content" className="skip-link">Aller au contenu</a>
         {children}
         <Scripts />
       </body>
@@ -147,25 +127,22 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const router = useRouter();
-
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") {
-        queryClient.clear();
-        return;
+    const { data } = supabase.auth.onAuthStateChange(event => {
+      if (event === "SIGNED_OUT") queryClient.clear();
+      if (event === "SIGNED_IN" && window.location.pathname === "/" && sessionStorage.getItem("marketnet-auth-return") === "/dashboard") {
+        sessionStorage.removeItem("marketnet-auth-return");
+        window.location.assign("/dashboard");
       }
-      if (event !== "SIGNED_IN" && event !== "USER_UPDATED") return;
-      queryClient.invalidateQueries();
-      router.invalidate();
     });
     return () => data.subscription.unsubscribe();
-  }, [router, queryClient]);
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <Toaster position="top-center" richColors />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }

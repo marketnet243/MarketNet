@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts, type Order } from "@/hooks/useMyShop";
 import { formatPrice } from "@/lib/marketnet";
 import { ShoppingBag, Search, Clock, CheckCircle2, Truck, XCircle, ChevronRight, SlidersHorizontal, Calendar as CalendarIcon } from "lucide-react";
@@ -13,15 +13,19 @@ import { fr } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 
 export const Route = createFileRoute("/_authenticated/dashboard/commandes")({
-  head: () => ({ meta: [{ title: "Commandes — MarketNet" }, { name: "description", content: "Suivez vos commandes WhatsApp." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Commandes — MarketNet" },
+      { property: "og:description", content: "Suivez vos commandes WhatsApp." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Commandes — MarketNet" }, { name: "description", content: "Suivez vos commandes WhatsApp." }] }),
   component: OrdersPage,
 });
 
 const STATUS_CONFIG: Record<Order["status"], { label: string; icon: any; color: string; bg: string; ring: string }> = {
-  new:       { label: "Nouvelle",  icon: Clock,        color: "text-blue-500",    bg: "bg-blue-500/10",    ring: "ring-blue-500/20"    },
-  confirmed: { label: "Confirmée", icon: CheckCircle2, color: "text-amber-500",   bg: "bg-amber-500/10",   ring: "ring-amber-500/20"   },
-  delivered: { label: "Livrée",    icon: Truck,        color: "text-emerald-500", bg: "bg-emerald-500/10", ring: "ring-emerald-500/20" },
-  cancelled: { label: "Annulée",   icon: XCircle,      color: "text-red-500",     bg: "bg-red-500/10",     ring: "ring-red-500/20"     },
+  new:       { label: "Nouvelle",  icon: Clock,        color: "text-info",    bg: "bg-info/10",    ring: "ring-info/20"    },
+  confirmed: { label: "Confirmée", icon: CheckCircle2, color: "text-warning",   bg: "bg-warning/10",   ring: "ring-warning/20"   },
+  delivered: { label: "Livrée",    icon: Truck,        color: "text-success", bg: "bg-success/10", ring: "ring-success/20" },
+  cancelled: { label: "Annulée",   icon: XCircle,      color: "text-destructive",     bg: "bg-destructive/10",     ring: "ring-destructive/20"     },
 };
 
 type Item = { name: string; qty: number; price: number; variant?: string; currency?: string; productId?: string };
@@ -107,10 +111,10 @@ function OrdersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Vos Commandes</h1>
+          <h1 className="text-3xl font-extrabold tracking-normal">Vos Commandes</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {orders?.length ?? 0} commande{(orders?.length ?? 0) > 1 ? "s" : ""} reçue{(orders?.length ?? 0) > 1 ? "s" : ""}
-            {newCount > 0 && <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-bold text-blue-500">{newCount} nouvelle{newCount > 1 ? "s" : ""}</span>}
+            {newCount > 0 && <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-info/10 px-2 py-0.5 text-xs font-bold text-info">{newCount} nouvelle{newCount > 1 ? "s" : ""}</span>}
           </p>
         </div>
       </div>
@@ -140,14 +144,14 @@ function OrdersPage() {
         {showFilters && (
           <div className="flex flex-wrap gap-3 rounded-2xl border bg-muted/20 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex flex-col gap-1 min-w-[140px]">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Statut</label>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-normal px-1">Statut</label>
               <select value={statusFilter} onChange={e => setStatus(e.target.value)} className="h-9 rounded-lg border bg-background px-3 text-sm cursor-pointer">
                 <option value="all">Tous les statuts</option>
                 {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
             <div className="flex flex-col gap-1 min-w-[160px]">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Période</label>
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-normal px-1">Période</label>
               <select value={dateFilter} onChange={e => { setDateFilter(e.target.value); setDateRange(undefined); }} className="h-9 rounded-lg border bg-background px-3 text-sm cursor-pointer">
                 {DATE_FILTERS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
@@ -155,7 +159,7 @@ function OrdersPage() {
             
             {dateFilter === "custom" && (
               <div className="flex flex-col gap-1 min-w-[240px] flex-1 sm:flex-none">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-1">Date exacte ou Plage</label>
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-normal px-1">Date exacte ou Plage</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className={cn("flex h-9 w-full items-center justify-between rounded-lg border bg-background px-3 text-sm font-normal text-left transition-colors hover:bg-muted/50", !dateRange && "text-muted-foreground")}>
@@ -193,7 +197,7 @@ function OrdersPage() {
 
             {(statusFilter !== "all" || dateFilter !== "all") && (
               <div className="flex items-end flex-1 sm:flex-none">
-                <button onClick={() => { setStatus("all"); setDateFilter("all"); setDateRange(undefined); }} className="h-9 w-full sm:w-auto rounded-lg border border-red-500/30 bg-red-500/10 px-4 text-sm font-medium text-red-500 hover:bg-red-500/20 transition-colors">
+                <button onClick={() => { setStatus("all"); setDateFilter("all"); setDateRange(undefined); }} className="h-9 w-full sm:w-auto rounded-lg border border-destructive/30 bg-destructive/10 px-4 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors">
                   Réinitialiser
                 </button>
               </div>
@@ -245,7 +249,7 @@ function OrdersPage() {
                 params={{ orderId: o.id }}
                 className={cn(
                   "group flex items-center justify-between gap-4 rounded-2xl border bg-card p-4 sm:p-5 transition-all hover:shadow-md hover:-translate-y-0.5",
-                  o.status === "new" ? "ring-2 ring-blue-500/20" : ""
+                  o.status === "new" ? "ring-2 ring-info/20" : ""
                 )}
               >
                 {/* Left: info */}

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 
 // 1x1 transparent PNG buffer
 const TRANSPARENT_1X1_PNG = Buffer.from(
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/api/public/broadcast-track")({
           }
 
           if (next) {
-            const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+            const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
             const target = next.startsWith("http") ? next : `${siteUrl}${next.startsWith("/") ? next : `/${next}`}`;
             return new Response(null, {
               status: 302,

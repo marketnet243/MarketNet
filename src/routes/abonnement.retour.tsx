@@ -9,6 +9,10 @@ import { formatCDF } from "@/lib/subscriptions";
 export const Route = createFileRoute("/abonnement/retour")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Vérification du paiement — MarketNet" },
+      { property: "og:description", content: "Vérification de votre paiement d'abonnement MarketNet." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Vérification du paiement — MarketNet" },
       { name: "description", content: "Vérification de votre paiement d'abonnement MarketNet." },
     ],
@@ -143,7 +147,7 @@ function PaymentReturnPage() {
     return (
       <PageShell>
         <div className="text-center space-y-4">
-          <XCircle className="h-16 w-16 text-red-500 mx-auto" />
+          <XCircle className="h-16 w-16 text-destructive mx-auto" />
           <h1 className="text-xl font-bold">Lien invalide</h1>
           <p className="text-sm text-muted-foreground">
             Ce lien de retour est invalide ou a expiré.
@@ -198,13 +202,13 @@ function PaymentReturnPage() {
           {/* En-tête succès */}
           <div className="text-center space-y-3">
             <div className="relative mx-auto h-20 w-20">
-              <div className="absolute inset-0 rounded-full bg-emerald-500/15 animate-ping animation-delay-100" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15">
-                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+              <div className="absolute inset-0 rounded-full bg-success/15 animate-ping animation-delay-100" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-success/15">
+                <CheckCircle2 className="h-10 w-10 text-success" />
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+              <h1 className="text-2xl font-extrabold text-success dark:text-success">
                 Paiement confirmé !
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
@@ -217,7 +221,7 @@ function PaymentReturnPage() {
           <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
             <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/30">
               <Receipt className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-bold uppercase tracking-normal text-muted-foreground">
                 Reçu de paiement
               </span>
             </div>
@@ -261,8 +265,8 @@ function PaymentReturnPage() {
           </div>
 
           {/* Notification envoi automatique email */}
-          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-blue-900 dark:text-blue-300 text-xs">
-            <Mail className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-info/80 dark:bg-info/30 border border-info/60 dark:border-info/40 text-info dark:text-info text-xs">
+            <Mail className="h-4 w-4 shrink-0 text-info dark:text-info" />
             <div className="leading-snug">
               <span className="font-semibold block">Facture PDF envoyée par e-mail</span>
               <span className="text-[11px] opacity-80">Votre reçu officiel a été transmis automatiquement.</span>
@@ -297,11 +301,11 @@ function PaymentReturnPage() {
     return (
       <PageShell>
         <div className="text-center space-y-5">
-          <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-full bg-red-500/10">
-            <XCircle className="h-10 w-10 text-red-500" />
+          <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-full bg-destructive/10">
+            <XCircle className="h-10 w-10 text-destructive" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-red-600 dark:text-red-400">
+            <h1 className="text-xl font-bold text-destructive dark:text-destructive">
               Paiement non abouti
             </h1>
             <p className="text-sm text-muted-foreground mt-1">{state.reason}</p>
@@ -332,8 +336,8 @@ function PaymentReturnPage() {
   return (
     <PageShell>
       <div className="text-center space-y-5">
-        <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-full bg-amber-500/10">
-          <Clock className="h-10 w-10 text-amber-500" />
+        <div className="flex h-20 w-20 mx-auto items-center justify-center rounded-full bg-warning/10">
+          <Clock className="h-10 w-10 text-warning" />
         </div>
         <div>
           <h1 className="text-xl font-bold">Paiement non confirmé</h1>
@@ -376,11 +380,11 @@ function PageShell({ children }: { children: React.ReactNode }) {
       <div className="w-full max-w-md">
         {/* Logo / marque */}
         <div className="text-center mb-8">
-          <span className="font-extrabold text-2xl tracking-tight text-foreground">
+          <span className="font-extrabold text-2xl tracking-normal text-foreground">
             Market<span className="text-primary">Net</span>
           </span>
         </div>
-        <div className="rounded-3xl border bg-card shadow-lg p-6 sm:p-8">
+        <div className="rounded-3xl border bg-card shadow-soft p-6 sm:p-8">
           {children}
         </div>
         <p className="text-center text-xs text-muted-foreground mt-6">

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { toast } from "sonner";
 import {
   getTicketDetail, replyToTicket, getAttachmentSignedUrl,
@@ -19,16 +19,19 @@ import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/dashboard/support_/$ticketId")({
   head: () => ({
-    meta: [{ title: "Ticket — Support MarketNet" }],
+    meta: [
+      { property: "og:title", content: "Ticket — Support MarketNet" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Ticket — Support MarketNet" }],
   }),
   component: TicketDetailPage,
 });
 
 const STATUT_COLOR: Record<string, string> = {
-  ouvert: "bg-orange-100 text-orange-700",
-  en_cours: "bg-blue-100 text-blue-700",
-  résolu: "bg-green-100 text-green-700",
-  fermé: "bg-slate-100 text-slate-600",
+  ouvert: "bg-warning text-warning",
+  en_cours: "bg-info text-info",
+  résolu: "bg-success text-success",
+  fermé: "bg-muted text-foreground",
 };
 const STATUT_LABELS: Record<string, string> = {
   ouvert: "Ouvert", en_cours: "En cours", résolu: "Résolu", fermé: "Fermé",
@@ -179,7 +182,7 @@ function TicketDetailPage() {
   );
 
   if (error || !data) return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+    <div className="rounded-2xl border border-destructive bg-destructive p-6 text-center text-sm text-destructive">
       <AlertCircle className="mx-auto mb-2 h-6 w-6" />
       Ticket introuvable ou accès refusé.
     </div>
@@ -212,7 +215,7 @@ function TicketDetailPage() {
         </div>
         <h1 className="font-bold text-lg leading-snug">{ticket.titre}</h1>
         {isClosed && (
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2 text-xs text-foreground">
             <Lock className="h-3 w-3" />
             Ce ticket est {STATUT_LABELS[ticket.statut].toLowerCase()}. Vous pouvez envoyer un nouveau message pour le rouvrir.
           </div>
@@ -252,8 +255,8 @@ function TicketDetailPage() {
               <div key={idx} className="relative h-20 w-20 rounded-xl border overflow-hidden bg-muted">
                 <img src={att.previewUrl} alt="Aperçu" className="h-full w-full object-cover" />
                 {att.uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                    <Loader2 className="h-4 w-4 text-white animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-overlay/50">
+                    <Loader2 className="h-4 w-4 text-primary-foreground animate-spin" />
                   </div>
                 )}
                 <button
@@ -262,7 +265,7 @@ function TicketDetailPage() {
                     URL.revokeObjectURL(att.previewUrl);
                     setAttachments((prev) => prev.filter((_, i) => i !== idx));
                   }}
-                  className="absolute top-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white"
+                  className="absolute top-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-overlay/70 text-primary-foreground"
                   aria-label="Supprimer"
                 >
                   <X className="h-3 w-3" />

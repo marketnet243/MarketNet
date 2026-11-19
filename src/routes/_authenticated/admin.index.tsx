@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Users, Store, Package, CreditCard, ArrowRight, TrendingUp, Calendar, ChevronDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -18,7 +18,7 @@ type FilterType = "7_days" | "30_days" | "7_months";
 
 function getPastPeriods(type: FilterType) {
   const monthsStr = ["Jan", "Fev", "Mar", "Avr", "Mai", "Juin", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"];
-  const result = [];
+  const result: { label: string; match: (date: Date) => boolean }[] = [];
   const d = new Date();
   
   if (type === "7_months") {
@@ -89,17 +89,17 @@ function AdminHome() {
   });
 
   const stats = [
-    { label: "Commerçants", value: data?.m, icon: Users, color: "text-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-    { label: "Boutiques Actives", value: data?.s, icon: Store, color: "text-purple-600", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+    { label: "Commerçants", value: data?.m, icon: Users, color: "text-info", bg: "bg-info/10", border: "border-info/20" },
+    { label: "Boutiques Actives", value: data?.s, icon: Store, color: "text-info", bg: "bg-info/10", border: "border-info/20" },
     { label: "Produits en ligne", value: data?.p, icon: Package, color: "text-pink-600", bg: "bg-pink-500/10", border: "border-pink-500/20" },
     {
       label: "Encaissé SasPay (Réel)",
       value: data ? formatCDF(data.saspayRevenue ?? 0) : undefined,
       sublabel: "100% réel · Solde SasPay",
       icon: CreditCard,
-      color: "text-emerald-600",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
+      color: "text-success",
+      bg: "bg-success/10",
+      border: "border-success/20",
       trend: "+12%"
     },
     {
@@ -107,9 +107,9 @@ function AdminHome() {
       value: data ? formatCDF(data.assignedValue ?? 0) : undefined,
       sublabel: data ? `${data.assignedCount ?? 0} plan(s) attribué(s)` : undefined,
       icon: Sparkles,
-      color: "text-indigo-600",
-      bg: "bg-indigo-500/10",
-      border: "border-indigo-500/20"
+      color: "text-info",
+      bg: "bg-info/10",
+      border: "border-info/20"
     },
   ];
 
@@ -123,7 +123,7 @@ function AdminHome() {
     <div className="mx-auto max-w-6xl space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Tableau de bord</h1>
+          <h1 className="text-3xl font-extrabold tracking-normal">Tableau de bord</h1>
           <p className="mt-1 text-muted-foreground">Voici l'état actuel de votre plateforme MarketNet aujourd'hui.</p>
         </div>
         <div className="flex gap-3">
@@ -146,7 +146,7 @@ function AdminHome() {
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 {stat.trend && (
-                  <div className="self-start sm:self-auto flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+                  <div className="self-start sm:self-auto flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-success bg-success/10 px-1.5 py-0.5 rounded-full">
                     <TrendingUp className="h-3 w-3" /> {stat.trend}
                   </div>
                 )}
@@ -173,7 +173,7 @@ function AdminHome() {
         <div className="rounded-3xl border bg-card shadow-sm overflow-hidden p-5 sm:p-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2"><TrendingUp className="h-5 w-5 text-emerald-500" /> Evolution Revenus</h2>
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2"><TrendingUp className="h-5 w-5 text-success" /> Evolution Revenus</h2>
             </div>
             
             <DropdownMenu>
@@ -209,12 +209,12 @@ function AdminHome() {
                         {formatCDF(d.value)}
                       </div>
                       <div 
-                        className="w-full max-w-[32px] bg-emerald-500/20 hover:bg-emerald-500 transition-all rounded-t-sm border-t border-emerald-500/50 relative overflow-hidden"
+                        className="w-full max-w-[32px] bg-success/20 hover:bg-success transition-all rounded-t-sm border-t border-success/50 relative overflow-hidden"
                         style={{ height: `${heightPercentage}%` }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-t from-transparent to-emerald-500/30" />
                       </div>
-                      <div className="mt-2 text-[8px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider truncate w-full text-center">
+                      <div className="mt-2 text-[8px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-normal truncate w-full text-center">
                         {revenueFilter === "7_months" ? d.label : d.label.split(" ")[0]}
                       </div>
                     </div>
@@ -229,7 +229,7 @@ function AdminHome() {
         <div className="rounded-3xl border bg-card shadow-sm overflow-hidden p-5 sm:p-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2"><Users className="h-5 w-5 text-blue-500" /> Inscriptions</h2>
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2"><Users className="h-5 w-5 text-info" /> Inscriptions</h2>
             </div>
             
             <DropdownMenu>
@@ -277,7 +277,7 @@ function AdminHome() {
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
-                        className="text-blue-500 drop-shadow-sm"
+                        className="text-info drop-shadow-sm"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         vectorEffect="non-scaling-stroke"
@@ -295,7 +295,7 @@ function AdminHome() {
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none">
                           {d.value}
                         </div>
-                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-card border-2 border-blue-500 rounded-full group-hover:scale-150 group-hover:bg-blue-500 transition-transform relative z-10" />
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-card border-2 border-info rounded-full  group-hover:bg-info transition-transform relative z-10" />
                       </div>
                     );
                   })}
@@ -304,7 +304,7 @@ function AdminHome() {
                 {/* Labels */}
                 <div className="absolute bottom-0 inset-x-0 h-4 flex justify-between">
                   {data?.merchantsData.map((d, i) => (
-                    <div key={i} className="text-[8px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider text-center" style={{ width: '30px', transform: 'translateX(-50%)', marginLeft: i === 0 ? '15px' : i === data.merchantsData.length - 1 ? '-15px' : '0' }}>
+                    <div key={i} className="text-[8px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-normal text-center" style={{ width: '30px', transform: 'translateX(-50%)', marginLeft: i === 0 ? '15px' : i === data.merchantsData.length - 1 ? '-15px' : '0' }}>
                       {merchantFilter === "7_months" ? d.label : d.label.split(" ")[0]}
                     </div>
                   ))}

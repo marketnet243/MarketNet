@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Logo } from "@/components/Logo";
 import { Menu, LayoutDashboard, Users, Store, CreditCard, Layers, Settings, ArrowLeft, ChevronLeft, LifeBuoy, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -16,7 +16,9 @@ export const Route = createFileRoute("/_authenticated/admin")({
     const { data } = await supabase.rpc("has_role", { _user_id: context.user.id, _role: "admin" });
     if (!data) throw redirect({ to: "/dashboard" });
   },
-  head: () => ({ meta: [{ title: "Administration — MarketNet" }, { name: "description", content: "Administration MarketNet." }, { property: "og:title", content: "Administration — MarketNet" }, { property: "og:description", content: "Espace administrateur." }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Administration — MarketNet" }, { name: "description", content: "Administration MarketNet." }, { property: "og:title", content: "Administration — MarketNet" }, { property: "og:description", content: "Espace administrateur." }, { name: "robots", content: "noindex" }] }),
   component: AdminLayout,
 });
 
@@ -54,18 +56,18 @@ function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: ()
       <div className={cn("flex h-16 shrink-0 items-center border-b w-full", collapsed ? "justify-center px-2" : "px-5 justify-between")}>
         {!collapsed && <Logo />}
         {collapsed && (
-          <button
+          <Button variant="ghost"
             onClick={onToggle}
             title="Agrandir le menu"
             className="group flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
           >
             <div className="font-black text-base">M</div>
-          </button>
+          </Button>
         )}
         {!collapsed && onToggle && (
-          <button onClick={onToggle} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-muted text-muted-foreground transition-colors">
+          <Button variant="ghost" onClick={onToggle} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-muted text-muted-foreground transition-colors">
             <ChevronLeft className="h-4 w-4" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -87,26 +89,26 @@ function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: ()
               activeProps={{ className: "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-bold" }}
               title={collapsed ? n.label : undefined}
             >
-              <Icon className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+              <Icon className="h-5 w-5 shrink-0 transition-transform " />
               {!collapsed && <span className="flex-1">{n.label}</span>}
               {!collapsed && isSupport && pendingCount > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-warning px-2 py-0.5 text-[11px] font-bold text-primary-foreground shadow-xs">
                   {pendingCount > 99 ? "99+" : pendingCount}
                 </span>
               )}
               {!collapsed && isSuppression && pendingDeletionCount > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive px-2 py-0.5 text-[11px] font-bold text-primary-foreground shadow-xs">
                   {pendingDeletionCount > 99 ? "99+" : pendingDeletionCount}
                 </span>
               )}
               {collapsed && isSupport && pendingCount > 0 && (
-                <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-card" />
+                <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-warning ring-2 ring-card" />
               )}
               {collapsed && isSuppression && pendingDeletionCount > 0 && (
-                <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-card" />
+                <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card" />
               )}
               {collapsed && (
-                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                   {n.label}
                   {isSupport && pendingCount > 0 ? ` (${pendingCount})` : ""}
                   {isSuppression && pendingDeletionCount > 0 ? ` (${pendingDeletionCount})` : ""}
@@ -118,22 +120,22 @@ function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: ()
       </nav>
 
       <div className={cn("border-t px-3 py-3", collapsed ? "" : "")}>
-        <button
+        <Button variant="ghost"
           onClick={() => supabase.auth.signOut().then(() => window.location.href = '/auth')}
           title={collapsed ? "Déconnexion" : undefined}
           className={cn(
-            "group relative flex items-center rounded-xl text-sm font-medium text-muted-foreground transition-all hover:bg-red-500/10 hover:text-red-500",
+            "group relative flex items-center rounded-xl text-sm font-medium text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive",
             collapsed ? "h-11 w-11 mx-auto justify-center" : "w-full gap-3 px-3 py-2.5"
           )}
         >
-          <ArrowLeft className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+          <ArrowLeft className="h-5 w-5 shrink-0 transition-transform " />
           {!collapsed && <span>Déconnexion</span>}
           {collapsed && (
-            <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+            <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
               Déconnexion
             </span>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -141,16 +143,16 @@ function SidebarContent({ onClose, collapsed = false, onToggle }: { onClose?: ()
 
 function AdminLayout() {
   const [open, setOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("admin-sidebar-collapsed") === "true";
-    }
-    return false;
-  });
+  const [collapsed, setCollapsed] = useState(false);
+  const [preferenceLoaded, setPreferenceLoaded] = useState(false);
+  useEffect(() => {
+    setCollapsed(localStorage.getItem("admin-sidebar-collapsed") === "true");
+    setPreferenceLoaded(true);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem("admin-sidebar-collapsed", String(collapsed));
-  }, [collapsed]);
+    if (preferenceLoaded) localStorage.setItem("admin-sidebar-collapsed", String(collapsed));
+  }, [collapsed, preferenceLoaded]);
   
   return (
     <div className="flex min-h-screen bg-background md:bg-muted/30">
@@ -163,7 +165,7 @@ function AdminLayout() {
 
       <div className="flex flex-1 flex-col min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b bg-card px-4 shadow-sm lg:px-8">
+        <header className="workspace-header sticky top-0 z-20 h-16 shrink-0 border-b bg-card px-4 shadow-sm lg:px-8">
           <div className="flex items-center gap-3 lg:hidden">
             <Logo />
           </div>
@@ -173,7 +175,7 @@ function AdminLayout() {
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="-mr-2 lg:hidden"><Menu className="h-6 w-6" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Ouvrir le menu administrateur" className="-mr-2 lg:hidden"><Menu className="h-6 w-6" /></Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-0">
                 <SidebarContent onClose={() => setOpen(false)} />

@@ -1,6 +1,6 @@
 export const THEMES = [
-  { id: "savane", name: "Savane", desc: "Chaleureux et arrondi", swatch: ["#FBF7F0", "#E8590C"] },
-  { id: "minuit", name: "Minuit", desc: "Sombre et élégant", swatch: ["#1B1F2E", "#F59F00"] },
+  { id: "savane", name: "Savane", desc: "Sobre et naturel", swatch: ["#FAFCFB", "#24634B"] },
+  { id: "minuit", name: "Minuit", desc: "Sombre et élégant", swatch: ["#1B1F2E", "#24634B"] },
   { id: "boutique", name: "Boutique", desc: "Mode, serif raffiné", swatch: ["#F9F1F0", "#C2255C"] },
   { id: "marche", name: "Marché", desc: "Coloré et généreux", swatch: ["#F7F0D6", "#2F9E44"] },
   { id: "pur", name: "Pur", desc: "Minimal, angles nets", swatch: ["#FFFFFF", "#111111"] },
@@ -12,7 +12,7 @@ export const SHOP_CATEGORIES = [
   "Maison & décoration", "Restaurant & traiteur", "Artisanat", "Santé & pharmacie", "Services", "Autre",
 ];
 
-export const PRESET_COLORS = ["#E8590C", "#C2255C", "#2F9E44", "#1971C2", "#F59F00", "#111111", "#7048E8", "#0CA678"];
+export const PRESET_COLORS = ["#24634B", "#252A28", "#48645C", "#426078"];
 
 export function formatPrice(n: number, currency: string) {
   if (currency === "MIXTE") return "Montant mixte";
@@ -47,7 +47,7 @@ export function resolvePublicOrigin(reqUrl?: string | null, forwardedHost?: stri
     const proto = forwardedProto || "https";
     return `${proto}://${forwardedHost}`.replace(/\/+$/, "");
   }
-  const envUrl = (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "").trim();
+  const envUrl = (process.env["MARKETNET_SITE_URL"] || process.env["VITE_PUBLIC_URL"] || "").trim();
   if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
     return envUrl.replace(/\/+$/, "");
   }
@@ -81,7 +81,7 @@ export function absoluteMediaUrl(
   }
   const cleanOrigin = (origin && !origin.includes("localhost") && !origin.includes("127.0.0.1"))
     ? origin.replace(/\/+$/, "")
-    : (process.env.MARKETNET_SITE_URL || process.env.VITE_PUBLIC_URL || "https://appmarketnet.vercel.app").replace(/\/+$/, "");
+    : (process.env["MARKETNET_SITE_URL"] || process.env["VITE_PUBLIC_URL"] || "https://appmarketnet.vercel.app").replace(/\/+$/, "");
 
   if (raw.startsWith("/")) {
     return `${cleanOrigin}${raw}`;

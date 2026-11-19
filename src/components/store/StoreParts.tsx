@@ -118,7 +118,7 @@ export function StoreHeader({
             <div className="relative group shrink-0">
               <div
                 className={cn(
-                  "relative grid place-items-center overflow-hidden rounded-2xl sm:rounded-3xl border-4 border-background bg-card font-shop-heading font-black text-shop shadow-2xl ring-1 ring-black/10 transition-transform duration-300 group-hover:scale-102",
+                  "relative grid place-items-center overflow-hidden rounded-2xl sm:rounded-3xl border-4 border-background bg-card font-shop-heading font-black text-shop shadow-lift ring-1 ring-black/10 transition-transform duration-300 ",
                   compact ? "h-16 w-16" : "h-20 w-20 sm:h-26 sm:w-26"
                 )}
               >
@@ -136,7 +136,7 @@ export function StoreHeader({
                 className="absolute -bottom-1 -right-1 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-background p-0.5 shadow-md"
                 title="Boutique Vérifiée MarketNet"
               >
-                <BadgeCheck className="h-full w-full text-emerald-500 fill-emerald-500/20" />
+                <BadgeCheck className="h-full w-full text-success fill-success/20" />
               </div>
             </div>
 
@@ -144,31 +144,31 @@ export function StoreHeader({
             <div className="space-y-1 pb-1">
               <div className="flex flex-wrap items-center gap-2">
                 {getShopCategoryLabel(shop) && (
-                  <span className="inline-flex items-center rounded-lg bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold tracking-wide uppercase">
+                  <span className="inline-flex items-center rounded-lg bg-primary/10 text-primary px-2.5 py-0.5 text-[11px] font-bold tracking-normal uppercase">
                     {getShopCategoryLabel(shop)}
                   </span>
                 )}
 
                 {/* Badge d'ouverture en direct */}
                 {isSuspended ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 px-2.5 py-0.5 text-[11px] font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 text-destructive dark:text-destructive px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
                     Suspendue
                   </span>
                 ) : !isPublished ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 text-[11px] font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-warning/15 text-warning dark:text-warning px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                     Fermée
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[11px] font-semibold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-success/10 text-success dark:text-success px-2.5 py-0.5 text-[11px] font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                     Ouvert
                   </span>
                 )}
               </div>
 
-              <h1 className="font-shop-heading font-black tracking-tight text-xl sm:text-2xl lg:text-3xl text-foreground">
+              <h1 className="font-shop-heading font-black tracking-normal text-xl sm:text-2xl lg:text-3xl text-foreground">
                 {shop.name}
               </h1>
             </div>
@@ -183,7 +183,7 @@ export function StoreHeader({
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 sm:flex-initial inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] px-5 text-xs sm:text-sm font-bold text-white shadow-md shadow-emerald-600/25 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer select-none"
+                className="flex-1 sm:flex-initial inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-xl bg-whatsapp hover:bg-whatsapp/90 px-5 text-xs sm:text-sm font-bold text-primary-foreground shadow-md shadow-success/25 transition-all   cursor-pointer select-none"
               >
                 <MessageCircle className="h-4 w-4 fill-white" />
                 <span>Discuter sur WhatsApp</span>
@@ -195,7 +195,7 @@ export function StoreHeader({
               onClick={handleShare}
               title="Partager le lien de la boutique"
               aria-label="Partager le lien de la boutique"
-              className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-primary/40 hover:text-primary transition-all active:scale-95 cursor-pointer shrink-0"
+              className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-primary/40 hover:text-primary transition-all  cursor-pointer shrink-0"
             >
               <Share2 className="h-4 w-4" />
             </button>
@@ -206,7 +206,7 @@ export function StoreHeader({
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Page Instagram"
-                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#E1306C]/50 hover:text-[#E1306C] transition-all active:scale-95 shrink-0"
+                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#E1306C]/50 hover:text-[#E1306C] transition-all  shrink-0"
               >
                 <Instagram className="h-4 w-4" />
               </a>
@@ -218,7 +218,7 @@ export function StoreHeader({
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Page Facebook"
-                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#1877F2]/50 hover:text-[#1877F2] transition-all active:scale-95 shrink-0"
+                className="grid h-10 w-10 sm:h-11 sm:w-11 place-items-center rounded-xl border border-border/80 bg-background/90 text-foreground shadow-xs hover:border-[#1877F2]/50 hover:text-[#1877F2] transition-all  shrink-0"
               >
                 <Facebook className="h-4 w-4" />
               </a>
@@ -270,7 +270,7 @@ export function StoreHeader({
         {/* ── BADGES DE RÉASSURANCE CLIENT — grille 2×2 mobile, 3 colonnes desktop ── */}
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 select-none">
           <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5">
-            <div className="h-7 w-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-success/10 text-success dark:text-success flex items-center justify-center shrink-0">
               <ShieldCheck className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -280,7 +280,7 @@ export function StoreHeader({
           </div>
 
           <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 p-2.5">
-            <div className="h-7 w-7 rounded-lg bg-[#25D366]/10 text-[#25D366] flex items-center justify-center shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-whatsapp/10 text-whatsapp flex items-center justify-center shrink-0">
               <MessageCircle className="h-4 w-4" />
             </div>
             <div className="min-w-0">
@@ -337,7 +337,7 @@ export function ProductCard({
   }
 
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-shop-card shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-shop-card shadow-xs hover:shadow-lift hover:-translate-y-1 transition-all duration-300">
       
       {/* ── IMAGE DU PRODUIT ── */}
       <div className="relative aspect-square overflow-hidden bg-muted/20">
@@ -347,7 +347,7 @@ export function ProductCard({
             alt={product.name}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-106"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out "
           />
         ) : (
           <div className="grid h-full place-items-center text-muted-foreground/30">
@@ -358,7 +358,7 @@ export function ProductCard({
         {/* Badges d'état (Promo, Top, Rupture) */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1">
           {product.discount_badge && (
-            <span className="inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-black text-white shadow-md">
+            <span className="inline-flex items-center rounded-full bg-destructive px-2 py-0.5 text-[10px] font-black text-primary-foreground shadow-md">
               {product.discount_badge}
             </span>
           )}
@@ -372,7 +372,7 @@ export function ProductCard({
 
         {/* Masque Rupture de Stock */}
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
+          <div className="absolute inset-0 flex items-center justify-center bg-overlay/40 backdrop-blur-xs">
             <span className="rounded-full bg-background/95 px-3 py-1 text-xs font-bold text-muted-foreground shadow-md">
               Rupture de stock
             </span>
@@ -387,9 +387,9 @@ export function ProductCard({
               onClick={handleQuickAdd}
               aria-label={`Ajouter ${product.name} au panier`}
               className={cn(
-                "w-full h-10 rounded-xl font-bold text-xs shadow-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95 cursor-pointer",
+                "w-full h-10 rounded-xl font-bold text-xs shadow-lift flex items-center justify-center gap-1.5 transition-transform  cursor-pointer",
                 addedAnim
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-success text-primary-foreground"
                   : "bg-shop text-shop-foreground hover:brightness-105"
               )}
             >
@@ -427,7 +427,7 @@ export function ProductCard({
             <span
               className={cn(
                 "text-sm sm:text-base font-black font-mono text-primary truncate",
-                isDiscounted && "text-red-600 dark:text-red-400"
+                isDiscounted && "text-destructive dark:text-destructive"
               )}
             >
               {formatPrice(displayPrice, product.currency)}
@@ -441,9 +441,9 @@ export function ProductCard({
               onClick={handleQuickAdd}
               aria-label={`Ajouter ${product.name} au panier`}
               className={cn(
-                "sm:hidden relative z-10 grid h-8 w-8 place-items-center rounded-xl shadow-xs transition-transform active:scale-90 cursor-pointer",
+                "sm:hidden relative z-10 grid h-8 w-8 place-items-center rounded-xl shadow-xs transition-transform  cursor-pointer",
                 addedAnim
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-success text-primary-foreground"
                   : "bg-shop text-shop-foreground"
               )}
             >

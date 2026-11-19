@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts, type Order } from "@/hooks/useMyShop";
 import { formatPrice, mediaUrl } from "@/lib/marketnet";
 import { ArrowLeft, CheckCircle2, Clock, Truck, XCircle, FileText, Image as ImageIcon, ShoppingBag } from "lucide-react";
@@ -8,15 +8,18 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/commandes_/$orderId")({
-  head: () => ({ meta: [{ title: "Détails de la commande — MarketNet" }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Détails de la commande — MarketNet" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Détails de la commande — MarketNet" }] }),
   component: OrderDetailPage,
 });
 
 const STATUS_CONFIG: Record<Order["status"], { label: string; icon: any; color: string; bg: string }> = {
-  new: { label: "Nouvelle", icon: Clock, color: "text-blue-500", bg: "bg-blue-500/10" },
-  confirmed: { label: "Confirmée", icon: CheckCircle2, color: "text-amber-500", bg: "bg-amber-500/10" },
-  delivered: { label: "Livrée", icon: Truck, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  cancelled: { label: "Annulée", icon: XCircle, color: "text-red-500", bg: "bg-red-500/10" },
+  new: { label: "Nouvelle", icon: Clock, color: "text-info", bg: "bg-info/10" },
+  confirmed: { label: "Confirmée", icon: CheckCircle2, color: "text-warning", bg: "bg-warning/10" },
+  delivered: { label: "Livrée", icon: Truck, color: "text-success", bg: "bg-success/10" },
+  cancelled: { label: "Annulée", icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },
 };
 
 type Item = { productId: string; name: string; qty: number; price: number; currency?: string; variant?: string };
@@ -51,7 +54,7 @@ function OrderDetailPage() {
   }
 
   if (isLoading) return <div className="py-20 text-center text-muted-foreground">Chargement...</div>;
-  if (!o) return <div className="py-20 text-center text-red-500">Commande introuvable</div>;
+  if (!o) return <div className="py-20 text-center text-destructive">Commande introuvable</div>;
 
   const config = STATUS_CONFIG[o.status];
   const StatusIcon = config.icon;
@@ -75,7 +78,7 @@ function OrderDetailPage() {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Commande de {o.customer_name.split(' - ')[0]?.split(' (')[0] ?? o.customer_name}</h1>
+          <h1 className="text-3xl font-extrabold tracking-normal">Commande de {o.customer_name.split(' - ')[0]?.split(' (')[0] ?? o.customer_name}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Reçue le {new Date(o.created_at).toLocaleDateString("fr-FR", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </p>
@@ -86,7 +89,7 @@ function OrderDetailPage() {
             <select 
               value={o.status} 
               onChange={(e) => update({ status: e.target.value as Order["status"] })} 
-              className={cn("appearance-none cursor-pointer h-11 rounded-xl border-0 pl-11 pr-8 text-sm font-bold ring-1 ring-inset transition-colors hover:bg-black/5 dark:hover:bg-white/5", config.bg, config.color, `ring-${config.color.split('-')[1]}-500/20`)}
+              className={cn("appearance-none cursor-pointer h-11 rounded-xl border-0 pl-11 pr-8 text-sm font-bold ring-1 ring-inset transition-colors hover:bg-overlay/5 dark:hover:bg-card/5", config.bg, config.color, `ring-${config.color.split('-')[1]}-500/20`)}
             >
               {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
@@ -155,7 +158,7 @@ function OrderDetailPage() {
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Coordonnées complètes</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-normal mb-2">Coordonnées complètes</p>
                 <div className="rounded-xl bg-muted/30 p-4 border border-dashed">
                   <p className="text-sm font-medium whitespace-pre-wrap leading-relaxed">{o.customer_name}</p>
                 </div>
@@ -163,8 +166,8 @@ function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl border bg-card overflow-hidden border-amber-500/20 shadow-sm shadow-amber-500/5">
-            <div className="p-5 border-b bg-amber-500/10 font-bold flex items-center gap-2 text-amber-600 dark:text-amber-500">
+          <div className="rounded-3xl border bg-card overflow-hidden border-warning/20 shadow-sm shadow-warning/5">
+            <div className="p-5 border-b bg-warning/10 font-bold flex items-center gap-2 text-warning dark:text-warning">
               Notes internes
             </div>
             <div className="p-5">
@@ -172,7 +175,7 @@ function OrderDetailPage() {
                 defaultValue={o.notes ?? ""} 
                 placeholder="Ex: Le client a demandé d'appeler avant d'arriver..." 
                 onBlur={(e) => e.target.value !== (o.notes ?? "") && update({ notes: e.target.value || null })} 
-                className="w-full min-h-[120px] resize-none rounded-xl border bg-transparent p-3 text-sm transition-colors focus:border-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-500/20" 
+                className="w-full min-h-[120px] resize-none rounded-xl border bg-transparent p-3 text-sm transition-colors focus:border-warning/50 focus:outline-none focus:ring-2 focus:ring-warning/20" 
               />
               <p className="text-[10px] text-muted-foreground mt-2">Ces notes sont privées et uniquement visibles par vous.</p>
             </div>

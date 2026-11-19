@@ -58,7 +58,7 @@ import {
 import { formatCDF, type SubscriptionPeriod } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 
 /** Génère dynamiquement la liste des features d'un plan depuis ses colonnes DB */
 function buildPlanFeatures(p: {
@@ -158,6 +158,10 @@ function SubscriptionErrorComponent({ error, reset }: { error: unknown; reset: (
 export const Route = createFileRoute("/_authenticated/dashboard/abonnement")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Mon Abonnement & Paiements — MarketNet" },
+      { property: "og:description", content: "Gérez votre formule d'abonnement MarketNet et payez en Francs Congolais (FC) via SasPay." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Mon Abonnement & Paiements — MarketNet" },
       { name: "description", content: "Gérez votre formule d'abonnement MarketNet et payez en Francs Congolais (FC) via SasPay." },
     ],
@@ -341,7 +345,7 @@ function DashboardAbonnementPage() {
             <Sparkles className="h-3.5 w-3.5" />
             <span>Formules & Facturation</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Mon Abonnement</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal">Mon Abonnement</h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
             Choisissez la formule adaptée à la croissance de votre boutique et réglez en Francs Congolais (FC).
           </p>
@@ -350,8 +354,8 @@ function DashboardAbonnementPage() {
 
       {/* ── Alertes de renouvellement et de période de grâce ─────────────── */}
       {subLimits?.reminder_level === "7_days" && !isGrace && (
-        <div className="flex items-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-amber-800 dark:text-amber-200 text-xs sm:text-sm">
-          <Clock className="h-5 w-5 shrink-0 text-amber-600" />
+        <div className="flex items-center gap-3 rounded-2xl bg-warning/10 border border-warning/20 p-4 text-warning dark:text-warning text-xs sm:text-sm">
+          <Clock className="h-5 w-5 shrink-0 text-warning" />
           <div className="space-y-0.5">
             <p className="font-bold">Votre formule expire dans {subLimits.days_remaining} jour(s)</p>
             <p className="opacity-90">Renouvelez dès aujourd'hui sans perdre vos jours restants.</p>
@@ -360,8 +364,8 @@ function DashboardAbonnementPage() {
       )}
 
       {subLimits?.reminder_level === "3_days" && !isGrace && (
-        <div className="flex items-center gap-3 rounded-2xl bg-orange-500/15 border border-orange-500/30 p-4 text-orange-800 dark:text-orange-200 text-xs sm:text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0 text-orange-600" />
+        <div className="flex items-center gap-3 rounded-2xl bg-warning/15 border border-warning/30 p-4 text-warning dark:text-warning text-xs sm:text-sm">
+          <AlertCircle className="h-5 w-5 shrink-0 text-warning" />
           <div className="space-y-0.5">
             <p className="font-bold">Expiration imminente : plus que {subLimits.days_remaining} jour(s)</p>
             <p className="opacity-90">Renouvelez maintenant pour éviter l'interruption des fonctionnalités avancées.</p>
@@ -370,8 +374,8 @@ function DashboardAbonnementPage() {
       )}
 
       {isGrace && (
-        <div className="flex items-center gap-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 p-4 text-amber-900 dark:text-amber-200 text-xs sm:text-sm">
-          <Clock className="h-5 w-5 shrink-0 text-amber-600 animate-pulse" />
+        <div className="flex items-center gap-3 rounded-2xl bg-warning/15 border border-warning/30 p-4 text-warning dark:text-warning text-xs sm:text-sm">
+          <Clock className="h-5 w-5 shrink-0 text-warning animate-pulse" />
           <div className="space-y-0.5">
             <p className="font-bold">Période de grâce de 7 jours active</p>
             <p className="opacity-90">
@@ -382,8 +386,8 @@ function DashboardAbonnementPage() {
       )}
 
       {isExpired && (
-        <div className="flex items-center gap-3 rounded-2xl bg-red-500/15 border border-red-500/30 p-4 text-red-900 dark:text-red-200 text-xs sm:text-sm">
-          <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
+        <div className="flex items-center gap-3 rounded-2xl bg-destructive/15 border border-destructive/30 p-4 text-destructive dark:text-destructive text-xs sm:text-sm">
+          <AlertCircle className="h-5 w-5 shrink-0 text-destructive" />
           <div className="space-y-0.5">
             <p className="font-bold">Abonnement expiré — Formule Gratuite appliquée</p>
             <p className="opacity-90">
@@ -420,7 +424,7 @@ function DashboardAbonnementPage() {
           <>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Votre formule active</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-normal">Votre formule active</span>
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl sm:text-2xl font-black capitalize">
                     Plan {subLimits?.plan_name || shop?.plan_id || "Gratuit"}
@@ -429,12 +433,12 @@ function DashboardAbonnementPage() {
                     className={cn(
                       "rounded-full px-3 py-1 text-xs font-extrabold border",
                       isGrace
-                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                        ? "bg-warning/15 text-warning dark:text-warning border-warning/30"
                         : isExpired
-                          ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30"
+                          ? "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30"
                           : subLimits?.is_attributed
-                            ? "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30"
-                            : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                            ? "bg-info/15 text-info dark:text-info border-info/30"
+                            : "bg-success/15 text-success dark:text-success border-success/30"
                     )}
                   >
                     {isGrace
@@ -517,7 +521,7 @@ function DashboardAbonnementPage() {
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">Changer ou Renouveler</h2>
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-normal">Changer ou Renouveler</h2>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Paiement instantané par Mobile Money (M-Pesa, Orange Money, Airtel Money) ou Carte bancaire.
             </p>
@@ -574,7 +578,7 @@ function DashboardAbonnementPage() {
                   )}
                 >
                   {isPro && (
-                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase tracking-normal">
                       Recommandé
                     </div>
                   )}
@@ -582,7 +586,7 @@ function DashboardAbonnementPage() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       {isPro ? (
-                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                        <Star className="h-4 w-4 text-warning fill-warning" />
                       ) : plan.id === "business" ? (
                         <Rocket className="h-4 w-4 text-primary" />
                       ) : null}
@@ -619,7 +623,7 @@ function DashboardAbonnementPage() {
                     <ul className="space-y-2 pt-2 border-t text-xs text-muted-foreground">
                       {features.map((f) => (
                         <li key={f.text} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                           {f.strong ? <strong>{f.text}</strong> : f.text}
                         </li>
                       ))}
@@ -750,14 +754,14 @@ function DashboardAbonnementPage() {
             <div className="divide-y divide-border/60 rounded-2xl border bg-card overflow-hidden">
               {paginatedHistory.map((pay) => {
                 const status = resolvePaymentStatus(pay);
-                const amountCDF = Number(pay.montant_cdf ?? pay.amount ?? 0);
+                const amountCDF = Number(pay.montant_cdf ?? (pay as any).amount ?? 0);
 
                 const statusDot = {
-                  payé: "bg-emerald-500",
-                  attribué: "bg-blue-500",
-                  en_attente: "bg-amber-500 animate-pulse",
+                  payé: "bg-success",
+                  attribué: "bg-info",
+                  en_attente: "bg-warning animate-pulse",
                   annulé: "bg-muted-foreground/40",
-                  échoué: "bg-rose-500",
+                  échoué: "bg-destructive",
                 }[status];
 
                 const statusLabel = {
@@ -769,9 +773,9 @@ function DashboardAbonnementPage() {
                 }[status];
 
                 const statusColor = {
-                  payé: "text-emerald-600 dark:text-emerald-400 font-semibold",
-                  attribué: "text-blue-600 dark:text-blue-400 font-semibold",
-                  en_attente: "text-amber-600 dark:text-amber-400 font-semibold",
+                  payé: "text-success dark:text-success font-semibold",
+                  attribué: "text-info dark:text-info font-semibold",
+                  en_attente: "text-warning dark:text-warning font-semibold",
                   annulé: "text-muted-foreground",
                   échoué: "text-muted-foreground",
                 }[status];
@@ -794,7 +798,7 @@ function DashboardAbonnementPage() {
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
                           {status === "attribué" && (
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                            <span className="text-info dark:text-info font-semibold">
                               Plan attribué par l'administrateur ·{" "}
                             </span>
                           )}
@@ -813,7 +817,7 @@ function DashboardAbonnementPage() {
                       <div>
                         {status === "attribué" ? (
                           <>
-                            <p className="font-bold text-sm text-blue-600 dark:text-blue-400">Attribué</p>
+                            <p className="font-bold text-sm text-info dark:text-info">Attribué</p>
                             <p className="text-[11px] text-muted-foreground">Par l'admin</p>
                           </>
                         ) : (
@@ -927,7 +931,7 @@ function DashboardAbonnementPage() {
 
       {/* ── Modale Reçu de Paiement / Attribution (Design Épuré & Élégant) ────────── */}
       <Dialog open={!!selectedReceipt} onOpenChange={(o) => !o && setSelectedReceipt(null)}>
-        <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border bg-background/98 backdrop-blur-xl space-y-0">
+        <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md rounded-3xl p-6 sm:p-7 shadow-lift border bg-background/98 backdrop-blur-xl space-y-0">
           {selectedReceipt && (() => {
             const status = resolvePaymentStatus(selectedReceipt);
             const isAttributed = status === "attribué";
@@ -938,17 +942,17 @@ function DashboardAbonnementPage() {
             const statusConfig = {
               payé: {
                 label: "Paiement réussi",
-                badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+                badgeClass: "bg-success/10 text-success dark:text-success border-success/20",
                 icon: CheckCircle2,
               },
               attribué: {
                 label: "Plan attribué par l'administrateur",
-                badgeClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+                badgeClass: "bg-info/10 text-info dark:text-info border-info/20",
                 icon: Sparkles,
               },
               en_attente: {
                 label: "En attente de paiement",
-                badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+                badgeClass: "bg-warning/10 text-warning dark:text-warning border-warning/20",
                 icon: Clock,
               },
               annulé: {
@@ -958,7 +962,7 @@ function DashboardAbonnementPage() {
               },
               échoué: {
                 label: "Non abouti",
-                badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+                badgeClass: "bg-destructive/10 text-destructive dark:text-destructive border-destructive/20",
                 icon: XCircle,
               },
             }[status];
@@ -983,10 +987,10 @@ function DashboardAbonnementPage() {
                   <div className={cn(
                     "text-center space-y-1.5 py-4 rounded-2xl border",
                     isAttributed
-                      ? "bg-blue-50/50 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-900/30"
+                      ? "bg-info/50 dark:bg-info/20 border-info/50 dark:border-info/30"
                       : "bg-muted/30 border-border/50"
                   )}>
-                    <p className="text-2xl sm:text-3xl font-black text-foreground tracking-tight capitalize">
+                    <p className="text-2xl sm:text-3xl font-black text-foreground tracking-normal capitalize">
                       {isAttributed ? `Plan ${selectedReceipt.plan_id}` : formatCDF(amountCDF)}
                     </p>
                     <div className="flex items-center justify-center">
@@ -1044,7 +1048,7 @@ function DashboardAbonnementPage() {
                         >
                           <span className="truncate">{selectedReceipt.saspay_transaction_id}</span>
                           {copiedRef ? (
-                            <Check className="h-3 w-3 text-emerald-500 shrink-0" />
+                            <Check className="h-3 w-3 text-success shrink-0" />
                           ) : (
                             <Copy className="h-3 w-3 text-muted-foreground shrink-0" />
                           )}
@@ -1068,13 +1072,13 @@ function DashboardAbonnementPage() {
                   {/* Actions si attribué */}
                   {isAttributed && (
                     <div className="space-y-2.5">
-                      <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-xs leading-relaxed">
-                        <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+                      <div className="flex items-start gap-2.5 p-3 rounded-xl bg-info/70 dark:bg-info/30 border border-info/50 dark:border-info/30 text-info dark:text-info text-xs leading-relaxed">
+                        <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-info dark:text-info" />
                         <span>Plan accordé par l'administrateur MarketNet. Téléchargez votre lettre officielle d'attribution ci-dessous.</span>
                       </div>
                       <Button
                         variant="outline"
-                        className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40 transition-colors"
+                        className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-info text-info hover:bg-info dark:border-info dark:text-info dark:hover:bg-info/40 transition-colors"
                         onClick={() => {
                           window.open(`/api/public/invoice-pdf?paymentId=${selectedReceipt.id}`, "_blank");
                         }}
@@ -1089,8 +1093,8 @@ function DashboardAbonnementPage() {
                   {status === "payé" && (
                     <div className="space-y-2.5">
                       {/* Notice envoi automatique email */}
-                      <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-[11px] leading-tight">
-                        <Mail className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                      <div className="flex items-center gap-2 p-2.5 rounded-xl bg-info/70 dark:bg-info/30 border border-info/50 dark:border-info/30 text-info dark:text-info text-[11px] leading-tight">
+                        <Mail className="h-4 w-4 shrink-0 text-info dark:text-info" />
                         <span>Facture PDF transmise automatiquement sur votre email de compte.</span>
                       </div>
 

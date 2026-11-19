@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/lib/imported-database";
+import type { Tables } from "@/lib/imported-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/plans")({
+  head: () => ({ meta: [{ title: 'Plans — MarketNet' }, { name: "description", content: 'Consultez et gérez plans sur MarketNet.' }, { property: "og:title", content: 'Plans — MarketNet' }, { property: "og:description", content: 'Consultez et gérez plans sur MarketNet.' }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
   component: PlansPage,
 });
 
@@ -116,7 +117,7 @@ function PlansPage() {
             <Zap className="h-3.5 w-3.5" />
             Gestion des Offres Marchands
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Plans & Abonnements</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal">Plans & Abonnements</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Configurez les formules tarifaires, limites de produits et options exclusives pour vos boutiques.
           </p>
@@ -285,16 +286,16 @@ function PlanCard({ plan }: { plan: Plan }) {
   const accentScheme = useMemo(() => {
     if (p.id === "free" || isFree) {
       return {
-        bar: "bg-slate-400",
-        badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-        icon: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+        bar: "bg-muted",
+        badge: "bg-muted text-foreground dark:bg-muted dark:text-foreground",
+        icon: "bg-muted text-foreground dark:bg-muted dark:text-foreground",
       };
     }
     if (p.id === "pro") {
       return {
-        bar: "bg-emerald-500",
-        badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-        icon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+        bar: "bg-success",
+        badge: "bg-success text-success dark:bg-success dark:text-success",
+        icon: "bg-success text-success dark:bg-success dark:text-success",
       };
     }
     return {
@@ -371,15 +372,15 @@ function PlanCard({ plan }: { plan: Plan }) {
       <div className="space-y-4">
         {/* Header row: ID & Status */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+          <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-normal text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
             <Zap className="h-3 w-3 text-primary" />
             {p.id}
           </div>
 
           <div className="flex items-center gap-1.5">
             {p.active ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success text-success dark:bg-success/60 dark:text-success border border-success dark:border-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                 Actif
               </span>
             ) : (
@@ -402,7 +403,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               />
             </div>
           ) : (
-            <h3 className="text-xl font-black text-foreground tracking-tight">{p.name}</h3>
+            <h3 className="text-xl font-black text-foreground tracking-normal">{p.name}</h3>
           )}
 
           <div className="mt-2 flex items-baseline gap-1.5">
@@ -428,7 +429,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               </div>
             ) : (
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-foreground tracking-tight">
+                <span className="text-2xl font-black text-foreground tracking-normal">
                   {formatCDF((p as any).price_cdf ?? 0)}
                 </span>
                 <span className="text-xs text-muted-foreground font-medium">/ mois</span>
@@ -466,7 +467,7 @@ function PlanCard({ plan }: { plan: Plan }) {
           {/* Photos */}
           <div className="p-2.5 rounded-xl border bg-muted/20 text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-muted-foreground">
-              <ImageIcon className="h-3 w-3 text-emerald-500" />
+              <ImageIcon className="h-3 w-3 text-success" />
               <span>Photos</span>
             </div>
             {isEditing ? (
@@ -487,7 +488,7 @@ function PlanCard({ plan }: { plan: Plan }) {
           {/* Promotions */}
           <div className="p-2.5 rounded-xl border bg-muted/20 text-center space-y-1">
             <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-bold text-muted-foreground">
-              <Tag className="h-3 w-3 text-amber-500" />
+              <Tag className="h-3 w-3 text-warning" />
               <span>Promos</span>
             </div>
             {isEditing ? (
@@ -516,7 +517,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <div className="space-y-1.5 pt-2 border-t border-border/60">
           <FeatureRow
             icon={Palette}
-            iconColor="text-purple-500"
+            iconColor="text-info"
             label="Thèmes & Styles Avancés"
             active={p.advanced_themes}
             isEditing={isEditing}
@@ -524,7 +525,7 @@ function PlanCard({ plan }: { plan: Plan }) {
           />
           <FeatureRow
             icon={BarChart3}
-            iconColor="text-amber-500"
+            iconColor="text-warning"
             label="Statistiques & Rapports Pro"
             active={p.advanced_stats}
             isEditing={isEditing}
@@ -532,7 +533,7 @@ function PlanCard({ plan }: { plan: Plan }) {
           />
           <FeatureRow
             icon={CheckCircle2}
-            iconColor="text-emerald-500"
+            iconColor="text-success"
             label="Proposer ce plan aux marchands"
             active={p.active}
             isEditing={isEditing}
@@ -648,7 +649,7 @@ function FeatureRow({
       {isEditing ? (
         <Switch checked={active} onCheckedChange={onChange} />
       ) : active ? (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success dark:text-success shrink-0">
           <Check className="h-3.5 w-3.5" /> Inclus
         </span>
       ) : (
@@ -675,29 +676,29 @@ function MetricCard({
 }) {
   const accentClasses = {
     primary: "from-primary/20 to-transparent text-primary bg-primary/10 border-primary/20",
-    green: "from-emerald-500/20 to-transparent text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
-    amber: "from-amber-500/20 to-transparent text-amber-600 bg-amber-500/10 border-amber-500/20",
-    blue: "from-blue-500/20 to-transparent text-blue-600 bg-blue-500/10 border-blue-500/20",
+    green: "from-emerald-500/20 to-transparent text-success bg-success/10 border-success/20",
+    amber: "from-amber-500/20 to-transparent text-warning bg-warning/10 border-warning/20",
+    blue: "from-blue-500/20 to-transparent text-info bg-info/10 border-info/20",
   }[accent];
 
   const barClasses = {
     primary: "bg-primary",
-    green: "bg-emerald-500",
-    amber: "bg-amber-500",
-    blue: "bg-blue-500",
+    green: "bg-success",
+    amber: "bg-warning",
+    blue: "bg-info",
   }[accent];
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border bg-card p-4 sm:p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-primary/30">
       <div className={`absolute inset-x-0 top-0 h-0.5 ${barClasses}`} />
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
-        <div className={`rounded-xl p-2.5 border transition-transform duration-200 group-hover:scale-110 ${accentClasses}`}>
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-normal">{label}</span>
+        <div className={`rounded-xl p-2.5 border transition-transform duration-200  ${accentClasses}`}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
       <div className="mt-3">
-        <div className="text-2xl sm:text-3xl font-black tracking-tight">{value}</div>
+        <div className="text-2xl sm:text-3xl font-black tracking-normal">{value}</div>
         {subtext && <p className="mt-1 text-xs text-muted-foreground">{subtext}</p>}
       </div>
     </div>

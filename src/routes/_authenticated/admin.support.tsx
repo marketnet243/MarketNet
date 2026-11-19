@@ -56,6 +56,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/admin/support")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Support & Diffusions — Administration MarketNet" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Support & Diffusions — Administration MarketNet" },
       { name: "robots", content: "noindex" },
     ],
@@ -80,10 +83,10 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 const STATUT_COLOR: Record<string, string> = {
-  ouvert: "bg-orange-100 text-orange-700 border-orange-200",
-  en_cours: "bg-blue-100 text-blue-700 border-blue-200",
-  résolu: "bg-green-100 text-green-700 border-green-200",
-  fermé: "bg-slate-100 text-slate-600 border-slate-200",
+  ouvert: "bg-warning text-warning border-warning",
+  en_cours: "bg-info text-info border-info",
+  résolu: "bg-success text-success border-success",
+  fermé: "bg-muted text-foreground border-border",
 };
 
 function AdminSupportPage() {
@@ -245,7 +248,7 @@ function AdminSupportPage() {
       {/* En-tête */}
       <div className="flex items-center justify-between flex-wrap gap-4 border-b pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-normal flex items-center gap-2">
             <LifeBuoy className="h-6 w-6 text-primary" />
             Support & Communication
           </h1>
@@ -268,7 +271,7 @@ function AdminSupportPage() {
             <LifeBuoy className="h-4 w-4" />
             <span>Tickets</span>
             {ticketsWithUnread.length > 0 && (
-              <span className="rounded-full bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-info px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
                 {ticketsWithUnread.length}
               </span>
             )}
@@ -294,8 +297,8 @@ function AdminSupportPage() {
         <div className="space-y-6">
           {/* Bannière alerte messages non lus */}
           {ticketsWithUnread.length > 0 && (
-            <div className="flex items-center gap-2 rounded-2xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-800">
-              <MessageCircle className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center gap-2 rounded-2xl bg-info border border-info px-4 py-3 text-sm font-semibold text-info">
+              <MessageCircle className="h-4 w-4 text-info" />
               <span>
                 {ticketsWithUnread.length} ticket{ticketsWithUnread.length > 1 ? "s ont" : " a"} de nouveaux messages commerçant en attente de lecture.
               </span>
@@ -376,7 +379,7 @@ function AdminSupportPage() {
               <Loader2 className="h-6 w-6 animate-spin text-primary" /> Chargement…
             </div>
           ) : ticketsError ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+            <div className="rounded-2xl border border-destructive bg-destructive p-6 text-center text-sm text-destructive">
               <AlertCircle className="mx-auto mb-2 h-6 w-6" /> Erreur lors du chargement des tickets.
             </div>
           ) : !ticketsData?.tickets.length ? (
@@ -400,13 +403,13 @@ function AdminSupportPage() {
                       params={{ ticketId: ticket.id }}
                       className={cn(
                         "flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors",
-                        hasUnread && "bg-blue-50/40 dark:bg-blue-950/20"
+                        hasUnread && "bg-info/40 dark:bg-info/20"
                       )}
                     >
                       {/* Pastille non lu */}
                       <div className="shrink-0">
                         {hasUnread ? (
-                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-info dark:bg-info/40 text-info dark:text-info">
                             <MessageCircle className="h-4 w-4" />
                           </span>
                         ) : (
@@ -429,7 +432,7 @@ function AdminSupportPage() {
                             {ticket.statut}
                           </span>
                           {hasUnread && (
-                            <span className="rounded-full bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                            <span className="rounded-full bg-info px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-xs">
                               {ticket.unread_count} nouveau{(ticket.unread_count ?? 0) > 1 ? "x" : ""}
                             </span>
                           )}
@@ -565,26 +568,26 @@ function AdminSupportPage() {
                         </span>
 
                         <span
-                          className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-1 border border-emerald-500/20"
+                          className="px-2.5 py-1 rounded-lg bg-success/10 text-success dark:text-success font-semibold flex items-center gap-1 border border-success/20"
                           title="E-mails envoyés avec succès"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {b.envoyes_count}
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success" /> {b.envoyes_count}
                         </span>
 
                         {b.echoues_count > 0 && (
                           <span
-                            className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-300 font-semibold flex items-center gap-1 border border-rose-500/20"
+                            className="px-2.5 py-1 rounded-lg bg-destructive/10 text-destructive dark:text-destructive font-semibold flex items-center gap-1 border border-destructive/20"
                             title="Échecs / Quota SMTP dépassé"
                           >
-                            <XCircle className="h-3.5 w-3.5 text-rose-500" /> {b.echoues_count}
+                            <XCircle className="h-3.5 w-3.5 text-destructive" /> {b.echoues_count}
                           </span>
                         )}
 
                         <span
-                          className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 font-semibold flex items-center gap-1 border border-blue-500/20"
+                          className="px-2.5 py-1 rounded-lg bg-info/10 text-info dark:text-info font-semibold flex items-center gap-1 border border-info/20"
                           title="Lectures in-app par les commerçants"
                         >
-                          <Eye className="h-3.5 w-3.5 text-blue-500" /> {b.lus_count} lu{b.lus_count > 1 ? "s" : ""}
+                          <Eye className="h-3.5 w-3.5 text-info" /> {b.lus_count} lu{b.lus_count > 1 ? "s" : ""}
                         </span>
                       </div>
 
@@ -776,7 +779,7 @@ function AdminSupportPage() {
 
             {/* Aperçu de l'annonce */}
             <div className="rounded-2xl border bg-muted/20 p-4 space-y-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-normal flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-primary" /> Aperçu in-app pour le commerçant
               </span>
               <div className="rounded-xl border bg-card p-4 space-y-2 shadow-xs">
@@ -787,7 +790,7 @@ function AdminSupportPage() {
                   <p className="font-bold text-sm text-foreground">
                     {bTitre.trim() || "Titre de l'annonce"}
                   </p>
-                  <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white">
+                  <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive text-primary-foreground">
                     Nouveau
                   </span>
                 </div>
@@ -869,19 +872,19 @@ function AdminSupportPage() {
                     {selectedBroadcastDetail.destinataires_count}
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300">
+                <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-success dark:text-success">
                   <p className="text-[10px] uppercase font-bold">Envoyés</p>
                   <p className="text-base font-black mt-1">
                     {selectedBroadcastDetail.envoyes_count}
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-800 dark:text-rose-300">
+                <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive dark:text-destructive">
                   <p className="text-[10px] uppercase font-bold">Échoués</p>
                   <p className="text-base font-black mt-1">
                     {selectedBroadcastDetail.echoues_count}
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300">
+                <div className="p-3 rounded-xl bg-info/10 border border-info/20 text-info dark:text-info">
                   <p className="text-[10px] uppercase font-bold">Lus</p>
                   <p className="text-base font-black mt-1">
                     {selectedBroadcastDetail.lus_count}

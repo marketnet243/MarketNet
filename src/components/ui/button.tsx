@@ -5,12 +5,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold cursor-pointer transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center ui-control gap-2 whitespace-nowrap rounded-full text-sm font-semibold tracking-normal active:scale-[0.98] transition-transform cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-soft hover:bg-primary/90",
-        hero: "bg-gradient-warm text-primary-foreground shadow-lift hover:brightness-105",
+        default: "ui-control-primary bg-primary text-primary-foreground shadow-soft hover:bg-primary/90",
+        hero: "ui-control-primary bg-gradient-warm text-primary-foreground shadow-lift hover:brightness-110",
+        google: "ui-control-google",
         destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
           "border border-input bg-card shadow-sm hover:bg-accent hover:text-accent-foreground",
@@ -23,8 +24,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-11 px-5",
-        sm: "h-9 rounded-lg px-3 text-xs",
-        lg: "h-13 px-8 text-base",
+        sm: "h-10 px-4 text-sm",
+        lg: "h-12 px-7 text-[15px]",
         icon: "h-11 w-11",
       },
     },

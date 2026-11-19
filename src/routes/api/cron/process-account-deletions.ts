@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 
 // Route cron : /api/cron/process-account-deletions
 // Cadence recommandee : toutes les 10 minutes

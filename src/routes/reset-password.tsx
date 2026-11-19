@@ -17,10 +17,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Nouveau mot de passe — MarketNet" },
       { name: "description", content: "Choisissez un nouveau mot de passe pour votre compte MarketNet." },
       { property: "og:title", content: "Nouveau mot de passe — MarketNet" },
@@ -38,7 +41,7 @@ function StrengthBar({ password }: { password: string }) {
     /[^A-Za-z0-9]/.test(password),
   ];
   const score = checks.filter(Boolean).length;
-  const colors = ["bg-red-500", "bg-orange-500", "bg-amber-500", "bg-emerald-500"];
+  const colors = ["bg-destructive", "bg-warning", "bg-warning", "bg-success"];
   const labels = ["Trop court ou fragile", "Moyen", "Bon mot de passe", "Excellent et robuste"];
 
   if (!password) return null;
@@ -61,10 +64,10 @@ function StrengthBar({ password }: { password: string }) {
           className={cn(
             "font-semibold",
             score <= 1
-              ? "text-red-500"
+              ? "text-destructive"
               : score === 2
-              ? "text-amber-500"
-              : "text-emerald-500"
+              ? "text-warning"
+              : "text-success"
           )}
         >
           {labels[score - 1] || "À compléter"}
@@ -122,6 +125,7 @@ function ResetPage() {
   }
 
   return (
+    <AuthShell>
     <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-primary/5 via-background to-primary/10 overflow-hidden">
       {/* Halos lumineux en arrière-plan */}
       <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-[130px] pointer-events-none" />
@@ -133,35 +137,35 @@ function ResetPage() {
         <div className="mb-6 flex items-center justify-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-2.5 transition-transform hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-2.5 transition-transform  "
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-black text-xl shadow-lg shadow-primary/30">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-black text-xl shadow-soft shadow-primary/30">
               M
             </span>
-            <span className="text-2xl font-black tracking-tight text-foreground">
+            <span className="text-2xl font-black tracking-normal text-foreground">
               Market<span className="text-primary">Net</span>
             </span>
           </Link>
         </div>
 
         {/* Card principale */}
-        <div className="rounded-[2rem] border bg-card/95 backdrop-blur-xl p-7 sm:p-9 shadow-2xl shadow-primary/5">
+        <div className="rounded-[2rem] border bg-card/95 backdrop-blur-xl p-7 sm:p-9 shadow-lift shadow-primary/5">
           {done ? (
             /* ── État de confirmation avec effets élégants non bloquants ── */
             <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
               <div className="relative mx-auto flex h-20 w-20 items-center justify-center">
-                <div className="absolute inset-0 rounded-3xl bg-emerald-500/20 blur-xl animate-pulse" />
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 shadow-lg shadow-emerald-500/10">
+                <div className="absolute inset-0 rounded-3xl bg-success/20 blur-xl animate-pulse" />
+                <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-success/10 text-success dark:text-success border border-success/25 shadow-soft shadow-success/10">
                   <CheckCircle2 className="h-10 w-10 animate-in zoom-in-75 duration-300" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 text-success dark:text-success text-xs font-bold border border-success/20">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>Mise à jour réussie</span>
                 </div>
-                <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
+                <h2 className="text-2xl font-extrabold tracking-normal text-foreground">
                   Mot de passe changé !
                 </h2>
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -181,7 +185,7 @@ function ResetPage() {
               <div className="pt-1 space-y-3">
                 <Button
                   onClick={() => navigate({ to: "/dashboard" })}
-                  className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 gap-2 transition-transform hover:scale-[1.02] active:scale-95"
+                  className="w-full h-11 rounded-xl font-bold shadow-soft shadow-primary/20 gap-2 transition-transform  "
                 >
                   <span>Accéder à mon tableau de bord</span>
                   <ArrowRight className="h-4 w-4" />
@@ -203,7 +207,7 @@ function ResetPage() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3 shadow-xs">
                   <KeyRound className="h-6 w-6" />
                 </div>
-                <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+                <h1 className="text-2xl font-extrabold tracking-normal text-foreground">
                   Nouveau mot de passe
                 </h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
@@ -255,7 +259,7 @@ function ResetPage() {
                       placeholder="••••••••"
                       className={cn(
                         "h-11 pl-10 pr-10 rounded-xl bg-background border-border focus-visible:ring-primary",
-                        confirm && pw !== confirm && "border-red-500 focus-visible:ring-red-500"
+                        confirm && pw !== confirm && "border-destructive focus-visible:ring-destructive"
                       )}
                       autoComplete="new-password"
                       required
@@ -269,12 +273,12 @@ function ResetPage() {
                     </button>
                   </div>
                   {confirm && pw !== confirm && (
-                    <p className="text-[11px] text-red-500 flex items-center gap-1 font-medium pt-0.5">
+                    <p className="text-[11px] text-destructive flex items-center gap-1 font-medium pt-0.5">
                       Les mots de passe ne correspondent pas
                     </p>
                   )}
                   {confirm && pw === confirm && pw.length >= 8 && (
-                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium pt-0.5">
+                    <p className="text-[11px] text-success dark:text-success flex items-center gap-1 font-medium pt-0.5">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Mots de passe identiques
                     </p>
                   )}
@@ -284,7 +288,7 @@ function ResetPage() {
                   <Button
                     type="submit"
                     disabled={busy || pw.length < 8 || pw !== confirm}
-                    className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-[1.02] active:scale-95 text-sm"
+                    className="w-full h-11 rounded-xl font-bold shadow-soft shadow-primary/20 transition-transform   text-sm"
                   >
                     {busy ? (
                       <>
@@ -307,5 +311,6 @@ function ResetPage() {
         </div>
       </div>
     </div>
+    </AuthShell>
   );
 }

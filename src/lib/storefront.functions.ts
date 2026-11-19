@@ -2,13 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { notFound } from "@tanstack/react-router";
 import { z } from "zod";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/lib/imported-database";
 import { resolvePublicOrigin } from "@/lib/marketnet";
 
 export const getPublicShop = createServerFn({ method: "GET" })
-  .validator((d) => z.object({ slug: z.string().min(1).max(60) }).parse(d))
+  .inputValidator((d) => z.object({ slug: z.string().min(1).max(60) }).parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("@/lib/imported-database.server");
     const { data: shop } = await supabaseAdmin
       .from("shops")
       .select("id,name,slug,description,category,category_custom,logo_url,banner_url,city,address,whatsapp,hours,facebook,instagram,tiktok,theme,primary_color,currency,is_published,is_suspended")
@@ -106,13 +106,13 @@ export const getPublicShop = createServerFn({ method: "GET" })
   });
 
 export const recordShopVisit = createServerFn({ method: "POST" })
-  .validator((d) => z.object({
+  .inputValidator((d) => z.object({
     slug: z.string().min(1).max(60),
     src: z.string().nullable().optional(),
     productId: z.string().uuid().nullable().optional(),
   }).parse(d))
   .handler(async ({ data }) => {
-    const admin = (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+    const admin = (await import("@/lib/imported-database.server")).supabaseAdmin;
     
     // 1. Incrémenter la vue générale de la boutique
     try {

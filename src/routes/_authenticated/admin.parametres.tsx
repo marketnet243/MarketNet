@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,8 @@ import { logAction } from "@/hooks/useIsAdmin";
 import { Settings2, Activity, CreditCard, Save, Clock, Fingerprint, Globe, Mail, Info, Edit2, X, CheckCircle2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const Route = createFileRoute("/_authenticated/admin/parametres")({ component: Settings });
+export const Route = createFileRoute("/_authenticated/admin/parametres")({
+  head: () => ({ meta: [{ title: 'Paramètres administrateur — MarketNet' }, { name: "description", content: 'Consultez et gérez paramètres administrateur sur MarketNet.' }, { property: "og:title", content: 'Paramètres administrateur — MarketNet' }, { property: "og:description", content: 'Consultez et gérez paramètres administrateur sur MarketNet.' }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: Settings });
 
 function Settings() {
   const qc = useQueryClient();
@@ -111,7 +112,7 @@ function Settings() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Parametres de la plateforme</h1>
+        <h1 className="text-2xl font-bold tracking-normal">Parametres de la plateforme</h1>
         <p className="mt-1 text-sm text-muted-foreground">Gerez l'identite, les integrations et surveillez les actions de l'administration.</p>
       </div>
 
@@ -156,7 +157,7 @@ function Settings() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Mail className="h-4 w-4 text-amber-500" /> Email de notification Support</Label>
+                    <Label className="flex items-center gap-2"><Mail className="h-4 w-4 text-warning" /> Email de notification Support</Label>
                     <Input 
                       type="email" 
                       className={inputClass("general")} 
@@ -188,26 +189,26 @@ function Settings() {
                 </div>
                 <div className="p-6 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="rounded-xl border bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/40 p-4 flex flex-col gap-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Environnement</span>
-                      <span className="text-base font-black text-emerald-800 dark:text-emerald-300">Production (Live)</span>
+                    <div className="rounded-xl border bg-success/60 dark:bg-success/20 border-success dark:border-success/40 p-4 flex flex-col gap-1">
+                      <span className="text-[11px] font-bold uppercase tracking-normal text-success dark:text-success">Environnement</span>
+                      <span className="text-base font-black text-success dark:text-success">Production (Live)</span>
                       <span className="text-[11px] text-muted-foreground">Paiements réels activés</span>
                     </div>
                     <div className="rounded-xl border bg-muted/30 p-4 flex flex-col gap-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Devise</span>
+                      <span className="text-[11px] font-bold uppercase tracking-normal text-muted-foreground">Devise</span>
                       <span className="text-base font-black">CDF (FC)</span>
                       <span className="text-[11px] text-muted-foreground">Franc Congolais uniquement</span>
                     </div>
                     <div className="rounded-xl border bg-muted/30 p-4 flex flex-col gap-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Webhook</span>
+                      <span className="text-[11px] font-bold uppercase tracking-normal text-muted-foreground">Webhook</span>
                       <span className="text-base font-black truncate text-xs font-mono">/api/public/webhook-saspay</span>
                       <span className="text-[11px] text-muted-foreground">Activation automatique</span>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30 p-4 text-xs text-amber-800 dark:text-amber-300 flex gap-2 items-start">
+                  <div className="rounded-xl border bg-warning/60 dark:bg-warning/20 border-warning dark:border-warning/30 p-4 text-xs text-warning dark:text-warning flex gap-2 items-start">
                     <span className="mt-0.5">⚙️</span>
-                    <span>Pour modifier les clés API SasPay ou l'URL du webhook, mettez à jour les variables d'environnement <code className="font-mono bg-amber-100 dark:bg-amber-900/40 px-1 rounded">SASPAY_SECRET_KEY</code> et <code className="font-mono bg-amber-100 dark:bg-amber-900/40 px-1 rounded">SASPAY_WEBHOOK_SECRET</code> dans Vercel.</span>
+                    <span>Pour modifier les clés API SasPay ou l'URL du webhook, mettez à jour les variables d'environnement <code className="font-mono bg-warning dark:bg-warning/40 px-1 rounded">SASPAY_SECRET_KEY</code> et <code className="font-mono bg-warning dark:bg-warning/40 px-1 rounded">SASPAY_WEBHOOK_SECRET</code> dans Vercel.</span>
                   </div>
 
                   <div className="flex justify-end border-t border-dashed pt-4">
@@ -232,7 +233,7 @@ function Settings() {
               <div className="rounded-lg bg-secondary p-2 text-secondary-foreground"><Activity className="h-5 w-5" /></div>
               <div>
                 <h2 className="font-semibold">Journal d'activite</h2>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mt-0.5">50 dernieres actions</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-normal font-semibold mt-0.5">50 dernieres actions</p>
               </div>
             </div>
             

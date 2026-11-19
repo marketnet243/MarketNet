@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/re
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { toast } from "sonner";
 import {
   LifeBuoy, Plus, ChevronRight, MessageCircle, Clock, CheckCircle2,
@@ -32,6 +32,10 @@ import {
 export const Route = createFileRoute("/_authenticated/dashboard/support")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Support — MarketNet" },
+      { property: "og:description", content: "Contactez notre équipe de support." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Support — MarketNet" },
       { name: "description", content: "Contactez notre équipe de support." },
     ],
@@ -47,10 +51,10 @@ const STATUT_LABELS: Record<SupportTicketStatut, string> = {
 };
 
 const STATUT_COLOR: Record<SupportTicketStatut, string> = {
-  ouvert: "bg-orange-100 text-orange-700 border-orange-200",
-  en_cours: "bg-blue-100 text-blue-700 border-blue-200",
-  résolu: "bg-green-100 text-green-700 border-green-200",
-  fermé: "bg-slate-100 text-slate-600 border-slate-200",
+  ouvert: "bg-warning text-warning border-warning",
+  en_cours: "bg-info text-info border-info",
+  résolu: "bg-success text-success border-success",
+  fermé: "bg-muted text-foreground border-border",
 };
 
 const STATUT_ICON: Record<SupportTicketStatut, React.FC<{ className?: string }>> = {
@@ -283,7 +287,7 @@ function SupportPage() {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-normal flex items-center gap-2">
             <LifeBuoy className="h-6 w-6 text-primary" />
             Support
           </h1>
@@ -302,7 +306,7 @@ function SupportPage() {
 
       {/* Compteur d'éléments non lus */}
       {(totalUnreadTickets > 0 || unreadBroadcastsCount > 0) && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-900/50 px-4 py-3 flex items-center gap-3 text-sm text-blue-800 dark:text-blue-200">
+        <div className="rounded-xl border border-info bg-info dark:bg-info/30 dark:border-info/50 px-4 py-3 flex items-center gap-3 text-sm text-info dark:text-info">
           <MessageCircle className="h-4 w-4 shrink-0" />
           <span>
             {totalUnreadTickets > 0 && unreadBroadcastsCount > 0
@@ -317,7 +321,7 @@ function SupportPage() {
       {/* Annonces officielles / Diffusions */}
       {broadcasts && broadcasts.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-normal text-muted-foreground">
             <Megaphone className="h-4 w-4 text-primary" />
             <span>Annonces de MarketNet ({broadcasts.length})</span>
           </div>
@@ -386,9 +390,9 @@ function SupportPage() {
                       <div className="rounded-xl bg-muted/40 p-3.5 text-xs text-foreground/90 whitespace-pre-wrap break-words leading-relaxed overflow-hidden">
                         {b.message}
                       </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-blue-200/60 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900/40 p-3 text-xs min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-info/60 bg-info/50 dark:bg-info/20 dark:border-info/40 p-3 text-xs min-w-0">
                         <p className="text-muted-foreground flex items-center gap-1.5 min-w-0">
-                          <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                          <Info className="h-3.5 w-3.5 text-info dark:text-info shrink-0" />
                           <span className="break-words">Message de MarketNet : pour nous écrire, créez un ticket.</span>
                         </p>
                         <Button
@@ -419,7 +423,7 @@ function SupportPage() {
 
       {/* Erreur */}
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+        <div className="rounded-2xl border border-destructive bg-destructive p-6 text-center text-sm text-destructive">
           <AlertCircle className="mx-auto mb-2 h-6 w-6" />
           Une erreur est survenue lors du chargement de vos tickets.
         </div>
@@ -455,13 +459,13 @@ function SupportPage() {
                 <div
                   className={cn(
                     "flex items-center justify-between rounded-2xl border bg-card p-4 transition-all hover:shadow-sm hover:border-primary/40",
-                    hasUnread && "border-blue-300 bg-blue-50/50"
+                    hasUnread && "border-info bg-info/50"
                   )}
                 >
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="mt-0.5">
                       {hasUnread ? (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-blue-600 shrink-0">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-info text-info shrink-0">
                           <MessageCircle className="h-4 w-4" />
                         </span>
                       ) : (
@@ -475,7 +479,7 @@ function SupportPage() {
                         <span className="text-xs font-mono font-bold text-primary">{ticket.numero}</span>
                         <StatutBadge statut={ticket.statut} />
                         {hasUnread && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-info px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
                             {ticket.unread_count} nouveau{ticket.unread_count! > 1 ? "x" : ""}
                           </span>
                         )}
@@ -500,7 +504,7 @@ function SupportPage() {
       {/* ─── MODAL : NOUVEAU TICKET DE SUPPORT ─── */}
       {/* ─── MODAL : NOUVEAU TICKET DE SUPPORT ─── */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="w-[calc(100vw-2rem)] sm:w-full sm:max-w-lg max-h-[88vh] overflow-y-auto rounded-3xl p-5 sm:p-6 shadow-2xl">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:w-full sm:max-w-lg max-h-[88vh] overflow-y-auto rounded-3xl p-5 sm:p-6 shadow-lift">
           <DialogHeader className="pb-1 text-left">
             <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold">
               <LifeBuoy className="h-5 w-5 text-primary shrink-0" />
@@ -521,7 +525,7 @@ function SupportPage() {
             {/* Catégorie */}
             <div className="space-y-1.5">
               <Label htmlFor="ticket-categorie" className="text-xs font-semibold">
-                Catégorie <span className="text-red-500">*</span>
+                Catégorie <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={form.categorie}
@@ -543,7 +547,7 @@ function SupportPage() {
             {/* Titre */}
             <div className="space-y-1.5">
               <Label htmlFor="ticket-titre" className="text-xs font-semibold">
-                Titre ou résumé <span className="text-red-500">*</span>
+                Titre ou résumé <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="ticket-titre"
@@ -551,15 +555,15 @@ function SupportPage() {
                 value={form.titre}
                 onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
                 maxLength={200}
-                className={cn("h-10 sm:h-11 rounded-xl text-sm", errors.titre && "border-red-500 focus-visible:ring-red-500")}
+                className={cn("h-10 sm:h-11 rounded-xl text-sm", errors.titre && "border-destructive focus-visible:ring-destructive")}
               />
-              {errors.titre && <p className="text-xs text-red-600">{errors.titre}</p>}
+              {errors.titre && <p className="text-xs text-destructive">{errors.titre}</p>}
             </div>
 
             {/* Message */}
             <div className="space-y-1.5">
               <Label htmlFor="ticket-texte" className="text-xs font-semibold">
-                Description <span className="text-red-500">*</span>
+                Description <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="ticket-texte"
@@ -568,9 +572,9 @@ function SupportPage() {
                 value={form.texte}
                 onChange={(e) => setForm((f) => ({ ...f, texte: e.target.value }))}
                 maxLength={10000}
-                className={cn("rounded-xl resize-none text-sm p-3 leading-relaxed", errors.texte && "border-red-500 focus-visible:ring-red-500")}
+                className={cn("rounded-xl resize-none text-sm p-3 leading-relaxed", errors.texte && "border-destructive focus-visible:ring-destructive")}
               />
-              {errors.texte && <p className="text-xs text-red-600">{errors.texte}</p>}
+              {errors.texte && <p className="text-xs text-destructive">{errors.texte}</p>}
             </div>
 
             {/* Pièces jointes (captures d'écran) */}
@@ -606,19 +610,19 @@ function SupportPage() {
                     <div key={att.previewUrl} className="relative group rounded-xl overflow-hidden border aspect-square bg-muted">
                       <img src={att.previewUrl} alt="Aperçu" className="h-full w-full object-cover" />
                       {att.uploading && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <Loader2 className="h-5 w-5 animate-spin text-white" />
+                        <div className="absolute inset-0 bg-overlay/50 flex items-center justify-center">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary-foreground" />
                         </div>
                       )}
                       {att.error && (
-                        <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center p-1 text-[10px] text-white text-center">
+                        <div className="absolute inset-0 bg-destructive/60 flex items-center justify-center p-1 text-[10px] text-primary-foreground text-center">
                           Échec
                         </div>
                       )}
                       <button
                         type="button"
                         onClick={() => handleFileRemove(att.previewUrl)}
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-overlay/60 text-primary-foreground flex items-center justify-center hover:bg-overlay/90 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>

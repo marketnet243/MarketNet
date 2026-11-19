@@ -3,12 +3,16 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Copy, Eye, Package, Plus, ShoppingBag, MessageCircle, ArrowRight, TrendingUp, Star, ExternalLink, Tag } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts } from "@/hooks/useMyShop";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
-  head: () => ({ meta: [{ title: "Tableau de bord — MarketNet" }, { name: "description", content: "Vue d ensemble de votre boutique." }] }),
+  head: () => ({ meta: [
+      { property: "og:title", content: "Tableau de bord — MarketNet" },
+      { property: "og:description", content: "Vue d ensemble de votre boutique." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Tableau de bord — MarketNet" }, { name: "description", content: "Vue d ensemble de votre boutique." }] }),
   component: Overview,
 });
 
@@ -38,10 +42,10 @@ function Overview() {
   const newOrders = orders?.filter((o) => o.status === "new").length ?? 0;
 
   const stats = [
-    { label: "Vues totales", value: shop.views, icon: Eye, color: "text-blue-600", bg: "bg-blue-500/10", border: "border-blue-500/20", link: null },
-    { label: "Produits", value: products?.length ?? 0, icon: Package, color: "text-purple-600", bg: "bg-purple-500/10", border: "border-purple-500/20", link: "/dashboard/produits" },
-    { label: "Commandes", value: orders?.length ?? 0, icon: ShoppingBag, color: "text-orange-600", bg: "bg-orange-500/10", border: "border-orange-500/20", link: "/dashboard/commandes" },
-    { label: "Nouvelles cmd", value: newOrders, icon: MessageCircle, color: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/20", link: "/dashboard/commandes" },
+    { label: "Vues totales", value: shop.views, icon: Eye, color: "text-info", bg: "bg-info/10", border: "border-info/20", link: null },
+    { label: "Produits", value: products?.length ?? 0, icon: Package, color: "text-info", bg: "bg-info/10", border: "border-info/20", link: "/dashboard/produits" },
+    { label: "Commandes", value: orders?.length ?? 0, icon: ShoppingBag, color: "text-warning", bg: "bg-warning/10", border: "border-warning/20", link: "/dashboard/commandes" },
+    { label: "Nouvelles cmd", value: newOrders, icon: MessageCircle, color: "text-success", bg: "bg-success/10", border: "border-success/20", link: "/dashboard/commandes" },
   ];
 
   return (
@@ -50,7 +54,7 @@ function Overview() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal">
             {greeting}{userName ? `, ${userName.split(" ")[0]}` : ""} 👋
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">Voici l activite de <strong className="text-foreground">{shop.name}</strong>.</p>
@@ -61,22 +65,22 @@ function Overview() {
       </div>
 
       {/* Shop Link Card */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary to-orange-400 p-6 text-primary-foreground shadow-lg">
-        <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full" />
-        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/5 rounded-full" />
-        <p className="text-xs uppercase tracking-widest font-semibold opacity-80 mb-2">Lien de votre boutique</p>
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary to-orange-400 p-6 text-primary-foreground shadow-soft">
+        <div className="absolute -top-8 -right-8 w-32 h-32 bg-card/10 rounded-full" />
+        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-card/5 rounded-full" />
+        <p className="text-xs uppercase tracking-normal font-semibold opacity-80 mb-2">Lien de votre boutique</p>
         <p className="break-all font-bold text-base sm:text-lg leading-relaxed opacity-95">{url.replace(/^https?:\/\//, "")}</p>
         <div className="mt-5 flex flex-wrap gap-3">
           <button
             onClick={() => { navigator.clipboard.writeText(url); toast.success("Lien copie !"); }}
-            className="flex items-center gap-2 rounded-xl bg-white/20 hover:bg-white/30 transition-colors px-4 py-2 text-sm font-semibold backdrop-blur-sm"
+            className="flex items-center gap-2 rounded-xl bg-card/20 hover:bg-card/30 transition-colors px-4 py-2 text-sm font-semibold backdrop-blur-sm"
           >
             <Copy className="h-4 w-4" /> Copier
           </button>
           <a
             href={`https://wa.me/?text=${encodeURIComponent(`Decouvrez ma boutique ${shop.name} : ${url}`)}`}
             target="_blank" rel="noreferrer"
-            className="flex items-center gap-2 rounded-xl bg-white/20 hover:bg-white/30 transition-colors px-4 py-2 text-sm font-semibold backdrop-blur-sm"
+            className="flex items-center gap-2 rounded-xl bg-card/20 hover:bg-card/30 transition-colors px-4 py-2 text-sm font-semibold backdrop-blur-sm"
           >
             <MessageCircle className="h-4 w-4" /> Partager
           </a>
@@ -106,9 +110,9 @@ function Overview() {
 
       {/* Nouvelle commande alert */}
       {newOrders > 0 && (
-        <div className="flex items-center justify-between rounded-2xl bg-emerald-500/10 border border-emerald-500/20 px-5 py-4">
+        <div className="flex items-center justify-between rounded-2xl bg-success/10 border border-success/20 px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">{newOrders}</div>
+            <div className="h-9 w-9 rounded-full bg-success flex items-center justify-center text-primary-foreground font-bold text-sm">{newOrders}</div>
             <div>
               <p className="font-semibold text-sm">Nouvelle{newOrders > 1 ? "s" : ""} commande{newOrders > 1 ? "s" : ""} !</p>
               <p className="text-xs text-muted-foreground">Commandes en attente de traitement.</p>
@@ -164,9 +168,9 @@ function DashboardShortcuts({ shop }: { shop: any }) {
       desc: "Ajoutez un logo, une bannière et une description.",
       icon: Star,
       to: "/dashboard/boutique",
-      color: "text-blue-600",
-      bg: "bg-blue-500/10",
-      border: "border-blue-500/20",
+      color: "text-info",
+      bg: "bg-info/10",
+      border: "border-info/20",
     },
     {
       id: "promo",
@@ -175,9 +179,9 @@ function DashboardShortcuts({ shop }: { shop: any }) {
       desc: "Mettez en avant vos offres avec une bannière interactive.",
       icon: Tag,
       to: "/dashboard/promotions",
-      color: "text-orange-600",
-      bg: "bg-orange-500/10",
-      border: "border-orange-500/20",
+      color: "text-warning",
+      bg: "bg-warning/10",
+      border: "border-warning/20",
     },
   ].filter((c) => !c.done && !dismissed.includes(c.id));
 
@@ -185,7 +189,7 @@ function DashboardShortcuts({ shop }: { shop: any }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">À faire pour booster vos ventes</p>
+      <p className="text-xs font-bold uppercase tracking-normal text-muted-foreground">À faire pour booster vos ventes</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((c) => {
           const Icon = c.icon;

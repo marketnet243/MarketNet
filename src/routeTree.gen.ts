@@ -21,6 +21,10 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AbonnementRetourRouteImport } from './routes/abonnement.retour'
 import { Route as BSlugRouteImport } from './routes/b.$slug'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminBoutiquesRouteImport } from './routes/_authenticated/admin.boutiques'
 import { Route as AuthenticatedAdminCommercantsRouteImport } from './routes/_authenticated/admin.commercants'
@@ -109,6 +113,26 @@ const AbonnementRetourRoute = AbonnementRetourRouteImport.update({
 const BSlugRoute = BSlugRouteImport.update({
   id: '/b/$slug',
   path: '/b/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsTxtRoute = RobotsTxtRouteImport.update({
+  id: '/robots/txt',
+  path: '/robots/txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -295,6 +319,10 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/abonnement/retour': typeof AbonnementRetourRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
+  '/robots/txt': typeof RobotsTxtRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
+  '/blog/': typeof BlogIndexRoute
   '/admin/boutiques': typeof AuthenticatedAdminBoutiquesRoute
   '/admin/commercants': typeof AuthenticatedAdminCommercantsRoute
   '/admin/demandes-suppression': typeof AuthenticatedAdminDemandesSuppressionRoute
@@ -335,6 +363,10 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/abonnement/retour': typeof AbonnementRetourRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/robots/txt': typeof RobotsTxtRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
+  '/blog': typeof BlogIndexRoute
   '/admin/boutiques': typeof AuthenticatedAdminBoutiquesRoute
   '/admin/commercants': typeof AuthenticatedAdminCommercantsRoute
   '/admin/demandes-suppression': typeof AuthenticatedAdminDemandesSuppressionRoute
@@ -380,6 +412,10 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/abonnement/retour': typeof AbonnementRetourRoute
   '/b/$slug': typeof BSlugRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
+  '/robots/txt': typeof RobotsTxtRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
+  '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/boutiques': typeof AuthenticatedAdminBoutiquesRoute
   '/_authenticated/admin/commercants': typeof AuthenticatedAdminCommercantsRoute
   '/_authenticated/admin/demandes-suppression': typeof AuthenticatedAdminDemandesSuppressionRoute
@@ -425,6 +461,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/abonnement/retour'
     | '/b/$slug'
+    | '/blog/$slug'
+    | '/robots/txt'
+    | '/sitemap/xml'
+    | '/blog/'
     | '/admin/boutiques'
     | '/admin/commercants'
     | '/admin/demandes-suppression'
@@ -465,6 +505,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/onboarding'
     | '/abonnement/retour'
+    | '/blog/$slug'
+    | '/robots/txt'
+    | '/sitemap/xml'
+    | '/blog'
     | '/admin/boutiques'
     | '/admin/commercants'
     | '/admin/demandes-suppression'
@@ -509,6 +553,10 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/abonnement/retour'
     | '/b/$slug'
+    | '/blog/$slug'
+    | '/robots/txt'
+    | '/sitemap/xml'
+    | '/blog/'
     | '/_authenticated/admin/boutiques'
     | '/_authenticated/admin/commercants'
     | '/_authenticated/admin/demandes-suppression'
@@ -551,6 +599,10 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AbonnementRetourRoute: typeof AbonnementRetourRoute
   BSlugRoute: typeof BSlugRouteWithChildren
+  BlogSlugRoute: typeof BlogSlugRoute
+  RobotsTxtRoute: typeof RobotsTxtRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   ApiCronProcessAccountDeletionsRoute: typeof ApiCronProcessAccountDeletionsRoute
   ApiCronSubscriptionRemindersRoute: typeof ApiCronSubscriptionRemindersRoute
   ApiPublicBroadcastTrackRoute: typeof ApiPublicBroadcastTrackRoute
@@ -643,6 +695,34 @@ declare module '@tanstack/react-router' {
       path: '/b/$slug'
       fullPath: '/b/$slug'
       preLoaderRoute: typeof BSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots/txt': {
+      id: '/robots/txt'
+      path: '/robots/txt'
+      fullPath: '/robots/txt'
+      preLoaderRoute: typeof RobotsTxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -981,6 +1061,10 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AbonnementRetourRoute: AbonnementRetourRoute,
   BSlugRoute: BSlugRouteWithChildren,
+  BlogSlugRoute: BlogSlugRoute,
+  RobotsTxtRoute: RobotsTxtRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
+  BlogIndexRoute: BlogIndexRoute,
   ApiCronProcessAccountDeletionsRoute: ApiCronProcessAccountDeletionsRoute,
   ApiCronSubscriptionRemindersRoute: ApiCronSubscriptionRemindersRoute,
   ApiPublicBroadcastTrackRoute: ApiPublicBroadcastTrackRoute,

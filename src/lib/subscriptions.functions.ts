@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 import { createSasPayCheckout } from "./saspay";
 import {
   calculateSubscriptionDates,
@@ -46,7 +46,7 @@ export const getPlanPrices = createServerFn({ method: "GET" }).handler(
 
 export const adminUpdatePlanPrice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
+  .inputValidator(
     z.object({
       id: z.string().uuid(),
       price_cdf: z.number().min(0),
@@ -55,7 +55,7 @@ export const adminUpdatePlanPrice = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input, context }) => {
     // Vérifier rôle admin
-    const { data: role } = await context.supabase
+    const { data: role } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -83,7 +83,7 @@ export const adminUpdatePlanPrice = createServerFn({ method: "POST" })
 
 export const getMerchantSubscription = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator(z.object({ shopId: z.string().uuid() }))
+  .inputValidator(z.object({ shopId: z.string().uuid() }))
   .handler(async ({ data: input, context }): Promise<ComputedPlanLimits> => {
     const sb = supabaseAdmin;
 
@@ -97,7 +97,7 @@ export const getMerchantSubscription = createServerFn({ method: "GET" })
     if (!shop) throw new Error("Boutique introuvable");
     const isOwner = shop.owner_id === context.userId;
 
-    const { data: adminRole } = await context.supabase
+    const { data: adminRole } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -202,7 +202,7 @@ export const getMerchantSubscription = createServerFn({ method: "GET" })
 
 export const getMerchantPayments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator(z.object({ shopId: z.string().uuid() }))
+  .inputValidator(z.object({ shopId: z.string().uuid() }))
   .handler(async ({ data: input, context }): Promise<SubscriptionPayment[]> => {
     const sb = supabaseAdmin;
 
@@ -318,7 +318,7 @@ export async function internalActivateSubscription({
 
 export const adminGetPayments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator(
+  .inputValidator(
     z.object({
       statut: z.string().optional(),
       search: z.string().optional(),
@@ -326,7 +326,7 @@ export const adminGetPayments = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: input, context }) => {
     // Vérification admin
-    const { data: adminRole } = await context.supabase
+    const { data: adminRole } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -400,7 +400,7 @@ export const adminGetPayments = createServerFn({ method: "GET" })
 
 export const adminReviewPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
+  .inputValidator(
     z.object({
       paymentId: z.string().uuid(),
       decision: z.enum(["valider", "refuser"]),
@@ -408,7 +408,7 @@ export const adminReviewPayment = createServerFn({ method: "POST" })
     })
   )
   .handler(async ({ data: input, context }) => {
-    const { data: adminRole } = await context.supabase
+    const { data: adminRole } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -460,7 +460,7 @@ export const adminReviewPayment = createServerFn({ method: "POST" })
 
 export const adminAssignPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
+  .inputValidator(
     z.object({
       shopId: z.string().uuid(),
       planId: z.string(),
@@ -473,7 +473,7 @@ export const adminAssignPlan = createServerFn({ method: "POST" })
     const sb = supabaseAdmin;
 
     // 1. Vérifier le rôle administrateur
-    const { data: adminRole } = await context.supabase
+    const { data: adminRole } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -491,8 +491,8 @@ export const adminAssignPlan = createServerFn({ method: "POST" })
 
     // 3. Vérifier la validité du mot de passe administrateur
     const { createClient } = await import("@supabase/supabase-js");
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://lqnuowcgcerrvuvqmnli.supabase.co";
-    const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+    const supabaseUrl = process.env["SUPABASE_URL"] || process.env["VITE_SUPABASE_URL"] || "https://lqnuowcgcerrvuvqmnli.supabase.co";
+    const supabaseKey = process.env["SUPABASE_PUBLISHABLE_KEY"] || process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] || "";
     const authVerifier = createClient(supabaseUrl, supabaseKey);
 
     const { error: pwdErr } = await authVerifier.auth.signInWithPassword({
@@ -632,7 +632,7 @@ export const adminAssignPlan = createServerFn({ method: "POST" })
 export const adminGetPaymentEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: adminRole } = await context.supabase
+    const { data: adminRole } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -736,7 +736,7 @@ export async function internalProcessDailySubscriptionChecks() {
 export const processDailySubscriptionChecks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: adminRole } = await context.supabase
+    const { data: adminRole } = await (context.supabase as any)
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId)
@@ -759,7 +759,7 @@ const APP_URL =
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
+  .inputValidator(
     z.object({
       shopId: z.string().uuid(),
       planId: z.string().min(1),
@@ -958,7 +958,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
 export const getPaymentStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator(z.object({ paymentId: z.string().uuid() }))
+  .inputValidator(z.object({ paymentId: z.string().uuid() }))
   .handler(async ({ data: input, context }) => {
     const sb = supabaseAdmin;
 
@@ -982,7 +982,7 @@ export const getPaymentStatus = createServerFn({ method: "GET" })
       statut: payment.statut as PaymentStatus,
       plan_id: payment.plan_id,
       period: payment.period as SubscriptionPeriod,
-      montant_cdf: Number(payment.montant_cdf ?? payment.amount ?? 0),
+      montant_cdf: Number(payment.montant_cdf ?? (payment as any).amount ?? 0),
       currency: payment.currency ?? "CDF",
       montant_debite: payment.montant_debite ?? null,
       montant_net: payment.montant_net ?? null,

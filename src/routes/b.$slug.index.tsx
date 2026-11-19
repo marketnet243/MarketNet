@@ -223,7 +223,7 @@ function ShopHome() {
           <section className="mt-7">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-shop/60">Sélection</p>
+                <p className="text-[10px] font-black uppercase tracking-normal text-shop/60">Sélection</p>
                 <h2 className="mt-0.5 font-shop-heading text-lg font-extrabold">Coups de cœur ✨</h2>
               </div>
               <span className="rounded-full bg-shop/10 px-2.5 py-1 text-xs font-semibold text-shop">
@@ -260,7 +260,7 @@ function ShopHome() {
           {/* En-tête */}
           <div className="mb-4 flex items-center justify-between gap-2">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-shop/60">Catalogue</p>
+              <p className="text-[10px] font-black uppercase tracking-normal text-shop/60">Catalogue</p>
               <h2 className="mt-0.5 font-shop-heading text-xl font-extrabold sm:text-2xl">
                 Nos produits
               </h2>
@@ -298,9 +298,9 @@ function ShopHome() {
             {showDropdown && (
               <div
                 ref={dropdownRef}
-                className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-current/10 bg-background shadow-2xl"
+                className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-current/10 bg-background shadow-lift"
               >
-                <p className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-widest text-shop-muted">
+                <p className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-normal text-shop-muted">
                   Suggestions
                 </p>
                 <ul>
@@ -436,7 +436,7 @@ function EmptyState({
       {isFiltering && (
         <button
           onClick={onReset}
-          className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-shop px-5 text-xs font-bold text-shop-foreground shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-shop px-5 text-xs font-bold text-shop-foreground shadow-md transition-transform   cursor-pointer"
         >
           <X className="h-3.5 w-3.5" /> Effacer la recherche
         </button>
@@ -459,7 +459,7 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        "h-9 shrink-0 rounded-xl px-3.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer flex items-center whitespace-nowrap",
+        "h-9 shrink-0 rounded-xl px-3.5 text-xs font-bold transition-all duration-200  cursor-pointer flex items-center whitespace-nowrap",
         active
           ? "bg-shop text-shop-foreground shadow-md ring-2 ring-shop/30"
           : "border border-current/15 bg-shop-card/80 text-shop-muted hover:border-current/30 hover:text-shop-fg shadow-xs"

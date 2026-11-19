@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, CheckCircle2, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { useServerFn } from "@tanstack/react-start";
+import { lovable } from "@/integrations/lovable/index";
 import { notifyNewUserRegistration } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/auth")({
@@ -17,6 +19,10 @@ export const Route = createFileRoute("/auth")({
   }) as { mode: "login" | "signup" | "forgot" },
   head: () => ({
     meta: [
+      { property: "og:title", content: "Connexion & Inscription — MarketNet" },
+      { property: "og:description", content: "Connectez-vous ou créez votre boutique en ligne sur MarketNet." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Connexion & Inscription — MarketNet" },
       { name: "description", content: "Connectez-vous ou créez votre boutique en ligne sur MarketNet." },
     ],
@@ -29,26 +35,7 @@ const passwordSchema = z.string().min(8, "8 caractères minimum").max(72);
 const nameSchema = z.string().trim().min(2, "Veuillez entrer votre nom complet").max(80);
 
 function GoogleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" width="20" height="20">
-      <path
-        fill="#4285F4"
-        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.16 0 9.97 0 12s.45 3.84 1.25 5.42l4.03-3.15z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-      />
-    </svg>
-  );
+  return <svg aria-hidden="true" className={className} viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>;
 }
 
 function AuthPage() {
@@ -69,6 +56,13 @@ function AuthPage() {
   const sendNewUserNotif = useServerFn(notifyNewUserRegistration);
 
   useEffect(() => {
+    setIsSignUp(initialMode === 'signup');
+    setIsForgot(initialMode === 'forgot');
+    setSignUpStep(1);
+    setSent(null);
+  }, [initialMode]);
+
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) navigate({ to: "/dashboard" });
     });
@@ -77,17 +71,15 @@ function AuthPage() {
   async function handleGoogleSignIn() {
     setGoogleBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "select_account",
-          },
-        },
+      sessionStorage.setItem("marketnet-auth-return", "/dashboard");
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
-      if (error) throw error;
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      const { data } = await supabase.auth.getSession();
+      if (data.session) navigate({ to: "/dashboard" });
     } catch (err) {
       toast.error((err as Error).message || "Erreur lors de la connexion Google");
       setGoogleBusy(false);
@@ -170,7 +162,7 @@ function AuthPage() {
         return;
       }
 
-      setSent("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
+      setSent("Votre compte est créé. Vérifiez votre e-mail pour confirmer votre adresse avant de vous connecter.");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -240,52 +232,54 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center items-center px-4 py-12">
+    <AuthShell>
+    <div className="auth-page">
       {/* Brand Header */}
-      <div className="w-full max-w-[380px] mb-8 text-center">
+      <div className="auth-brand">
         <Logo />
       </div>
 
       {/* Main Single Card (Vytrini Style) */}
-      <div className="w-full max-w-[380px] bg-card border border-border/80 rounded-2xl p-6 sm:p-7 shadow-xs">
+      <div className="auth-panel">
         
+        {isSignUp && !isForgot && !sent && <><p className="auth-step-caption">Étape {signUpStep} sur 3 · Votre compte</p><div className="auth-progress" aria-hidden="true">{[1,2,3].map(step => <span key={step} data-active={step <= signUpStep} />)}</div></>}
         {/* Title & Context */}
         {!sent && (
-          <div className="mb-5 space-y-1 text-center">
+          <div className="auth-heading">
             {isForgot ? (
               <>
-                <button
+                <Button variant="ghost"
                   type="button"
                   onClick={() => setIsForgot(false)}
-                  className="mb-2 inline-flex items-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="auth-inline mb-2 text-muted-foreground"
                 >
                   <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Retour à la connexion
-                </button>
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                </Button>
+                <h1 className="text-foreground">
                   Mot de passe oublié
                 </h1>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Entrez votre e-mail pour recevoir les instructions.
                 </p>
               </>
             ) : isSignUp ? (
               <>
                 {signUpStep > 1 && (
-                  <button
+                  <Button variant="ghost"
                     type="button"
                     onClick={() => setSignUpStep((s) => (s === 3 ? 2 : 1))}
-                    className="mb-2 inline-flex items-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    className="auth-inline mb-2 text-muted-foreground"
                   >
                     <ArrowLeft className="mr-1 h-3.5 w-3.5" />
                     <span>{signUpStep === 2 ? "Modifier l'e-mail" : "Modifier le nom"}</span>
-                  </button>
+                  </Button>
                 )}
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                <h1 className="text-foreground">
                   {signUpStep === 1 && "Créer un compte"}
                   {signUpStep === 2 && "Votre nom complet"}
                   {signUpStep === 3 && "Sécurisez votre compte"}
                 </h1>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {signUpStep === 1 && "Entrez votre e-mail pour commencer."}
                   {signUpStep === 2 && "Comment vos clients doivent-ils vous appeler ?"}
                   {signUpStep === 3 && "Choisissez un mot de passe (8 caractères min)."}
@@ -293,10 +287,10 @@ function AuthPage() {
               </>
             ) : (
               <>
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                <h1 className="text-foreground">
                   Connexion
                 </h1>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Accédez à votre espace commerçant.
                 </p>
               </>
@@ -307,7 +301,7 @@ function AuthPage() {
         {/* Message de succès (pour mot de passe oublié) */}
         {sent ? (
           <div className="rounded-xl border border-border bg-muted/20 p-5 text-center space-y-3">
-            <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto" />
+            <CheckCircle2 className="h-8 w-8 text-success mx-auto" />
             <h3 className="text-sm font-bold text-foreground">E-mail envoyé</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">{sent}</p>
             <Button
@@ -329,11 +323,11 @@ function AuthPage() {
               <div className="space-y-4">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="google"
                   size="lg"
                   onClick={handleGoogleSignIn}
                   disabled={busy || googleBusy}
-                  className="h-11 w-full rounded-xl border border-border/80 bg-background hover:bg-muted/40 text-foreground font-semibold text-xs shadow-xs transition-all active:scale-98 flex items-center justify-center gap-2.5 cursor-pointer"
+                  className="auth-submit"
                 >
                   {googleBusy ? (
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -368,7 +362,7 @@ function AuthPage() {
                 {signUpStep === 1 && (
                   <form onSubmit={handleEmailContinue} className="space-y-3.5 mt-4">
                     <div className="space-y-1">
-                      <Label htmlFor="signup-email" className="text-xs font-medium text-foreground">
+                      <Label htmlFor="signup-email" className="auth-label">
                         Adresse e-mail
                       </Label>
                       <Input
@@ -379,8 +373,7 @@ function AuthPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         autoComplete="email"
                         required
-                        autoFocus
-                        className="h-10 rounded-xl bg-background border-input text-xs"
+                                                className="auth-field"
                       />
                     </div>
 
@@ -388,7 +381,7 @@ function AuthPage() {
                       <Button
                         type="submit"
                         size="lg"
-                        className="h-10 w-full rounded-xl text-xs font-semibold shadow-xs cursor-pointer gap-1.5"
+                        className="auth-submit"
                       >
                         <span>Continuer</span>
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -409,7 +402,7 @@ function AuthPage() {
                 {signUpStep === 2 && (
                   <form onSubmit={handleNameContinue} className="space-y-3.5 mt-2">
                     <div className="space-y-1">
-                      <Label htmlFor="signup-name" className="text-xs font-medium text-foreground">
+                      <Label htmlFor="signup-name" className="auth-label">
                         Nom complet
                       </Label>
                       <Input
@@ -420,8 +413,7 @@ function AuthPage() {
                         onChange={(e) => setName(e.target.value)}
                         autoComplete="name"
                         required
-                        autoFocus
-                        className="h-10 rounded-xl bg-background border-input text-xs"
+                                                className="auth-field"
                       />
                     </div>
 
@@ -429,7 +421,7 @@ function AuthPage() {
                       <Button
                         type="submit"
                         size="lg"
-                        className="h-10 w-full rounded-xl text-xs font-semibold shadow-xs cursor-pointer gap-1.5"
+                        className="auth-submit"
                       >
                         <span>Continuer</span>
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -442,7 +434,7 @@ function AuthPage() {
                 {signUpStep === 3 && (
                   <form onSubmit={handleSignUpSubmit} className="space-y-3.5 mt-2">
                     <div className="space-y-1">
-                      <Label htmlFor="signup-pw" className="text-xs font-medium text-foreground">
+                      <Label htmlFor="signup-pw" className="auth-label">
                         Mot de passe
                       </Label>
                       <div className="relative">
@@ -454,17 +446,16 @@ function AuthPage() {
                           onChange={(e) => setPassword(e.target.value)}
                           autoComplete="new-password"
                           required
-                          autoFocus
-                          className="h-10 rounded-xl bg-background border-input pr-9 text-xs"
+                                                    className="auth-field pr-12"
                         />
-                        <button
+                        <Button variant="ghost"
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                          tabIndex={-1}
+                          className="auth-toggle" size="icon"
+                          aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                         >
                           {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                        </button>
+                        </Button>
                       </div>
                       <p className="text-[11px] text-muted-foreground">
                         Au moins 8 caractères.
@@ -476,7 +467,7 @@ function AuthPage() {
                         type="submit"
                         size="lg"
                         disabled={busy}
-                        className="h-10 w-full rounded-xl text-xs font-semibold shadow-xs cursor-pointer gap-1.5"
+                        className="auth-submit"
                       >
                         {busy ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -496,7 +487,7 @@ function AuthPage() {
             {!isSignUp && !isForgot && (
               <form onSubmit={handleLoginSubmit} className="space-y-3.5 mt-4">
                 <div className="space-y-1">
-                  <Label htmlFor="login-email" className="text-xs font-medium text-foreground">
+                  <Label htmlFor="login-email" className="auth-label">
                     Adresse e-mail
                   </Label>
                   <Input
@@ -507,22 +498,22 @@ function AuthPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     required
-                    className="h-10 rounded-xl bg-background border-input text-xs"
+                    className="auth-field"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="login-pw" className="text-xs font-medium text-foreground">
+                    <Label htmlFor="login-pw" className="auth-label">
                       Mot de passe
                     </Label>
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={() => setIsForgot(true)}
-                      className="text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                      className="auth-inline text-muted-foreground"
                     >
                       Oublié ?
-                    </button>
+                    </Button>
                   </div>
                   <div className="relative">
                     <Input
@@ -533,16 +524,16 @@ function AuthPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete="current-password"
                       required
-                      className="h-10 rounded-xl bg-background border-input pr-9 text-xs"
+                      className="auth-field pr-12"
                     />
-                    <button
+                    <Button variant="ghost"
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                      tabIndex={-1}
+                      className="auth-toggle" size="icon"
+                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                     >
                       {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -550,7 +541,7 @@ function AuthPage() {
                   <Button
                     type="submit"
                     size="lg"
-                    className="h-10 w-full rounded-xl text-xs font-semibold shadow-xs cursor-pointer gap-1.5"
+                    className="auth-submit"
                     disabled={busy || googleBusy}
                   >
                     {busy ? (
@@ -569,7 +560,7 @@ function AuthPage() {
             {isForgot && (
               <form onSubmit={handleForgotSubmit} className="space-y-3.5 mt-4">
                 <div className="space-y-1">
-                  <Label htmlFor="forgot-email" className="text-xs font-medium text-foreground">
+                  <Label htmlFor="forgot-email" className="auth-label">
                     Adresse e-mail
                   </Label>
                   <Input
@@ -580,8 +571,7 @@ function AuthPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     required
-                    autoFocus
-                    className="h-10 rounded-xl bg-background border-input text-xs"
+                                        className="auth-field"
                   />
                 </div>
 
@@ -589,7 +579,7 @@ function AuthPage() {
                   <Button
                     type="submit"
                     size="lg"
-                    className="h-10 w-full rounded-xl text-xs font-semibold shadow-xs cursor-pointer"
+                    className="auth-submit"
                     disabled={busy}
                   >
                     {busy ? (
@@ -607,32 +597,33 @@ function AuthPage() {
 
       {/* Switcher at bottom of card */}
       {!isForgot && !sent && (
-        <div className="w-full max-w-[380px] mt-4 text-center text-xs text-muted-foreground">
+        <div className="auth-footer">
           {isSignUp ? (
             <>
               Vous avez déjà un compte ?{" "}
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={switchToLogin}
-                className="font-semibold text-foreground underline underline-offset-2 hover:text-primary transition-colors cursor-pointer"
+                className="auth-inline font-semibold text-primary underline underline-offset-4"
               >
                 Se connecter
-              </button>
+              </Button>
             </>
           ) : (
             <>
               Pas encore de compte ?{" "}
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={switchToSignUp}
-                className="font-semibold text-foreground underline underline-offset-2 hover:text-primary transition-colors cursor-pointer"
+                className="auth-inline font-semibold text-primary underline underline-offset-4"
               >
                 Créer un compte
-              </button>
+              </Button>
             </>
           )}
         </div>
       )}
     </div>
+    </AuthShell>
   );
 }

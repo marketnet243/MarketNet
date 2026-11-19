@@ -38,6 +38,9 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/demandes-suppression")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Demandes de suppression — Administration MarketNet" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Demandes de suppression — Administration MarketNet" },
       { name: "robots", content: "noindex" },
     ],
@@ -46,11 +49,11 @@ export const Route = createFileRoute("/_authenticated/admin/demandes-suppression
 });
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending:   { label: "En attente",  color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30" },
-  processed: { label: "Traitee",     color: "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30" },
-  restored:  { label: "Restauree",   color: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" },
-  cancelled: { label: "Annulee",     color: "bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-500/30" },
-  completed: { label: "Supprimee",   color: "bg-zinc-500/15 text-zinc-600 dark:text-zinc-400 border-zinc-500/30" },
+  pending:   { label: "En attente",  color: "bg-warning/15 text-warning dark:text-warning border-warning/30" },
+  processed: { label: "Traitee",     color: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30" },
+  restored:  { label: "Restauree",   color: "bg-success/15 text-success dark:text-success border-success/30" },
+  cancelled: { label: "Annulee",     color: "bg-muted/15 text-foreground dark:text-foreground border-border/30" },
+  completed: { label: "Supprimee",   color: "bg-muted/15 text-foreground dark:text-foreground border-border/30" },
 };
 
 const REASON_LABELS: Record<string, string> = {
@@ -190,7 +193,7 @@ function AdminDeletionRequestsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Demandes de suppression de compte</h1>
+        <h1 className="text-xl sm:text-2xl font-extrabold tracking-normal">Demandes de suppression de compte</h1>
         <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
           Gerez les demandes soumises par les commercants. Traitez ou restaurez les comptes.
         </p>
@@ -253,33 +256,33 @@ function AdminDeletionRequestsPage() {
               {/* Details */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-xl bg-muted/30 border p-3">
                 <div>
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Boutique</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal">Boutique</p>
                   <p className="text-xs font-medium mt-0.5">{req.shops?.name || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Plan</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal">Plan</p>
                   <p className="text-xs font-medium mt-0.5 capitalize">{req.shops?.plan_id || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Motif</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal">Motif</p>
                   <p className="text-xs font-medium mt-0.5">{REASON_LABELS[req.reason] || req.reason}{req.reason_other ? ` — ${req.reason_other}` : ""}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Suppression prevue</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal">Suppression prevue</p>
                   <p className="text-xs font-medium mt-0.5">{fmtDate(req.scheduled_deletion_at)}</p>
                 </div>
               </div>
 
               {req.comment && (
                 <div className="rounded-xl border border-border bg-muted/20 p-3">
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-1">Commentaire</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal mb-1">Commentaire</p>
                   <p className="text-xs text-foreground">{req.comment}</p>
                 </div>
               )}
 
               {req.admin_note && (
                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
-                  <p className="text-[10px] text-primary font-semibold uppercase tracking-wide mb-1">Note admin</p>
+                  <p className="text-[10px] text-primary font-semibold uppercase tracking-normal mb-1">Note admin</p>
                   <p className="text-xs text-foreground">{req.admin_note}</p>
                 </div>
               )}
@@ -290,7 +293,7 @@ function AdminDeletionRequestsPage() {
                   <Button
                     size="sm"
                     onClick={() => openProcessModal(req)}
-                    className="bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs"
+                    className="bg-destructive hover:bg-destructive text-primary-foreground rounded-xl text-xs"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
                     Traiter la demande
@@ -302,7 +305,7 @@ function AdminDeletionRequestsPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => openRestoreModal(req)}
-                      className="rounded-xl text-xs text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10"
+                      className="rounded-xl text-xs text-success border-success/30 hover:bg-success/10"
                     >
                       <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
                       Restaurer le compte
@@ -328,7 +331,7 @@ function AdminDeletionRequestsPage() {
       <Dialog open={!!processModal?.open} onOpenChange={(o) => { if (!o && !processing) setProcessModal(null); }}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" /> Traiter la demande
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -340,7 +343,7 @@ function AdminDeletionRequestsPage() {
           <div className="space-y-4 py-1">
             <div className="space-y-1.5">
               <Label htmlFor="scheduled-date" className="text-xs font-semibold">
-                Date et heure de suppression definitive <span className="text-red-500">*</span>
+                Date et heure de suppression definitive <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="scheduled-date"
@@ -370,7 +373,7 @@ function AdminDeletionRequestsPage() {
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setProcessModal(null)} disabled={processing} className="rounded-xl">Annuler</Button>
-            <Button onClick={handleProcess} disabled={processing || !scheduledDate} className="bg-red-600 hover:bg-red-700 text-white rounded-xl">
+            <Button onClick={handleProcess} disabled={processing || !scheduledDate} className="bg-destructive hover:bg-destructive text-primary-foreground rounded-xl">
               {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
               Confirmer le traitement
             </Button>
@@ -382,7 +385,7 @@ function AdminDeletionRequestsPage() {
       <Dialog open={!!restoreModal?.open} onOpenChange={(o) => { if (!o && !processing) setRestoreModal(null); }}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-emerald-600">
+            <DialogTitle className="flex items-center gap-2 text-success">
               <RotateCcw className="h-5 w-5" /> Restaurer le compte
             </DialogTitle>
             <DialogDescription className="text-xs">
@@ -407,7 +410,7 @@ function AdminDeletionRequestsPage() {
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setRestoreModal(null)} disabled={processing} className="rounded-xl">Annuler</Button>
-            <Button onClick={handleRestore} disabled={processing} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl">
+            <Button onClick={handleRestore} disabled={processing} className="bg-success hover:bg-success text-primary-foreground rounded-xl">
               {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RotateCcw className="h-4 w-4 mr-2" />}
               Restaurer
             </Button>
@@ -429,7 +432,7 @@ function AdminDeletionRequestsPage() {
 
           <div className="space-y-4 py-1">
             <div className="space-y-1.5">
-              <Label htmlFor="new-date" className="text-xs font-semibold">Nouvelle date <span className="text-red-500">*</span></Label>
+              <Label htmlFor="new-date" className="text-xs font-semibold">Nouvelle date <span className="text-destructive">*</span></Label>
               <Input
                 id="new-date"
                 type="datetime-local"

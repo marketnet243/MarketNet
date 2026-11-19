@@ -1,13 +1,16 @@
+import { PublicHeader } from "@/components/site/PublicHeader";
+import { PublicFooter } from "@/components/site/PublicFooter";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { ShieldCheck, CheckCircle2, Lock, Share2, Trash2, ShieldAlert } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Politique de confidentialité — MarketNet" },
       { name: "description", content: "Politique de confidentialité et protection des données personnelles de la plateforme MarketNet." },
       { property: "og:title", content: "Politique de confidentialité — MarketNet" },
@@ -32,23 +35,16 @@ function PrivacyPage() {
   });
 
   return (
-    <div className="min-h-screen bg-muted/10">
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <Link to="/" className="text-xl font-black tracking-tight text-primary hover:opacity-80 transition-opacity">
-            MarketNet
-          </Link>
-          <Button variant="ghost" asChild className="rounded-full">
-            <Link to="/">Retour à l'accueil</Link>
-          </Button>
-        </div>
+    <div className="legal-layout">
+      <PublicHeader solid />
+      <div className="legal-inner">
 
-        <div className="rounded-3xl border bg-card p-8 shadow-sm sm:p-12">
-          <div className="mb-12 text-center">
+        <div className="legal-body">
+          <div className="legal-title">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5">
               <ShieldCheck className="h-8 w-8" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">Politique de Confidentialité</h1>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-normal text-foreground">Politique de Confidentialité</h1>
             <p className="mt-3 text-muted-foreground text-lg">Protection et transparence de vos données personnelles.</p>
             <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 19 octobre 2026</p>
           </div>
@@ -96,7 +92,7 @@ function PrivacyPage() {
               <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
                 MarketNet permet aux commerçants de renseigner les liens publics de leurs profils sociaux sur leur vitrine afin que leurs clients puissent facilement les retrouver.
               </p>
-              <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5 space-y-2">
+              <div className="rounded-2xl border border-info/20 bg-info/5 p-5 space-y-2">
                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                   MarketNet ne se connecte à aucun compte de réseau social externe, n'utilise aucune API d'authentification tierce et ne collecte aucun jeton ni donnée d'accès. La diffusion des produits s'effectue librement via le partage direct des liens de votre boutique.
                 </p>
@@ -202,17 +198,8 @@ function PrivacyPage() {
             </div>
           </div>
         </div>
-
-        <div className="mt-12 text-center text-sm text-muted-foreground flex flex-col sm:flex-row justify-center items-center gap-4">
-          <span>&copy; {new Date().getFullYear()} MarketNet. Tous droits réservés.</span>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/terms" className="hover:text-foreground underline underline-offset-4">Conditions d'utilisation (CGU)</Link>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/privacy" className="hover:text-foreground underline underline-offset-4 font-semibold text-foreground">Politique de confidentialité</Link>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/data-deletion" className="hover:text-foreground underline underline-offset-4">Suppression des données</Link>
-        </div>
       </div>
+      <PublicFooter />
     </div>
   );
 }

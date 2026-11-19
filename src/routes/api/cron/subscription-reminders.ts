@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 import { sendSubscriptionReminderEmail } from "@/lib/support-email.server";
 import { determineSubscriptionStatus } from "@/lib/subscriptions";
 

@@ -23,9 +23,9 @@ export type CloudinaryUploadSignature = {
  */
 export const cloudinaryUploadSignature = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: unknown) => uploadSchema.parse(input))
+  .inputValidator((input: unknown) => uploadSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { data: shop, error } = await context.supabase
+    const { data: shop, error } = await (context.supabase as any)
       .from("shops")
       .select("id")
       .eq("owner_id", context.userId)

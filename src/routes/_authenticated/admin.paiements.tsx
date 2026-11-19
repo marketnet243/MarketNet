@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,7 +62,10 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/paiements")({
   head: () => ({
-    meta: [{ title: "Paiements & Abonnements — Admin MarketNet" }],
+    meta: [
+      { property: "og:title", content: "Paiements & Abonnements — Admin MarketNet" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Paiements & Abonnements — Admin MarketNet" }],
   }),
   component: AdminPaymentsPage,
 });
@@ -89,28 +92,28 @@ function getStatusBadgeConfig(status: string | null) {
     case "approved":
       return {
         label: "Payé",
-        container: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
-        dot: "bg-emerald-500",
+        container: "bg-success/10 text-success dark:text-success border-success/20",
+        dot: "bg-success",
       };
     case "en_attente":
     case "pending":
       return {
         label: "En attente",
-        container: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20",
-        dot: "bg-amber-500 animate-pulse",
+        container: "bg-warning/10 text-warning dark:text-warning border-warning/20",
+        dot: "bg-warning animate-pulse",
       };
     case "à_vérifier":
       return {
         label: "À vérifier",
-        container: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20",
-        dot: "bg-blue-500",
+        container: "bg-info/10 text-info dark:text-info border-info/20",
+        dot: "bg-info",
       };
     case "échoué":
     case "rejected":
       return {
         label: "Échoué",
-        container: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20",
-        dot: "bg-rose-500",
+        container: "bg-destructive/10 text-destructive dark:text-destructive border-destructive/20",
+        dot: "bg-destructive",
       };
     case "annulé":
       return {
@@ -121,8 +124,8 @@ function getStatusBadgeConfig(status: string | null) {
     case "expiré":
       return {
         label: "Expiré",
-        container: "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 border-zinc-500/20",
-        dot: "bg-zinc-400",
+        container: "bg-muted/10 text-foreground dark:text-foreground border-border/20",
+        dot: "bg-muted",
       };
     default:
       return {
@@ -149,9 +152,9 @@ function MetricCard({
   className?: string;
 }) {
   const accentMap = {
-    green:   { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-600", ring: "ring-emerald-500/20" },
-    amber:   { bg: "bg-amber-500/10",   border: "border-amber-500/20",   text: "text-amber-600",   ring: "ring-amber-500/20" },
-    blue:    { bg: "bg-blue-500/10",    border: "border-blue-500/20",    text: "text-blue-600",    ring: "ring-blue-500/20" },
+    green:   { bg: "bg-success/10", border: "border-success/20", text: "text-success", ring: "ring-success/20" },
+    amber:   { bg: "bg-warning/10",   border: "border-warning/20",   text: "text-warning",   ring: "ring-warning/20" },
+    blue:    { bg: "bg-info/10",    border: "border-info/20",    text: "text-info",    ring: "ring-info/20" },
     primary: { bg: "bg-primary/10",     border: "border-primary/20",     text: "text-primary",     ring: "ring-primary/20" },
   };
   const a = accentMap[accent ?? "primary"];
@@ -159,13 +162,13 @@ function MetricCard({
     <div className={cn("relative rounded-2xl border bg-card p-5 shadow-sm space-y-3 overflow-hidden group hover:shadow-md transition-shadow", className)}>
       <div className="absolute inset-x-0 top-0 h-0.5 rounded-t-2xl" style={{ background: accent === "green" ? "#10b981" : accent === "amber" ? "#f59e0b" : accent === "blue" ? "#3b82f6" : "hsl(var(--primary))" }} />
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">{title}</span>
+        <span className="text-xs font-semibold tracking-normal uppercase text-muted-foreground">{title}</span>
         <div className={cn("p-2.5 rounded-xl border", a.bg, a.border)}>
           <span className={a.text}>{icon}</span>
         </div>
       </div>
       <div>
-        <p className="text-2xl font-black tracking-tight">{value}</p>
+        <p className="text-2xl font-black tracking-normal">{value}</p>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>
     </div>
@@ -395,7 +398,7 @@ function AdminPaymentsPage() {
       {/* ── En-tête principal ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black tracking-normal flex items-center gap-2">
             <CreditCard className="h-6 w-6 text-primary" /> Paiements & Abonnements
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -529,7 +532,7 @@ function AdminPaymentsPage() {
 
             {/* État Erreur */}
             {paymentsQuery.isError && (
-              <div className="p-8 text-center bg-rose-500/5 text-rose-600 dark:text-rose-400 space-y-3">
+              <div className="p-8 text-center bg-destructive/5 text-destructive dark:text-destructive space-y-3">
                 <ShieldAlert className="h-8 w-8 mx-auto opacity-70" />
                 <p className="font-bold text-sm">Erreur lors de la récupération des transactions</p>
                 <p className="text-xs max-w-md mx-auto text-muted-foreground">
@@ -597,13 +600,13 @@ function AdminPaymentsPage() {
                       effectiveStatut === "payé";
 
                     const statusDot = isAttributed
-                      ? "bg-blue-500"
+                      ? "bg-info"
                       : (
                           {
-                            payé: "bg-emerald-500",
-                            en_attente: "bg-amber-500 animate-pulse",
-                            à_vérifier: "bg-blue-500 animate-pulse",
-                            échoué: "bg-rose-500",
+                            payé: "bg-success",
+                            en_attente: "bg-warning animate-pulse",
+                            à_vérifier: "bg-info animate-pulse",
+                            échoué: "bg-destructive",
                             annulé: "bg-muted-foreground/40",
                           } as Record<string, string>
                         )[effectiveStatut] ?? "bg-muted-foreground/40";
@@ -621,13 +624,13 @@ function AdminPaymentsPage() {
                         )[effectiveStatut] ?? effectiveStatut;
 
                     const statusColor = isAttributed
-                      ? "text-blue-600 dark:text-blue-400 font-semibold"
+                      ? "text-info dark:text-info font-semibold"
                       : (
                           {
-                            payé: "text-emerald-600 dark:text-emerald-400 font-semibold",
-                            en_attente: "text-amber-600 dark:text-amber-400 font-semibold",
-                            à_vérifier: "text-blue-600 dark:text-blue-400 font-semibold",
-                            échoué: "text-rose-600 dark:text-rose-400 font-semibold",
+                            payé: "text-success dark:text-success font-semibold",
+                            en_attente: "text-warning dark:text-warning font-semibold",
+                            à_vérifier: "text-info dark:text-info font-semibold",
+                            échoué: "text-destructive dark:text-destructive font-semibold",
                             annulé: "text-muted-foreground",
                           } as Record<string, string>
                         )[effectiveStatut] ?? "text-muted-foreground";
@@ -709,7 +712,7 @@ function AdminPaymentsPage() {
                                     shopName: p.shops?.name || "cette boutique",
                                   })
                                 }
-                                className="rounded-xl h-7 px-2 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                                className="rounded-xl h-7 px-2 text-[11px] bg-success hover:bg-success text-primary-foreground font-bold"
                               >
                                 <CheckCircle2 className="h-3 w-3 mr-1" /> Valider
                               </Button>
@@ -723,7 +726,7 @@ function AdminPaymentsPage() {
                                     shopName: p.shops?.name || "cette boutique",
                                   })
                                 }
-                                className="rounded-xl h-7 px-2 text-[11px] text-rose-500 hover:bg-rose-500/10 border-rose-200 font-bold"
+                                className="rounded-xl h-7 px-2 text-[11px] text-destructive hover:bg-destructive/10 border-destructive font-bold"
                               >
                                 <XCircle className="h-3 w-3 mr-1" /> Refuser
                               </Button>
@@ -806,11 +809,11 @@ function AdminPaymentsPage() {
                         {ev.type_evenement}
                       </span>
                       {ev.signature_valide ? (
-                        <span className="flex items-center gap-1 text-emerald-600 font-semibold text-[11px]">
+                        <span className="flex items-center gap-1 text-success font-semibold text-[11px]">
                           <ShieldCheck className="h-3.5 w-3.5" /> Signature valide
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 text-rose-500 font-semibold text-[11px]">
+                        <span className="flex items-center gap-1 text-destructive font-semibold text-[11px]">
                           <ShieldAlert className="h-3.5 w-3.5" /> Signature invalide
                         </span>
                       )}
@@ -839,7 +842,7 @@ function AdminPaymentsPage() {
 
       {/* ── MODAL : DÉTAIL DU PAIEMENT / ATTRIBUTION ────────────────────── */}
       <Dialog open={!!selectedPayment} onOpenChange={(o) => !o && setSelectedPayment(null)}>
-        <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl space-y-0">
+        <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md rounded-3xl p-6 sm:p-7 shadow-lift space-y-0">
           {selectedPayment && (() => {
             const isModalAttributed = isPaymentAttributed(selectedPayment);
             const status = getNormalizedStatus(selectedPayment);
@@ -851,7 +854,7 @@ function AdminPaymentsPage() {
                   <DialogTitle className="text-base font-bold text-foreground flex items-center justify-center gap-2">
                     {isModalAttributed ? (
                       <>
-                        <ShieldCheck className="h-5 w-5 text-blue-600" />
+                        <ShieldCheck className="h-5 w-5 text-info" />
                         <span>Attribution de plan</span>
                       </>
                     ) : (
@@ -874,17 +877,17 @@ function AdminPaymentsPage() {
                     className={cn(
                       "text-center space-y-1.5 py-4 px-3 rounded-2xl border",
                       isModalAttributed
-                        ? "bg-blue-50/60 dark:bg-blue-950/20 border-blue-200/60 dark:border-blue-900/40"
+                        ? "bg-info/60 dark:bg-info/20 border-info/60 dark:border-info/40"
                         : "bg-muted/30 border-border/50"
                     )}
                   >
-                    <p className="text-2xl sm:text-3xl font-black text-foreground tracking-tight capitalize">
+                    <p className="text-2xl sm:text-3xl font-black text-foreground tracking-normal capitalize">
                       {isModalAttributed ? `Plan ${selectedPayment.plan_id}` : formatCDF(amountCDF)}
                     </p>
                     <div className="flex items-center justify-center gap-2">
                       {isModalAttributed ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
-                          <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-info/10 text-info dark:text-info border border-info/20">
+                          <Sparkles className="h-3.5 w-3.5 text-info" />
                           <span>Attribué (Actif)</span>
                         </span>
                       ) : (
@@ -892,9 +895,9 @@ function AdminPaymentsPage() {
                           className={cn(
                             "inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border",
                             status === "payé"
-                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20"
+                              ? "bg-success/10 text-success border-success/20"
                               : status === "en_attente"
-                              ? "bg-amber-500/10 text-amber-700 border-amber-500/20"
+                              ? "bg-warning/10 text-warning border-warning/20"
                               : "bg-muted text-muted-foreground"
                           )}
                         >
@@ -963,8 +966,8 @@ function AdminPaymentsPage() {
                     {/* Note / Motif si attribution admin */}
                     {isModalAttributed && selectedPayment.admin_note && (
                       <div className="pt-1.5 border-t">
-                        <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs">
-                          <span className="font-semibold text-blue-700 dark:text-blue-300">Motif : </span>
+                        <div className="p-2.5 rounded-xl bg-info/10 border border-info/20 text-xs">
+                          <span className="font-semibold text-info dark:text-info">Motif : </span>
                           <span className="text-foreground">
                             {selectedPayment.admin_note.replace(/^Attribution manuelle par [^:]+:\s*/, "")}
                           </span>
@@ -988,7 +991,7 @@ function AdminPaymentsPage() {
                     {isModalAttributed && (
                       <Button
                         variant="outline"
-                        className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40 transition-colors"
+                        className="w-full rounded-2xl h-11 font-semibold text-xs gap-2 border-info text-info hover:bg-info dark:border-info dark:text-info dark:hover:bg-info/40 transition-colors"
                         onClick={() =>
                           window.open(`/api/public/invoice-pdf?paymentId=${selectedPayment.id}`, "_blank")
                         }
@@ -1080,7 +1083,7 @@ function AdminPaymentsPage() {
               className={cn(
                 "rounded-xl font-bold",
                 reviewModal?.decision === "valider"
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  ? "bg-success hover:bg-success text-primary-foreground"
                   : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
               )}
             >
@@ -1171,7 +1174,7 @@ function AdminPaymentsPage() {
                     <Lock className="h-3.5 w-3.5 text-primary" />
                     Mot de passe administrateur <span className="text-destructive">*</span>
                   </Label>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-normal">
                     Sécurité
                   </span>
                 </div>
@@ -1196,7 +1199,7 @@ function AdminPaymentsPage() {
               </div>
 
               {/* Notice de sécurité */}
-              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
+              <div className="p-3 rounded-2xl bg-warning/10 border border-warning/20 text-warning dark:text-warning text-[11px] leading-relaxed">
                 🔒 <strong>Sécurité renforcée :</strong> Votre mot de passe est vérifié avant d'appliquer le changement. L'attribution sera tracée dans le journal d'audit et l'historique des paiements.
               </div>
             </div>

@@ -1,13 +1,16 @@
+import { PublicHeader } from "@/components/site/PublicHeader";
+import { PublicFooter } from "@/components/site/PublicFooter";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Scale, CheckCircle2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Conditions Générales d'Utilisation (CGU) — MarketNet" },
       {
         name: "description",
@@ -40,23 +43,16 @@ function TermsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-muted/10">
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <Link to="/" className="text-xl font-black tracking-tight text-primary hover:opacity-80 transition-opacity">
-            MarketNet
-          </Link>
-          <Button variant="ghost" asChild className="rounded-full">
-            <Link to="/">Retour à l'accueil</Link>
-          </Button>
-        </div>
+    <div className="legal-layout">
+      <PublicHeader solid />
+      <div className="legal-inner">
 
-        <div className="rounded-3xl border bg-card p-8 shadow-sm sm:p-12">
-          <div className="mb-12 text-center">
+        <div className="legal-body">
+          <div className="legal-title">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5">
               <Scale className="h-8 w-8" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">Conditions Générales d'Utilisation</h1>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-normal text-foreground">Conditions Générales d'Utilisation</h1>
             <p className="mt-3 text-muted-foreground text-lg">Règles et modalités d'utilisation de nos services.</p>
             <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 19 octobre 2026</p>
           </div>
@@ -160,17 +156,8 @@ function TermsPage() {
             </div>
           </div>
         </div>
-
-        <div className="mt-12 text-center text-sm text-muted-foreground flex flex-col sm:flex-row justify-center items-center gap-4">
-          <span>&copy; {new Date().getFullYear()} MarketNet. Tous droits réservés.</span>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/terms" className="font-semibold text-foreground underline underline-offset-4">Conditions d'utilisation (CGU)</Link>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/privacy" className="hover:text-foreground underline underline-offset-4">Politique de confidentialité</Link>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/data-deletion" className="hover:text-foreground underline underline-offset-4">Suppression des données</Link>
-        </div>
       </div>
+      <PublicFooter />
     </div>
   );
 }

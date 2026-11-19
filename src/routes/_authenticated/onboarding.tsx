@@ -12,8 +12,9 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
+  Store,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Configuration de votre boutique — MarketNet" },
+      { property: "og:description", content: "Configurez votre boutique en ligne MarketNet en quelques étapes simples." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Configuration de votre boutique — MarketNet" },
       { name: "description", content: "Configurez votre boutique en ligne MarketNet en quelques étapes simples." },
     ],
@@ -52,14 +57,6 @@ const SECTORS = [
 
 const TOTAL_CONFIG_STEPS = 6;
 
-const ASSISTANT_STEPS = [
-  "Création de l'identité de votre boutique",
-  "Génération de la vitrine en ligne",
-  "Liaison du canal de commande WhatsApp",
-  "Configuration du catalogue et du panier",
-  "Finalisation de votre espace commerçant",
-];
-
 function getInitials(name: string): string {
   if (!name.trim()) return "M";
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -74,7 +71,7 @@ function Onboarding() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [creationStepIndex, setCreationStepIndex] = useState(0);
-  const [creationProgress, setCreationProgress] = useState(10);
+  const [creationProgress, setCreationProgress] = useState(0);
   const [slugState, setSlugState] = useState<"idle" | "checking" | "free" | "taken">("idle");
   const checkId = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,6 +82,13 @@ function Onboarding() {
   const set = (p: Partial<ShopDraft>) => setDraft((d) => ({ ...d, ...p }));
   const sendWelcomeMail = useServerFn(notifyMerchantWelcome);
   const signUpload = useServerFn(cloudinaryUploadSignature);
+
+  const stageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (step === 0) return;
+    stageRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [step]);
 
   // Redirection automatique si le commerçant a déjà une boutique
   useEffect(() => {
@@ -154,56 +158,82 @@ function Onboarding() {
     setStep((s) => s + 1);
   }
 
-  // Animation et construction de la boutique par l'assistant intelligent
+  // Durée « intelligente » : chaque étape prend un temps proportionnel à ce qu'elle configure.
+  function plannedDurations(d: ShopDraft): number[] {
+    const descLen = (d.description || "").length;
+    return [
+      700 + (d.logo_url ? 350 : 0),
+      750 + Math.min(d.slug.length * 15, 300),
+      650,
+      700 + Math.min(descLen * 2, 450),
+      600,
+    ];
+  }
+
+  // Lissage continu de la progression vers la cible de l'étape en cours.
+  const [progressTarget, setProgressTarget] = useState(0);
+  const [launchDone, setLaunchDone] = useState(false);
+  useEffect(() => {
+    if (!launching) return;
+    const id = window.setInterval(() => {
+      setCreationProgress((p) => {
+        const diff = progressTarget - p;
+        if (Math.abs(diff) < 0.5) return progressTarget;
+        return p + diff * 0.12;
+      });
+    }, 40);
+    return () => window.clearInterval(id);
+  }, [launching, progressTarget]);
+
+  useEffect(() => {
+    if (!launchDone) return;
+    const t = window.setTimeout(() => navigate({ to: "/dashboard" }), 2600);
+    return () => window.clearTimeout(t);
+  }, [launchDone, navigate]);
+
   async function handleConfirmAndLaunch() {
     const err = validateDraft(draft);
     if (err) return toast.error(err);
 
     setBusy(true);
     setLaunching(true);
+    setLaunchDone(false);
     setCreationStepIndex(0);
-    setCreationProgress(15);
+    setCreationProgress(0);
+    setProgressTarget(12);
+
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const durations = plannedDurations(draft);
+    const targets = [22, 44, 64, 86, 100];
 
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Session expirée, veuillez vous reconnecter");
 
-      // Lancement de la requête Supabase en arrière-plan
       const insertPromise = supabase.from("shops").insert({
         ...draftToRow(draft),
         owner_id: u.user.id,
       });
 
-      // Progression animée intelligente étape par étape (~4.2 secondes)
-      // Étape 1
-      await new Promise((r) => setTimeout(r, 800));
-      setCreationStepIndex(1);
-      setCreationProgress(35);
-
-      // Étape 2
-      await new Promise((r) => setTimeout(r, 900));
-      setCreationStepIndex(2);
-      setCreationProgress(60);
-
-      // Étape 3
-      await new Promise((r) => setTimeout(r, 900));
+      for (let i = 0; i < 3; i++) {
+        setCreationStepIndex(i);
+        setProgressTarget(targets[i]);
+        await wait(durations[i]);
+      }
+      // Étape 4 : on attend la vraie confirmation de la base, avec un temps minimum.
       setCreationStepIndex(3);
-      setCreationProgress(80);
-
-      // Attente de la validation base de données
-      const { error } = await insertPromise;
+      setProgressTarget(targets[3] - 6);
+      const [{ error }] = await Promise.all([insertPromise, wait(durations[3])]);
       if (error) throw new Error(friendlyDbError(error.message));
-
+      setProgressTarget(targets[3]);
       await qc.invalidateQueries({ queryKey: ["myShop"] });
 
-      // Étape 4 : Finalisation
-      await new Promise((r) => setTimeout(r, 800));
       setCreationStepIndex(4);
-      setCreationProgress(100);
+      setProgressTarget(100);
+      await wait(durations[4]);
 
       const userEmail = u.user?.email;
       const userName = u.user?.user_metadata?.full_name || draft.name;
-
       if (userEmail) {
         sendWelcomeMail({
           data: {
@@ -217,119 +247,99 @@ function Onboarding() {
         }).catch(() => {});
       }
 
-      // Petite pause de satisfaction (succès complet) puis redirection fluide
-      await new Promise((r) => setTimeout(r, 800));
-      toast.success("Boutique créée avec succès !");
-      navigate({ to: "/dashboard" });
+      setCreationStepIndex(5);
+      setCreationProgress(100);
+      setLaunchDone(true);
     } catch (e) {
       setBusy(false);
       setLaunching(false);
+      setProgressTarget(0);
       toast.error((e as Error).message);
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // ÉCRAN DE L'ASSISTANT INTELLIGENT DE CRÉATION EN DIRECT (STYLE VYTRINI)
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════ Écran de l'assistant de création ══════════════
   if (launching && busy) {
+    const pct = Math.round(creationProgress);
+    const R = 40;
+    const C = 2 * Math.PI * R;
+    const stepLabels = [
+      `Identité de « ${draft.name} »`,
+      `Création du lien marketnet/b/${draft.slug}`,
+      `Connexion WhatsApp${draft.whatsapp ? ` (${draft.whatsapp})` : ""}`,
+      `Préparation du catalogue et du panier`,
+      `Finalisation de votre espace`,
+    ];
+    const reached = (i: number) => launchDone || creationStepIndex >= i;
     return (
-      <div className="min-h-screen bg-linear-to-b from-background via-muted/20 to-background flex flex-col justify-center items-center px-4 py-12 select-none">
-        <div className="w-full max-w-md bg-card/95 backdrop-blur-md border border-border/80 rounded-3xl p-6 sm:p-8 shadow-xl space-y-7 transition-all">
-          
-          <div className="text-center space-y-2">
-            <div className="mx-auto h-12 w-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-inner">
-              <Sparkles className="h-6 w-6 animate-pulse" />
-            </div>
-            <span className="inline-block text-[11px] font-bold text-primary uppercase tracking-wider bg-primary/10 px-3 py-0.5 rounded-full">
-              Assistant MarketNet
-            </span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
-              {creationProgress === 100 ? "Votre boutique est prête !" : "Création de votre boutique..."}
+      <div className="launch-screen" role="status" aria-live="polite">
+        <div className="launch-card">
+          <div className="launch-orb" data-done={launchDone}>
+            <svg className="launch-ring" viewBox="0 0 88 88" aria-hidden="true">
+              <circle className="launch-ring-track" cx="44" cy="44" r={R} fill="none" strokeWidth="4" />
+              <circle className="launch-ring-fill" cx="44" cy="44" r={R} fill="none" strokeWidth="4" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - creationProgress / 100)} />
+            </svg>
+            <div className="launch-orb-core">{launchDone ? <Check strokeWidth={3} /> : <Store />}</div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs font-semibold text-primary">Assistant MarketNet · {pct}%</p>
+            <h1 className="mt-2 text-2xl font-bold text-foreground">
+              {launchDone ? "Votre boutique est en ligne !" : "Nous créons votre boutique"}
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              {creationProgress === 100
-                ? "Redirection vers votre espace commerçant…"
-                : <>Nous configurons la vitrine pour <strong>{draft.name}</strong>.</>}
+            <p className="mt-2 text-sm text-muted-foreground">
+              {launchDone
+                ? <>« {draft.name} » est prête à recevoir ses premières commandes.</>
+                : stepLabels[Math.min(creationStepIndex, 4)] + "…"}
             </p>
           </div>
 
-          {/* Barre de progression fluide */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs font-semibold">
-              <span className="text-muted-foreground">Progression</span>
-              <span className="text-primary font-mono font-bold">{creationProgress}%</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-700 ease-out rounded-full"
-                style={{ width: `${creationProgress}%` }}
-              />
+          <div className="launch-preview" aria-hidden="true">
+            <div className="launch-preview-cover" />
+            <div className="launch-preview-body">
+              <div className="launch-preview-logo">
+                {draft.logo_url ? <img src={mediaUrl(draft.logo_url) ?? undefined} alt="" /> : getInitials(draft.name)}
+              </div>
+              <div className="mt-3 space-y-2">
+                {reached(0) ? <p className="launch-reveal font-semibold text-foreground truncate" data-on="true">{draft.name}</p> : <div className="launch-skeleton w-1/2" />}
+                {reached(1) ? <p className="launch-reveal text-xs text-primary truncate" data-on="true">marketnet/b/{draft.slug}</p> : <div className="launch-skeleton w-2/3" />}
+              </div>
+              <div className="launch-products" data-on={reached(3)}><span /><span /><span /></div>
             </div>
           </div>
 
-          {/* Checklist dynamique en direct */}
-          <div className="space-y-3 pt-1 border-t border-border/60">
-            {ASSISTANT_STEPS.map((label, idx) => {
-              const isCompleted = idx < creationStepIndex || creationProgress === 100;
-              const isCurrent = idx === creationStepIndex && creationProgress < 100;
-
-              return (
-                <div
-                  key={label}
-                  className={cn(
-                    "flex items-center gap-3 text-xs sm:text-sm transition-all duration-300",
-                    isCompleted
-                      ? "text-foreground font-medium"
-                      : isCurrent
-                      ? "text-primary font-semibold"
-                      : "text-muted-foreground/40 font-normal"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "h-5 w-5 rounded-full flex items-center justify-center shrink-0 transition-colors",
-                      isCompleted
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                        : isCurrent
-                        ? "bg-primary/10 text-primary"
-                        : "bg-muted text-muted-foreground/30"
-                    )}
-                  >
-                    {isCompleted ? (
-                      <Check className="h-3 w-3 stroke-[3]" />
-                    ) : isCurrent ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                    )}
+          {launchDone ? (
+            <div className="grid gap-2">
+              <Button size="lg" className="w-full rounded-full" onClick={() => navigate({ to: "/dashboard" })}>
+                Ouvrir mon tableau de bord <ArrowRight />
+              </Button>
+              <p className="text-center text-xs text-muted-foreground">Ouverture automatique dans un instant…</p>
+            </div>
+          ) : (
+            <div className="launch-steps">
+              {stepLabels.map((label, idx) => {
+                const state = idx < creationStepIndex ? "done" : idx === creationStepIndex ? "current" : "todo";
+                return (
+                  <div key={idx} className="launch-step" data-state={state}>
+                    <span className="launch-step-dot">
+                      {state === "done" ? <Check strokeWidth={3} /> : state === "current" ? <Loader2 className="animate-spin" /> : null}
+                    </span>
+                    <span className="truncate">{label}</span>
                   </div>
-                  <span className="truncate">
-                    {idx === 0 && `Identité de « ${draft.name} »`}
-                    {idx === 1 && `Génération de marketnet/b/${draft.slug}`}
-                    {idx === 2 && `Connexion WhatsApp (${draft.whatsapp})`}
-                    {idx === 3 && `Configuration du catalogue (${draft.city || "Kinshasa"})`}
-                    {idx === 4 && `Finalisation de votre espace`}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-[11px] text-center text-muted-foreground pt-1">
-            {creationProgress === 100
-              ? "Ouverture du tableau de bord..."
-              : "Veuillez patienter quelques instants, votre vitrine s'initialise…"}
-          </p>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="onboarding-page flex flex-col">
       {/* Header minimaliste avec barre de progression */}
       <header className="border-b border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
-        <div className="mx-auto max-w-2xl px-4 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-5xl px-5 py-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <Logo />
           {step > 0 && (
             <span className="text-xs font-medium text-muted-foreground">
@@ -341,7 +351,7 @@ function Onboarding() {
         {step > 0 && (
           <div className="h-0.5 w-full bg-muted">
             <div
-              className="h-full bg-primary transition-all duration-300 ease-out"
+              className="onboarding-progress-fill h-full bg-primary ease-out"
               style={{ width: `${(step / TOTAL_CONFIG_STEPS) * 100}%` }}
             />
           </div>
@@ -349,14 +359,21 @@ function Onboarding() {
       </header>
 
       {/* Contenu centré épuré */}
-      <main className="flex-1 flex flex-col justify-center items-center px-4 py-10 sm:py-16">
-        <div className="w-full max-w-lg space-y-8">
+      <main className="flex-1 flex flex-col items-center px-5 py-8 sm:py-12">
+        <div className="onboarding-layout">
+          <aside className="onboarding-sidebar" aria-label="Configuration de la boutique">
+            <ol>{['Bienvenue', 'Nom et lien', 'Secteur d’activité', 'Description', 'Contact et horaires', 'Logo', 'Vérification'].map((label, index) => <li key={label} data-current={index === step} aria-current={index === step ? 'step' : undefined}><span>{index < step ? <Check /> : index === 0 ? <Sparkles /> : index}</span>{label}</li>)}</ol>
+            <p className="onboarding-sidebar-note">Votre boutique prend forme.<br />Vos informations restent modifiables.</p>
+          </aside>
+        <div className="onboarding-content space-y-8">
+
+          <div key={step} className="onboarding-stage" ref={stageRef} tabIndex={-1}>
 
           {/* ── ÉCRAN 0 : BIENVENUE (STYLE VYTRINI) ── */}
           {step === 0 && (
             <div className="space-y-8 text-center sm:text-left">
               <div className="space-y-3">
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-normal text-foreground">
                   Bienvenue sur MarketNet
                 </h1>
                 <p className="text-base text-muted-foreground leading-relaxed">
@@ -402,7 +419,7 @@ function Onboarding() {
                   type="button"
                   size="lg"
                   onClick={() => setStep(1)}
-                  className="w-full h-12 rounded-xl text-sm font-semibold cursor-pointer gap-2 transition-transform active:scale-98"
+                  className="w-full h-12 rounded-xl text-sm font-semibold cursor-pointer gap-2 transition-transform "
                 >
                   <span>Commencer la configuration</span>
                   <ArrowRight className="h-4 w-4" />
@@ -415,7 +432,7 @@ function Onboarding() {
           {step === 1 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
                   Comment s'appelle votre boutique ?
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -441,8 +458,7 @@ function Onboarding() {
                       });
                     }}
                     className="h-12 rounded-xl bg-background border-input text-base font-medium px-4 focus-visible:ring-1 focus-visible:ring-primary"
-                    autoFocus
-                  />
+                                      />
                 </div>
 
                 {/* Lien public attribué */}
@@ -456,7 +472,7 @@ function Onboarding() {
                     </span>
                     <input
                       id="shop-slug"
-                      className="h-full flex-1 bg-transparent outline-none font-medium text-foreground truncate px-1 text-sm"
+                      className="h-full min-w-0 flex-1 bg-transparent outline-none font-medium text-foreground truncate px-1 text-sm"
                       value={draft.slug}
                       onChange={(e) =>
                         set({
@@ -469,7 +485,7 @@ function Onboarding() {
                       <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground shrink-0" />
                     )}
                     {slugState === "free" && (
-                      <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      <Check className="h-3.5 w-3.5 text-success shrink-0" />
                     )}
                   </div>
                   {slugState === "taken" && (
@@ -484,7 +500,7 @@ function Onboarding() {
           {step === 2 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
                   Quel est votre secteur d'activité ?
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -496,7 +512,7 @@ function Onboarding() {
                 {SECTORS.map((sector) => {
                   const isSelected = draft.category === sector;
                   return (
-                    <button
+                    <Button variant="ghost"
                       key={sector}
                       type="button"
                       onClick={() =>
@@ -514,7 +530,7 @@ function Onboarding() {
                     >
                       <span className="truncate">{sector}</span>
                       {isSelected && <Check className="h-4 w-4 text-primary shrink-0 ml-2" />}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -526,8 +542,7 @@ function Onboarding() {
                     value={draft.category_custom}
                     onChange={(e) => set({ category_custom: e.target.value })}
                     className="h-11 rounded-xl text-sm"
-                    autoFocus
-                  />
+                                      />
                 </div>
               )}
             </div>
@@ -537,7 +552,7 @@ function Onboarding() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
                   Décrivez votre boutique
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -557,8 +572,7 @@ function Onboarding() {
                   value={draft.description}
                   onChange={(e) => set({ description: e.target.value })}
                   className="rounded-xl bg-background border-input text-sm p-4 leading-relaxed focus-visible:ring-1 focus-visible:ring-primary"
-                  autoFocus
-                />
+                                  />
                 <div className="flex justify-end text-[11px] text-muted-foreground">
                   <span>{draft.description.length} / 1000 caractères</span>
                 </div>
@@ -570,7 +584,7 @@ function Onboarding() {
           {step === 4 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
                   Où recevez-vous vos commandes ?
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -590,8 +604,7 @@ function Onboarding() {
                     value={draft.whatsapp}
                     onChange={(e) => set({ whatsapp: e.target.value.replace(/[^\d+]/g, "") })}
                     className="h-12 rounded-xl bg-background border-input text-base font-medium px-4 focus-visible:ring-1 focus-visible:ring-primary"
-                    autoFocus
-                  />
+                                      />
                   <p className="text-xs text-muted-foreground">
                     Format international requis (ex. +243 suivi de votre numéro).
                   </p>
@@ -632,7 +645,7 @@ function Onboarding() {
                       "Lun - Ven : 08h30 - 17h00",
                       "Sur commande uniquement",
                     ].map((preset) => (
-                      <button
+                      <Button variant="ghost"
                         key={preset}
                         type="button"
                         onClick={() => set({ hours: draft.hours === preset ? "" : preset })}
@@ -644,7 +657,7 @@ function Onboarding() {
                         )}
                       >
                         {preset}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -659,7 +672,7 @@ function Onboarding() {
           {step === 5 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
                   Ajoutez le logo de votre boutique
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -677,18 +690,18 @@ function Onboarding() {
                         alt="Logo de la boutique"
                         className="h-28 w-28 rounded-2xl object-cover border border-border shadow-xs"
                       />
-                      <button
+                      <Button variant="ghost"
                         type="button"
                         onClick={() => set({ logo_url: null })}
                         className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-sm hover:opacity-90 transition-opacity"
                         title="Retirer le logo"
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   ) : (
                     <div className="h-24 w-24 rounded-2xl bg-muted/60 border border-border flex flex-col items-center justify-center text-muted-foreground">
-                      <span className="text-2xl font-black text-foreground/80 tracking-wider">
+                      <span className="text-2xl font-black text-foreground/80 tracking-normal">
                         {getInitials(draft.name)}
                       </span>
                       <span className="text-[10px] mt-1 text-muted-foreground">Initiales auto</span>
@@ -737,7 +750,7 @@ function Onboarding() {
           {step === 6 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
                   Vérifiez votre boutique
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -747,7 +760,7 @@ function Onboarding() {
 
               {/* Carte récapitulative épurée */}
               <div className="bg-muted/20 border border-border/80 rounded-2xl p-5 sm:p-6 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <div className="onboarding-summary-row pb-3 border-b border-border">
                   <span className="text-xs text-muted-foreground">Nom commercial</span>
                   <div className="flex items-center gap-2">
                     {draft.logo_url ? (
@@ -765,14 +778,14 @@ function Onboarding() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <div className="onboarding-summary-row pb-3 border-b border-border">
                   <span className="text-xs text-muted-foreground">Lien de la boutique</span>
                   <span className="text-xs font-medium font-mono text-primary truncate max-w-[220px]">
                     marketnet/b/{draft.slug}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <div className="onboarding-summary-row pb-3 border-b border-border">
                   <span className="text-xs text-muted-foreground">Secteur</span>
                   <span className="text-sm text-foreground">{draft.category || "Commerce général"}</span>
                 </div>
@@ -786,12 +799,12 @@ function Onboarding() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <div className="onboarding-summary-row pb-3 border-b border-border">
                   <span className="text-xs text-muted-foreground">Commandes WhatsApp</span>
                   <span className="text-sm font-semibold text-foreground font-mono">{draft.whatsapp}</span>
                 </div>
 
-                <div className={cn("flex items-center justify-between", draft.hours && "pb-3 border-b border-border/60")}>
+                <div className={cn("onboarding-summary-row", draft.hours && "pb-3 border-b border-border/60")}>
                   <span className="text-xs text-muted-foreground">Zone de vente</span>
                   <span className="text-sm text-foreground">
                     {draft.city || "Kinshasa"}
@@ -799,7 +812,7 @@ function Onboarding() {
                 </div>
 
                 {draft.hours && (
-                  <div className="flex items-center justify-between">
+                  <div className="onboarding-summary-row">
                     <span className="text-xs text-muted-foreground">Horaires</span>
                     <span className="text-xs font-medium text-foreground truncate max-w-[220px]">
                       {draft.hours}
@@ -814,7 +827,7 @@ function Onboarding() {
                   size="lg"
                   onClick={handleConfirmAndLaunch}
                   disabled={busy}
-                  className="w-full h-12 rounded-xl text-sm font-semibold cursor-pointer gap-2 transition-transform active:scale-98"
+                  className="w-full h-12 rounded-xl text-sm font-semibold cursor-pointer gap-2 transition-transform "
                 >
                   <span>Confirmer et créer ma boutique</span>
                   <ArrowRight className="h-4 w-4" />
@@ -823,9 +836,10 @@ function Onboarding() {
             </div>
           )}
 
+          </div>
           {/* Navigation sobre en bas (pour les étapes 1 à 6) */}
           {step > 0 && (
-            <div className="pt-6 border-t border-border/60 flex items-center justify-between gap-4">
+            <div className="onboarding-controls pt-6 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
@@ -850,6 +864,7 @@ function Onboarding() {
               )}
             </div>
           )}
+        </div>
         </div>
       </main>
     </div>

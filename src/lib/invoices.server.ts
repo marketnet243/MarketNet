@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 import { formatCDF } from "@/lib/subscriptions";
 
 export interface InvoiceData {
@@ -99,7 +99,7 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
       })
     : "30 jours après activation";
 
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 
   return {
     invoiceNumber,
@@ -123,10 +123,10 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
  * Crée le transporteur Nodemailer pour Gmail SMTP
  */
 function createSmtpTransporter() {
-  const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASSWORD?.replace(/"/g, "")?.trim();
+  const host = process.env["SMTP_HOST"] || "smtp.gmail.com";
+  const port = Number(process.env["SMTP_PORT"]) || 465;
+  const user = process.env["SMTP_USER"]?.trim();
+  const pass = process.env["SMTP_PASSWORD"]?.replace(/"/g, "")?.trim();
 
   if (!user || !pass) {
     console.warn("[Invoices] Identifiants SMTP non configurés dans l'environnement.");
@@ -604,7 +604,7 @@ export async function getAssignmentLetterData(paymentId: string): Promise<Assign
     } catch {}
   }
 
-  const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
   const letterNumber = `ATT-${payment.id.slice(-8).toUpperCase()}`;
 
   const assignmentDate = new Date(payment.cree_le || payment.created_at).toLocaleString("fr-FR", {
@@ -628,7 +628,7 @@ export async function getAssignmentLetterData(paymentId: string): Promise<Assign
     }
   }
 
-  const adminEmail = process.env.MARKETNET_ADMIN_EMAIL || "admin@marketnet.cd";
+  const adminEmail = process.env["MARKETNET_ADMIN_EMAIL"] || "admin@marketnet.cd";
 
   return {
     letterNumber,
@@ -937,7 +937,7 @@ export async function sendAssignmentLetterEmail(params: {
       return { success: false, error: "Adresse email du commerçant invalide" };
     }
 
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+    const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
     const letterNumber = `ATT-${params.paymentRef.slice(-8).toUpperCase()}`;
 
     const assignmentDate = new Date().toLocaleString("fr-FR", {
@@ -972,8 +972,8 @@ export async function sendAssignmentLetterEmail(params: {
       console.warn("[AssignLetter] Avertissement : échec génération PDF, email envoyé sans PJ:", pdfErr);
     }
 
-    const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
-    const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
+    const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
 
     const info = await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,
@@ -1016,8 +1016,8 @@ export async function sendSubscriptionInvoiceEmail(params: {
       return { success: false, error: "Adresse email du commerçant invalide" };
     }
 
-    const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
-    const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
+    const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
 
     // Génération du PDF de facture en pièce jointe
     let pdfBuffer: Buffer | null = null;
@@ -1157,10 +1157,10 @@ export async function sendDeletionConfirmationEmail(params: {
       return { success: false, error: "Adresse email invalide" };
     }
 
-    const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
-    const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
-    const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || fromEmail;
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+    const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || fromEmail;
+    const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 
     const deletedAt = new Date().toLocaleString("fr-FR", {
       timeZone: "Africa/Kinshasa",
@@ -1365,10 +1365,10 @@ export async function sendNewUserAdminNotification(params: NewUserRegistrationPa
       return { success: false, error: "SMTP non configuré" };
     }
 
-    const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
-    const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
-    const adminEmail = process.env.MARKETNET_ADMIN_EMAIL || fromEmail;
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+    const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const adminEmail = process.env["MARKETNET_ADMIN_EMAIL"] || fromEmail;
+    const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 
     const registeredAt = new Date().toLocaleString("fr-FR", {
       timeZone: "Africa/Kinshasa",
@@ -1624,10 +1624,10 @@ export async function sendMerchantWelcomeEmail(params: MerchantWelcomeParams): P
       return { success: false, error: "SMTP non configuré" };
     }
 
-    const fromName = process.env.SMTP_FROM_NAME || "MarketNet";
-    const fromEmail = process.env.SMTP_USER?.trim() || "contact@marketnet.cd";
-    const supportEmail = process.env.MARKETNET_ADMIN_EMAIL || fromEmail;
-    const siteUrl = process.env.MARKETNET_SITE_URL || "https://appmarketnet.vercel.app";
+    const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || fromEmail;
+    const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 
     const shopUrl = `${siteUrl}/b/${encodeURIComponent(params.shopSlug)}`;
     const dashboardUrl = `${siteUrl}/dashboard`;

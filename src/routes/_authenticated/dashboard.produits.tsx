@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ImagePlus, Loader2, Plus, Search, Star, Trash2, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts, useShopCategories, type Product } from "@/hooks/useMyShop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,9 @@ import { compressAndUpload } from "@/lib/upload";
 import { cloudinaryUploadSignature } from "@/lib/cloudinary.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/produits")({
-  head: () => ({ meta: [{ title: "Produits — MarketNet" }, { name: "description", content: "Gérez vos produits." }, { property: "og:title", content: "Produits — MarketNet" }, { property: "og:description", content: "Gestion des produits MarketNet." }] }),
+  head: () => ({ meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },{ title: "Produits — MarketNet" }, { name: "description", content: "Gérez vos produits." }, { property: "og:title", content: "Produits — MarketNet" }, { property: "og:description", content: "Gestion des produits MarketNet." }] }),
   component: ProductsPage,
 });
 

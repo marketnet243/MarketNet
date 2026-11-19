@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { THEMES, SHOP_CATEGORIES, PRESET_COLORS, mediaUrl, slugify, SLUG_RE } from "@/lib/marketnet";
 import { compressAndUpload } from "@/lib/upload";
 import { cloudinaryUploadSignature } from "@/lib/cloudinary.functions";
@@ -87,7 +87,7 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
               : slugState === "taken" || slugState === "error"
               ? "border-destructive"
               : slugState === "free"
-              ? "border-green-600"
+              ? "border-success"
               : "border-input"
           )}
         >
@@ -120,11 +120,11 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
               })
             }
           />
-          {isCurrentSlug && <Check className="mr-3 h-4 w-4 text-emerald-600 shrink-0" />}
+          {isCurrentSlug && <Check className="mr-3 h-4 w-4 text-success shrink-0" />}
           {!isLocked && slugState === "checking" && (
             <Loader2 className="mr-3 h-4 w-4 animate-spin text-muted-foreground shrink-0" />
           )}
-          {!isLocked && slugState === "free" && <Check className="mr-3 h-4 w-4 text-green-600 shrink-0" />}
+          {!isLocked && slugState === "free" && <Check className="mr-3 h-4 w-4 text-success shrink-0" />}
           {!isLocked && (slugState === "taken" || slugState === "error") && (
             <XCircle className="mr-3 h-4 w-4 text-destructive shrink-0" />
           )}
@@ -133,7 +133,7 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
           <p className="text-xs font-medium text-destructive">Ce lien est déjà pris, choisissez-en un autre.</p>
         )}
         {!isLocked && slugState === "free" && (
-          <p className="text-xs font-medium text-green-600">Ce lien est disponible.</p>
+          <p className="text-xs font-medium text-success">Ce lien est disponible.</p>
         )}
         {!isLocked && slugState === "error" && (
           <p className="text-xs font-medium text-destructive">Impossible de vérifier la disponibilité du lien pour le moment.</p>
@@ -295,7 +295,7 @@ export function AppearanceFields({ draft, set }: P) {
               type="button"
               aria-label={c}
               onClick={() => set({ primary_color: c })}
-              className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full ring-offset-2 ring-offset-background transition-transform active:scale-95"
+              className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full ring-offset-2 ring-offset-background transition-transform "
               style={{ background: c, boxShadow: draft.primary_color === c ? `0 0 0 3px ${c}55` : undefined }}
             >
               {draft.primary_color === c && <Check className="h-4 w-4 text-primary-foreground mix-blend-difference" />}

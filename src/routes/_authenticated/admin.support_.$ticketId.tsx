@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { toast } from "sonner";
 import {
   getTicketDetail, replyToTicket, updateTicketStatus, getAttachmentSignedUrl,
@@ -22,6 +22,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/admin/support_/$ticketId")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Ticket Support — Admin MarketNet" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Ticket Support — Admin MarketNet" },
       { name: "robots", content: "noindex" },
     ],
@@ -37,8 +40,8 @@ const STATUTS: { value: SupportTicketStatut; label: string }[] = [
 ];
 
 const STATUT_COLOR: Record<string, string> = {
-  ouvert: "text-orange-600", en_cours: "text-blue-600",
-  résolu: "text-green-600", fermé: "text-slate-500",
+  ouvert: "text-warning", en_cours: "text-info",
+  résolu: "text-success", fermé: "text-foreground",
 };
 
 const CATEGORIE_LABELS: Record<string, string> = {
@@ -78,14 +81,14 @@ function MessageBubble({ msg }: { msg: SupportMessage }) {
     <div className={cn("flex", isAdmin ? "justify-start" : "justify-end")}>
       <div className="max-w-[85%] space-y-2">
         {msg.note_interne && (
-          <div className="flex items-center gap-1 text-[10px] text-amber-600 font-semibold">
+          <div className="flex items-center gap-1 text-[10px] text-warning font-semibold">
             <EyeOff className="h-3 w-3" /> Note interne (visible admin seulement)
           </div>
         )}
         <div className={cn(
           "rounded-2xl px-4 py-3 text-sm leading-relaxed",
           msg.note_interne
-            ? "bg-amber-50 border border-amber-200 text-amber-900 rounded-tl-sm"
+            ? "bg-warning border border-warning text-warning rounded-tl-sm"
             : isAdmin
             ? "bg-muted text-foreground rounded-tl-sm"
             : "bg-primary text-primary-foreground rounded-tr-sm"
@@ -210,7 +213,7 @@ function AdminTicketDetailPage() {
   );
 
   if (error || !data) return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+    <div className="rounded-2xl border border-destructive bg-destructive p-6 text-center text-sm text-destructive">
       <AlertCircle className="mx-auto mb-2 h-6 w-6" /> Ticket introuvable.
     </div>
   );
@@ -267,7 +270,7 @@ function AdminTicketDetailPage() {
             />
           </div>
           {noteInterne && (
-            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning px-3 py-2 text-xs text-warning">
               <EyeOff className="h-3 w-3" /> Ce message ne sera pas visible par le commerçant.
             </div>
           )}
@@ -289,8 +292,8 @@ function AdminTicketDetailPage() {
                 <div key={idx} className="relative h-20 w-20 rounded-xl border overflow-hidden bg-muted">
                   <img src={att.previewUrl} alt="Aperçu" className="h-full w-full object-cover" />
                   {att.uploading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <Loader2 className="h-4 w-4 text-white animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-overlay/50">
+                      <Loader2 className="h-4 w-4 text-primary-foreground animate-spin" />
                     </div>
                   )}
                   <button
@@ -299,7 +302,7 @@ function AdminTicketDetailPage() {
                       URL.revokeObjectURL(att.previewUrl);
                       setAttachments((prev) => prev.filter((_, i) => i !== idx));
                     }}
-                    className="absolute top-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white"
+                    className="absolute top-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-overlay/70 text-primary-foreground"
                     aria-label="Supprimer"
                   ><X className="h-3 w-3" /></button>
                 </div>
@@ -384,7 +387,7 @@ function AdminTicketDetailPage() {
             <div>
               <p className="text-xs text-muted-foreground">WhatsApp contact</p>
               {merchantWhatsapp
-                ? <a href={`https://wa.me/${merchantWhatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="font-medium text-xs text-green-600 hover:underline">{merchantWhatsapp}</a>
+                ? <a href={`https://wa.me/${merchantWhatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="font-medium text-xs text-success hover:underline">{merchantWhatsapp}</a>
                 : <p className="font-medium">—</p>
               }
             </div>

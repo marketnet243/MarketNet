@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/public/media/$")({
       GET: async ({ params }) => {
         const path = params._splat ?? "";
         if (!PATH_RE.test(path)) return new Response("Not found", { status: 404 });
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { supabaseAdmin } = await import("@/lib/imported-database.server");
         const { data, error } = await supabaseAdmin.storage.from("shop-media").download(path);
         if (error || !data) return new Response("Not found", { status: 404 });
         return new Response(data, {

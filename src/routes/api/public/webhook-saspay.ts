@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "@/lib/imported-database.server";
 import { verifySasPayWebhookSignature, getSasPayCheckoutSession } from "@/lib/saspay";
 import { internalActivateSubscription } from "@/lib/subscriptions.functions";
 import { sendSubscriptionInvoiceEmail } from "@/lib/invoices.server";

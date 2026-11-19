@@ -19,10 +19,11 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop } from "@/hooks/useMyShop";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { myUnreadSupportCount } from "@/lib/support.functions";
 
@@ -81,16 +82,16 @@ function DashboardLayout() {
   const isShopIncomplete = !shop?.logo_url || !shop?.banner_url || !shop?.description;
   const hasPlusBadge = isShopIncomplete || supportUnread > 0;
 
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("merchant-sidebar-collapsed") === "true";
-    }
-    return false;
-  });
+  const [collapsed, setCollapsed] = useState(false);
+  const [preferenceLoaded, setPreferenceLoaded] = useState(false);
+  useEffect(() => {
+    setCollapsed(localStorage.getItem("merchant-sidebar-collapsed") === "true");
+    setPreferenceLoaded(true);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem("merchant-sidebar-collapsed", String(collapsed));
-  }, [collapsed]);
+    if (preferenceLoaded) localStorage.setItem("merchant-sidebar-collapsed", String(collapsed));
+  }, [collapsed, preferenceLoaded]);
 
   useEffect(() => {
     if (isAdmin) navigate({ to: "/admin" });
@@ -119,14 +120,14 @@ function DashboardLayout() {
       <div className="grid min-h-screen place-items-center bg-background p-6">
         <div className="w-full max-w-md space-y-6 text-center">
           <div className="flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
               </svg>
             </div>
           </div>
           <div className="space-y-3">
-            <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Compte suspendu</h1>
+            <h1 className="text-2xl font-extrabold tracking-normal text-foreground">Compte suspendu</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Votre compte est actuellement suspendu suite a une demande de suppression en cours de traitement.
               Votre boutique n'est plus accessible en ligne.
@@ -139,18 +140,18 @@ function DashboardLayout() {
           <div className="rounded-xl border border-border bg-muted/30 p-4 text-left space-y-2">
             <p className="text-xs font-semibold text-foreground">Contacter le support</p>
             <a
-              href={`mailto:${process.env.MARKETNET_ADMIN_EMAIL || "support@marketnet.cd"}`}
+              href={`mailto:${process.env["MARKETNET_ADMIN_EMAIL"] || "support@marketnet.cd"}`}
               className="text-sm text-primary font-medium hover:underline block"
             >
               support@marketnet.cd
             </a>
           </div>
-          <button
+          <Button variant="ghost"
             onClick={() => supabase.auth.signOut().then(() => { window.location.href = "/auth"; })}
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
           >
             Se déconnecter
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -196,34 +197,34 @@ function DashboardLayout() {
                 <span className="font-extrabold text-sm truncate">{shop.name}</span>
               </div>
             ) : (
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => setCollapsed(false)}
                 title="Agrandir le menu"
                 className="group relative flex items-center justify-center"
               >
                 {shop.logo_url ? (
-                  <img src={shop.logo_url} alt={shop.name} className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-xs transition-transform group-hover:scale-105" />
+                  <img src={shop.logo_url} alt={shop.name} className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-xs transition-transform " />
                 ) : (
-                  <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-sm shrink-0 shadow-xs transition-transform group-hover:scale-105">
+                  <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-black text-sm shrink-0 shadow-xs transition-transform ">
                     {shop.name.charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="absolute -right-2 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border shadow-xs text-muted-foreground group-hover:text-primary transition-colors">
                   <ChevronRight className="h-3 w-3" />
                 </div>
-              </button>
+              </Button>
             )}
 
             {!collapsed && (
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => setCollapsed(true)}
                 title="Réduire le menu"
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-lg hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </div>
 
@@ -246,9 +247,9 @@ function DashboardLayout() {
                   title={collapsed ? n.label : undefined}
                 >
                   <div className="relative flex items-center justify-center">
-                    <n.icon className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+                    <n.icon className="h-5 w-5 shrink-0 transition-transform " />
                     {count > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm ring-2 ring-sidebar">
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-primary-foreground shadow-sm ring-2 ring-sidebar">
                         {count > 99 ? "99+" : count}
                       </span>
                     )}
@@ -256,7 +257,7 @@ function DashboardLayout() {
                   {!collapsed && <span>{n.label}</span>}
                   {/* Tooltip on hover when collapsed */}
                   {collapsed && (
-                    <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                    <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                       {n.label}
                     </span>
                   )}
@@ -275,10 +276,10 @@ function DashboardLayout() {
               activeProps={{ className: "bg-primary/10 text-primary font-bold shadow-xs" }}
               title={collapsed ? "Abonnement" : undefined}
             >
-              <CreditCard className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+              <CreditCard className="h-5 w-5 shrink-0 transition-transform " />
               {!collapsed && <span>Abonnement</span>}
               {collapsed && (
-                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                   Abonnement
                 </span>
               )}
@@ -293,38 +294,38 @@ function DashboardLayout() {
               activeProps={{ className: "bg-primary/10 text-primary font-bold shadow-xs" }}
               title={collapsed ? "Réglages" : undefined}
             >
-              <Settings className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+              <Settings className="h-5 w-5 shrink-0 transition-transform " />
               {!collapsed && <span>Réglages</span>}
               {collapsed && (
-                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                   Réglages
                 </span>
               )}
             </Link>
 
-            <button
+            <Button variant="ghost"
               onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/auth"))}
               className={cn(
-                "group relative flex shrink-0 items-center rounded-2xl text-sm text-muted-foreground transition-all hover:bg-red-500/10 hover:text-red-500",
+                "group relative flex shrink-0 items-center rounded-2xl text-sm text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive",
                 collapsed ? "h-11 w-11 mx-auto justify-center" : "w-full gap-3 px-3 py-2.5"
               )}
               title={collapsed ? "Déconnexion" : undefined}
             >
-              <LogOut className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+              <LogOut className="h-5 w-5 shrink-0 transition-transform " />
               {!collapsed && <span>Déconnexion</span>}
               {collapsed && (
-                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                <span className="pointer-events-none absolute left-full ml-3 z-50 whitespace-nowrap rounded-lg bg-foreground/90 px-2.5 py-1.5 text-xs font-semibold text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                   Déconnexion
                 </span>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0 pb-24 lg:pb-0 overflow-x-hidden">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur lg:px-8">
+        <header className="workspace-header sticky top-0 z-20 border-b bg-background/90 px-4 py-3 backdrop-blur lg:px-8">
           <div className="lg:hidden">
             <Logo />
           </div>
@@ -339,16 +340,16 @@ function DashboardLayout() {
               <ExternalLink className="h-4 w-4" />
               <span className="hidden sm:inline">Voir ma boutique</span>
             </a>
-            <button
+            <Button variant="ghost"
               onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/auth"))}
               aria-label="Déconnexion"
               className="grid h-10 w-10 place-items-center rounded-xl text-muted-foreground lg:hidden"
             >
               <LogOut className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl w-full px-4 py-6 lg:px-8">
+        <main className="workspace-content">
           <Outlet />
         </main>
       </div>
@@ -356,7 +357,7 @@ function DashboardLayout() {
       {/* Section 11: 5-Item Mobile Bottom Bar */}
       <nav
         aria-label="Navigation principale mobile"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 items-end border-t bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 workspace-mobile-nav grid grid-cols-5 items-center border-t bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         {/* 1. Accueil */}
         <Link
@@ -391,12 +392,12 @@ function DashboardLayout() {
           to="/dashboard/promotions"
           aria-label="Promotions"
           aria-current={isPromosActive ? "page" : undefined}
-          className="relative flex flex-col items-center justify-center -top-3.5 group"
+          className="relative flex flex-col items-center justify-center min-h-[60px] py-2 group"
         >
           <div
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-card transition-transform group-active:scale-95",
-              isPromosActive && "ring-primary/30"
+              "flex h-5 w-5 items-center justify-center text-muted-foreground ",
+              isPromosActive && "text-primary"
             )}
           >
             <Tag className="h-5 w-5" />
@@ -424,7 +425,7 @@ function DashboardLayout() {
           <div className="relative">
             <ShoppingBag className="h-5 w-5" />
             {(newOrdersCount ?? 0) > 0 && (
-              <span className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm ring-1 ring-card">
+              <span className="absolute -top-1.5 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-primary-foreground shadow-sm ring-1 ring-card">
                 {(newOrdersCount ?? 0) > 99 ? "99+" : newOrdersCount}
               </span>
             )}
@@ -433,7 +434,7 @@ function DashboardLayout() {
         </Link>
 
         {/* 5. Plus (Feuille coulissante) */}
-        <button
+        <Button variant="ghost"
           ref={plusTriggerRef}
           type="button"
           aria-label="Menu Plus"
@@ -449,11 +450,11 @@ function DashboardLayout() {
           <div className="relative">
             <MoreHorizontal className="h-5 w-5" />
             {hasPlusBadge && (
-              <span className="absolute -top-1 -right-1.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-card" />
+              <span className="absolute -top-1 -right-1.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-card" />
             )}
           </div>
           <span className="mt-1 truncate max-w-[56px]">Plus</span>
-        </button>
+        </Button>
       </nav>
 
       {/* Feuille coulissante « Plus » */}
@@ -461,7 +462,7 @@ function DashboardLayout() {
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu Plus">
           {/* Backdrop assombri */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-overlay/60 backdrop-blur-xs transition-opacity"
             onClick={() => {
               setPlusOpen(false);
               plusTriggerRef.current?.focus();
@@ -469,13 +470,13 @@ function DashboardLayout() {
           />
 
           {/* Bottom Sheet */}
-          <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t bg-card p-6 shadow-2xl transition-transform pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t bg-card p-6 shadow-lift transition-transform pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {/* Grab handle */}
             <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
 
             <div className="flex items-center justify-between pb-4 border-b">
               <h3 className="font-extrabold text-lg">Menu Plus</h3>
-              <button
+              <Button variant="ghost"
                 type="button"
                 onClick={() => {
                   setPlusOpen(false);
@@ -485,7 +486,7 @@ function DashboardLayout() {
                 aria-label="Fermer"
               >
                 <X className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
 
             <div className="mt-4 space-y-2">
@@ -503,7 +504,7 @@ function DashboardLayout() {
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm">Boutique</span>
                       {isShopIncomplete && (
-                        <span className="h-2 w-2 rounded-full bg-red-500" title="Informations à compléter" />
+                        <span className="h-2 w-2 rounded-full bg-destructive" title="Informations à compléter" />
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">Personnalisation, logo, apparence</p>
@@ -520,7 +521,7 @@ function DashboardLayout() {
                 className="flex items-center justify-between rounded-2xl border p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning">
                     <CreditCard className="h-5 w-5" />
                   </div>
                   <div>
@@ -538,10 +539,10 @@ function DashboardLayout() {
                 className="flex items-center justify-between rounded-2xl border p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
                     <LifeBuoy className="h-5 w-5" />
                     {supportUnread > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-blue-500 px-1 text-[9px] font-bold text-white">
+                      <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-info px-1 text-[9px] font-bold text-primary-foreground">
                         {supportUnread}
                       </span>
                     )}
@@ -550,7 +551,7 @@ function DashboardLayout() {
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm">Support</span>
                       {supportUnread > 0 && (
-                        <span className="rounded-full bg-blue-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                        <span className="rounded-full bg-info px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
                           {supportUnread} nouveau{supportUnread > 1 ? "x" : ""}
                         </span>
                       )}

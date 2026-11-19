@@ -23,7 +23,7 @@ import {
   Mail,
   ExternalLink,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { getMerchantSubscription } from "@/lib/subscriptions.functions";
 import {
   requestAccountDeletion,
@@ -40,6 +40,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/dashboard/reglages")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Paramètres du compte — MarketNet" },
+      { property: "og:description", content: "Paramètres de votre profil commerçant, sécurité et abonnement." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Paramètres du compte — MarketNet" },
       { name: "description", content: "Paramètres de votre profil commerçant, sécurité et abonnement." },
     ],
@@ -156,11 +160,11 @@ function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+            <span className="text-[11px] font-bold uppercase tracking-normal text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
               Espace Commerçant
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-normal text-foreground">
             Réglages &amp; Compte
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
@@ -197,7 +201,7 @@ function SettingsPage() {
                 <h2 className="font-extrabold text-base sm:text-lg text-foreground">
                   {fullName || "Commerçant MarketNet"}
                 </h2>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-success/10 text-success dark:text-success border border-success/20 px-2 py-0.5 rounded-full">
                   <CheckCircle2 className="h-3 w-3" /> Vérifié
                 </span>
               </div>
@@ -273,7 +277,7 @@ function SettingsPage() {
         {/* Header */}
         <div className="p-5 sm:p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/15">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-warning/10 text-warning shrink-0">
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
@@ -290,9 +294,9 @@ function SettingsPage() {
             className={cn(
               "self-start sm:self-auto rounded-full px-3 py-1 text-xs font-bold border",
               isGrace
-                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                ? "bg-warning/15 text-warning dark:text-warning border-warning/30"
                 : isExpired
-                ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30"
+                ? "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30"
                 : "bg-primary/15 text-primary border-primary/25"
             )}
           >
@@ -303,8 +307,8 @@ function SettingsPage() {
         <div className="p-5 sm:p-6 space-y-5">
           {/* Alertes d'expiration */}
           {subLimits?.reminder_level === "7_days" && (
-            <div className="flex items-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 p-3.5 text-amber-900 dark:text-amber-200 text-xs">
-              <Clock className="h-4 w-4 shrink-0 text-amber-600" />
+            <div className="flex items-center gap-3 rounded-2xl bg-warning/10 border border-warning/25 p-3.5 text-warning dark:text-warning text-xs">
+              <Clock className="h-4 w-4 shrink-0 text-warning" />
               <p>
                 Votre formule expire dans <strong>{subLimits.days_remaining} jour(s)</strong>.
                 Pensez à renouveler dès maintenant pour éviter l'interruption des fonctionnalités.
@@ -312,16 +316,16 @@ function SettingsPage() {
             </div>
           )}
           {subLimits?.reminder_level === "3_days" && (
-            <div className="flex items-center gap-3 rounded-2xl bg-red-500/10 border border-red-500/25 p-3.5 text-red-900 dark:text-red-200 text-xs">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 animate-bounce" />
+            <div className="flex items-center gap-3 rounded-2xl bg-destructive/10 border border-destructive/25 p-3.5 text-destructive dark:text-destructive text-xs">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-destructive animate-bounce" />
               <p className="font-bold">
                 Attention : votre formule expire dans {subLimits.days_remaining} jour(s).
               </p>
             </div>
           )}
           {isGrace && (
-            <div className="flex items-center gap-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 p-3.5 text-amber-900 dark:text-amber-200 text-xs">
-              <Clock className="h-4 w-4 shrink-0 text-amber-600 animate-pulse" />
+            <div className="flex items-center gap-3 rounded-2xl bg-warning/15 border border-warning/30 p-3.5 text-warning dark:text-warning text-xs">
+              <Clock className="h-4 w-4 shrink-0 text-warning animate-pulse" />
               <p className="font-bold">
                 Période de grâce de 7 jours active. Renouvelez votre plan sans tarder.
               </p>
@@ -333,7 +337,7 @@ function SettingsPage() {
             {/* Bloc gauche : Nom du plan et date */}
             <div className="rounded-2xl border bg-muted/20 p-4 sm:p-5 flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[11px] font-bold uppercase tracking-normal text-muted-foreground">
                   Formule souscrite
                 </span>
                 <p className="text-2xl font-black text-foreground capitalize mt-1">
@@ -429,7 +433,7 @@ function SettingsPage() {
          ══════════════════════════════════════════════════════════════════════ */}
       <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-500/10 text-slate-600 dark:text-slate-400 shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/10 text-foreground dark:text-foreground shrink-0">
             <Shield className="h-5 w-5" />
           </div>
           <div>
@@ -443,7 +447,7 @@ function SettingsPage() {
         <Button
           variant="outline"
           onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/auth"))}
-          className="w-full sm:w-auto text-muted-foreground hover:text-red-600 hover:bg-red-500/10 rounded-xl justify-center h-10 font-bold shrink-0"
+          className="w-full sm:w-auto text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl justify-center h-10 font-bold shrink-0"
         >
           <LogOut className="h-4 w-4 mr-2" /> Déconnexion
         </Button>
@@ -452,13 +456,13 @@ function SettingsPage() {
       {/* ══════════════════════════════════════════════════════════════════════
           4. ZONE DE DANGER (Demande de suppression de compte)
          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="rounded-3xl border border-red-200 dark:border-red-950 bg-red-500/[0.02] p-5 sm:p-6 shadow-sm space-y-4">
+      <section className="rounded-3xl border border-destructive dark:border-destructive bg-destructive/[0.02] p-5 sm:p-6 shadow-sm space-y-4">
         {/* Demande en cours */}
         {activeDeletionRequest && activeDeletionRequest.status === "pending" && (
-          <div className="flex items-start gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4">
-            <Clock className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-2xl bg-warning/10 border border-warning/30 p-4">
+            <Clock className="h-5 w-5 shrink-0 text-warning mt-0.5" />
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm text-amber-800 dark:text-amber-300">
+              <p className="font-bold text-sm text-warning dark:text-warning">
                 Demande de suppression en cours d'examen
               </p>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -478,7 +482,7 @@ function SettingsPage() {
               size="sm"
               onClick={handleCancelDeletion}
               disabled={cancellingDeletion}
-              className="shrink-0 text-amber-700 hover:text-amber-900 hover:bg-amber-500/20 text-xs font-bold rounded-xl"
+              className="shrink-0 text-warning hover:text-warning hover:bg-warning/20 text-xs font-bold rounded-xl"
             >
               {cancellingDeletion ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -491,10 +495,10 @@ function SettingsPage() {
 
         {/* Compte suspendu / suppression programmée */}
         {activeDeletionRequest && activeDeletionRequest.status === "processed" && (
-          <div className="flex items-start gap-3 rounded-2xl bg-red-500/10 border border-red-500/30 p-4">
-            <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-2xl bg-destructive/10 border border-destructive/30 p-4">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm text-red-700 dark:text-red-400">
+              <p className="font-bold text-sm text-destructive dark:text-destructive">
                 Compte suspendu — suppression programmée
               </p>
               {activeDeletionRequest.scheduled_deletion_at && (
@@ -517,11 +521,11 @@ function SettingsPage() {
         {!activeDeletionRequest && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-bold text-sm sm:text-base text-red-600 dark:text-red-400">
+                <h2 className="font-bold text-sm sm:text-base text-destructive dark:text-destructive">
                   Demander la suppression du compte
                 </h2>
                 <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -534,7 +538,7 @@ function SettingsPage() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeletionForm(true)}
-                className="w-full sm:w-auto text-red-500 hover:text-red-600 hover:bg-red-500/10 border-red-200 dark:border-red-900 rounded-xl shrink-0 h-10 font-bold"
+                className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive dark:border-destructive rounded-xl shrink-0 h-10 font-bold"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Faire une demande
@@ -547,7 +551,7 @@ function SettingsPage() {
         {showDeletionForm && !activeDeletionRequest && (
           <form
             onSubmit={handleRequestDeletion}
-            className="space-y-4 rounded-2xl border border-red-200/80 dark:border-red-900/50 bg-background p-4 sm:p-5 mt-2 shadow-xs"
+            className="space-y-4 rounded-2xl border border-destructive/80 dark:border-destructive/50 bg-background p-4 sm:p-5 mt-2 shadow-xs"
           >
             <div className="space-y-1.5">
               <Label htmlFor="deletion-reason" className="text-xs font-bold text-foreground">
@@ -599,9 +603,9 @@ function SettingsPage() {
               />
             </div>
 
-            <div className="flex items-start gap-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3.5">
-              <Info className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-              <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+            <div className="flex items-start gap-2.5 rounded-xl bg-warning/10 border border-warning/20 p-3.5">
+              <Info className="h-4 w-4 shrink-0 text-warning mt-0.5" />
+              <p className="text-xs text-warning dark:text-warning leading-relaxed">
                 Après validation par notre équipe, votre boutique sera suspendue. Vous disposerez
                 d'un délai de grâce (jusqu'à 30 jours) pour contacter le support et annuler la suppression si vous changez d'avis.
               </p>
@@ -623,7 +627,7 @@ function SettingsPage() {
                   submittingDeletion ||
                   (deletionReason === "autre" && !deletionReasonOther.trim())
                 }
-                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold h-10 shadow-xs"
+                className="w-full sm:w-auto bg-destructive hover:bg-destructive text-primary-foreground rounded-xl font-bold h-10 shadow-xs"
               >
                 {submittingDeletion ? (
                   <>

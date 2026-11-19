@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { supabaseAdmin as rawSupabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin as rawSupabaseAdmin } from "@/lib/imported-database.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   sendNewTicketAdminNotification,
@@ -83,7 +83,7 @@ export interface CandidateMerchant {
 
 export const createSupportTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: {
+  .inputValidator((d: {
     titre: string;
     categorie: SupportTicketCategorie;
     texte: string;
@@ -210,7 +210,7 @@ export const listMyTickets = createServerFn({ method: "GET" })
 
 export const getTicketDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { ticket_id: string }) => d)
+  .inputValidator((d: { ticket_id: string }) => d)
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin;
     const userId = (context as any).userId;
@@ -295,7 +295,7 @@ export const getTicketDetail = createServerFn({ method: "GET" })
 
 export const replyToTicket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: {
+  .inputValidator((d: {
     ticket_id: string;
     texte: string;
     note_interne?: boolean;
@@ -395,7 +395,7 @@ export const replyToTicket = createServerFn({ method: "POST" })
 
 export const updateTicketStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { ticket_id: string; statut: SupportTicketStatut }) => d)
+  .inputValidator((d: { ticket_id: string; statut: SupportTicketStatut }) => d)
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin;
     const { data: isAdminData } = await sb.rpc("has_role", { _user_id: (context as any).userId, _role: "admin" });
@@ -414,7 +414,7 @@ export const updateTicketStatus = createServerFn({ method: "POST" })
 
 export const adminListTickets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: {
+  .inputValidator((d: {
     statut?: SupportTicketStatut | "tous";
     categorie?: SupportTicketCategorie | "tous";
     search?: string;
@@ -483,7 +483,7 @@ export const adminPendingTicketsCount = createServerFn({ method: "GET" })
 
 export const getAttachmentSignedUrl = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { chemin: string }) => d)
+  .inputValidator((d: { chemin: string }) => d)
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin;
     const userId = (context as any).userId;
@@ -579,7 +579,7 @@ export const adminListCandidateMerchants = createServerFn({ method: "GET" })
       .eq("role", "admin");
 
     const adminUserIds = new Set((adminRoles ?? []).map((r: any) => r.user_id));
-    const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    const profileMap = new Map<string, any>((profiles ?? []).map((p: any) => [p.id, p]));
 
     const candidates: CandidateMerchant[] = [];
     const seen = new Set<string>();
@@ -617,7 +617,7 @@ export const adminListCandidateMerchants = createServerFn({ method: "GET" })
 
 export const adminCreateBroadcast = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: {
+  .inputValidator((d: {
     titre: string;
     message: string;
     cible: "tous" | "selection";
@@ -653,7 +653,7 @@ export const adminCreateBroadcast = createServerFn({ method: "POST" })
       .eq("role", "admin");
 
     const adminUserIds = new Set((adminRoles ?? []).map((r: any) => r.user_id));
-    const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+    const profileMap = new Map<string, any>((profiles ?? []).map((p: any) => [p.id, p]));
     const selectedSet = data.target_merchant_ids ? new Set(data.target_merchant_ids) : null;
 
     const targets: { merchant_id: string; shop_id: string; email: string }[] = [];
@@ -817,7 +817,7 @@ export const adminCreateBroadcast = createServerFn({ method: "POST" })
 
 export const adminSendTestBroadcast = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { titre: string; message: string }) => d)
+  .inputValidator((d: { titre: string; message: string }) => d)
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin;
     const adminId = (context as any).userId;
@@ -908,7 +908,7 @@ export const listMyBroadcasts = createServerFn({ method: "GET" })
 
 export const markBroadcastRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: { broadcast_id: string }) => d)
+  .inputValidator((d: { broadcast_id: string }) => d)
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin;
     const userId = (context as any).userId;

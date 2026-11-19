@@ -1,13 +1,16 @@
+import { PublicHeader } from "@/components/site/PublicHeader";
+import { PublicFooter } from "@/components/site/PublicFooter";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { Trash2, LogIn, Mail, AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/data-deletion")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Suppression des données — MarketNet" },
       {
         name: "description",
@@ -40,29 +43,19 @@ function DataDeletionPage() {
   });
 
   return (
-    <div className="min-h-screen bg-muted/10">
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="legal-layout">
+      <PublicHeader solid />
+      <div className="legal-inner">
         {/* ── Header nav ── */}
-        <div className="mb-8 flex items-center justify-between">
-          <Link
-            to="/"
-            className="text-xl font-black tracking-tight text-primary hover:opacity-80 transition-opacity"
-          >
-            MarketNet
-          </Link>
-          <Button variant="ghost" asChild className="rounded-full">
-            <Link to="/">Retour à l'accueil</Link>
-          </Button>
-        </div>
 
         {/* ── Card ── */}
-        <div className="rounded-3xl border bg-card p-8 shadow-sm sm:p-12">
+        <div className="legal-body">
           {/* Title */}
-          <div className="mb-12 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-500 mb-5">
+          <div className="legal-title">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive mb-5">
               <Trash2 className="h-8 w-8" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-normal text-foreground">
               Suppression des données
             </h1>
             <p className="mt-3 text-muted-foreground text-lg">
@@ -109,9 +102,9 @@ function DataDeletionPage() {
                 </li>
               </ol>
 
-              <div className="flex items-start gap-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-4">
-                <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800 dark:text-amber-300 space-y-1">
+              <div className="flex items-start gap-3 rounded-xl bg-warning/10 border border-warning/20 p-4">
+                <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+                <div className="text-sm text-warning dark:text-warning space-y-1">
                   <p>
                     <strong>Délai de réflexion et restauration :</strong> Pendant le délai de grâce (jusqu'à 30 jours), vous pouvez contacter notre support pour annuler la suppression et réactiver immédiatement votre boutique.
                   </p>
@@ -125,7 +118,7 @@ function DataDeletionPage() {
             {/* ── Méthode 2 : Par e-mail ── */}
             <section className="rounded-2xl border bg-muted/30 p-6 sm:p-8">
               <div className="flex items-center gap-4 mb-5">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
                   <Mail className="h-6 w-6" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground">
@@ -137,7 +130,7 @@ function DataDeletionPage() {
                 Si vous avez perdu l'accès à vos identifiants de connexion, notre équipe d'assistance peut traiter votre demande manuellement.
               </p>
 
-              <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-5">
+              <div className="rounded-xl bg-success/10 border border-success/20 p-5">
                 <p className="text-sm text-muted-foreground mb-3">
                   Envoyez un message depuis votre adresse e-mail d'inscription en précisant :{" "}
                   <strong>votre adresse e-mail de connexion MarketNet</strong>, le nom de votre
@@ -157,7 +150,7 @@ function DataDeletionPage() {
             {/* ── Ce qui est supprimé ── */}
             <section>
               <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                <Trash2 className="h-5 w-5 text-red-500" />
+                <Trash2 className="h-5 w-5 text-destructive" />
                 Ce qui est supprimé
               </h2>
               <ul className="space-y-3">
@@ -173,7 +166,7 @@ function DataDeletionPage() {
                     key={item}
                     className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg"
                   >
-                    <CheckCircle2 className="h-6 w-6 text-red-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -206,22 +199,8 @@ function DataDeletionPage() {
         </div>
 
         {/* ── Footer ── */}
-        <div className="mt-12 text-center text-sm text-muted-foreground flex flex-col sm:flex-row justify-center items-center gap-4">
-          <span>&copy; {new Date().getFullYear()} MarketNet. Tous droits réservés.</span>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/terms" className="hover:text-foreground underline underline-offset-4">
-            Conditions d'utilisation (CGU)
-          </Link>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/privacy" className="hover:text-foreground underline underline-offset-4">
-            Politique de confidentialité
-          </Link>
-          <span className="hidden sm:inline">&bull;</span>
-          <Link to="/data-deletion" className="hover:text-foreground underline underline-offset-4 font-semibold text-foreground">
-            Suppression des données
-          </Link>
-        </div>
       </div>
+      <PublicFooter />
     </div>
   );
 }

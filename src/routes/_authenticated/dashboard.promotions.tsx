@@ -34,7 +34,7 @@ import {
   Zap,
   Search,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { useMyShop, useShopProducts, type Product } from "@/hooks/useMyShop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/dashboard/promotions")({
   head: () => ({
     meta: [
+      { property: "og:title", content: "Promotions — MarketNet" },
+      { property: "og:description", content: "Gérez les offres et bannières promotionnelles de votre boutique." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Promotions — MarketNet" },
       { name: "description", content: "Gérez les offres et bannières promotionnelles de votre boutique." },
     ],
@@ -317,7 +321,7 @@ function PromotionsPage() {
       </div>
 
       {isLimitReached && (
-        <div className="flex items-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-amber-700 dark:text-amber-300">
+        <div className="flex items-center gap-3 rounded-2xl bg-warning/10 border border-warning/20 p-4 text-warning dark:text-warning">
           <Sparkles className="h-5 w-5 shrink-0" />
           <div className="text-sm">
             <p className="font-bold">Limite de promotions actives atteinte ({maxActive})</p>
@@ -351,9 +355,9 @@ function PromotionsPage() {
             const liveState = promoLiveState(p);
             const statusBadge =
               liveState === "active"
-                ? { label: "En ligne", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
+                ? { label: "En ligne", cls: "bg-success/15 text-success dark:text-success" }
                 : liveState === "scheduled"
-                ? { label: "Programmée", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
+                ? { label: "Programmée", cls: "bg-info/15 text-info dark:text-info" }
                 : liveState === "ended"
                 ? { label: "Terminée", cls: "bg-muted text-muted-foreground" }
                 : PROMO_STATUS[p.status] || { label: p.status, cls: "bg-muted text-muted-foreground" };
@@ -397,7 +401,7 @@ function PromotionsPage() {
                       <div className="grid h-full place-items-center text-xs font-bold text-muted-foreground">Minimal</div>
                     )}
                     {disc && (
-                      <span className="absolute bottom-1 right-1 rounded bg-black/75 px-1 text-[10px] font-bold text-white">
+                      <span className="absolute bottom-1 right-1 rounded bg-overlay/75 px-1 text-[10px] font-bold text-primary-foreground">
                         {disc}
                       </span>
                     )}
@@ -429,10 +433,10 @@ function PromotionsPage() {
                     {/* Stats pill */}
                     <div className="mt-2 flex items-center gap-4 text-xs font-semibold text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Eye className="h-3.5 w-3.5 text-blue-500" /> {p.stats?.views ?? 0} vue(s)
+                        <Eye className="h-3.5 w-3.5 text-info" /> {p.stats?.views ?? 0} vue(s)
                       </span>
                       <span className="flex items-center gap-1">
-                        <MousePointerClick className="h-3.5 w-3.5 text-orange-500" /> {p.stats?.clicks ?? 0} clic(s)
+                        <MousePointerClick className="h-3.5 w-3.5 text-warning" /> {p.stats?.clicks ?? 0} clic(s)
                       </span>
                     </div>
                   </div>
@@ -463,7 +467,7 @@ function PromotionsPage() {
                       const text = `🔥 Offre exclusive : « ${p.title} »${discText} sur ${shop.name} !\n👉 Cliquez ici pour en profiter : ${link}`;
                       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
                     }}
-                    className="rounded-xl h-8 px-2.5 text-xs gap-1 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/10 dark:text-emerald-400"
+                    className="rounded-xl h-8 px-2.5 text-xs gap-1 text-success border-success/25 hover:bg-success/10 dark:text-success"
                     title="Partager sur WhatsApp"
                   >
                     <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
@@ -487,7 +491,7 @@ function PromotionsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setPromoToDelete(p.id)}
-                    className="rounded-xl h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                    className="rounded-xl h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                     title="Supprimer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -811,7 +815,7 @@ function PromoFormModal({
                               <Icon className="h-4 w-4" />
                             </div>
                             <span className={cn(
-                              "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                              "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-normal",
                               isSelected ? "bg-primary/20 text-primary" : "bg-muted/80 text-muted-foreground"
                             )}>
                               {t.tag}
@@ -1223,8 +1227,8 @@ function PromoFormModal({
             {/* Aperçu en direct directement en bas sur mobile (sans bouton) */}
             <div className="lg:hidden mt-8 pt-5 border-t border-border/80 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-normal">
+                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                   Aperçu en direct
                 </span>
                 <span className="text-[11px] font-semibold text-primary">
@@ -1241,8 +1245,8 @@ function PromoFormModal({
           <div className="hidden lg:block space-y-4 lg:col-span-5">
             <div className="sticky top-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-normal">
+                  <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                   Aperçu en direct
                 </span>
 
@@ -1266,7 +1270,7 @@ function PromoFormModal({
 
               <div
                 className={cn(
-                  "rounded-3xl border bg-card overflow-hidden shadow-xl transition-all mx-auto",
+                  "rounded-3xl border bg-card overflow-hidden shadow-lift transition-all mx-auto",
                   previewTab === "mobile" ? "max-w-[320px]" : "w-full"
                 )}
               >

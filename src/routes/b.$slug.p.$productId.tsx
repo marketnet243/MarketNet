@@ -264,7 +264,7 @@ function ProductPage() {
 
               {/* Discount badge */}
               {isDiscounted && (
-                <div className="absolute left-2.5 top-2.5 rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-black text-white shadow-md">
+                <div className="absolute left-2.5 top-2.5 rounded-full bg-destructive px-2.5 py-0.5 text-xs font-black text-primary-foreground shadow-md">
                   -{discountPct}%
                 </div>
               )}
@@ -272,7 +272,7 @@ function ProductPage() {
               {/* Out of stock overlay */}
               {out && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm">
-                  <span className="rounded-full border-2 border-current/30 bg-background/90 px-4 py-1.5 text-xs font-bold tracking-wide">
+                  <span className="rounded-full border-2 border-current/30 bg-background/90 px-4 py-1.5 text-xs font-bold tracking-normal">
                     Rupture de stock
                   </span>
                 </div>
@@ -280,7 +280,7 @@ function ProductPage() {
 
               {/* Featured badge */}
               {product.featured && !out && (
-                <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-black text-amber-900 shadow-md">
+                <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-warning px-2.5 py-0.5 text-[11px] font-black text-warning shadow-md">
                   <Star className="h-3 w-3 fill-current" /> Coup de cœur
                 </div>
               )}
@@ -374,7 +374,7 @@ function ProductPage() {
                   onClick={() => setLiked((v) => !v)}
                   className={cn(
                     "grid h-8 w-8 place-items-center rounded-xl border border-current/15 transition-all duration-200",
-                    liked ? "bg-red-50 border-red-200 text-red-500" : "bg-shop-card/60 text-shop-muted hover:border-current/30"
+                    liked ? "bg-destructive border-destructive text-destructive" : "bg-shop-card/60 text-shop-muted hover:border-current/30"
                   )}
                   aria-label="Favoris"
                 >
@@ -410,7 +410,7 @@ function ProductPage() {
             {/* ── Price block ─────────────────── */}
             <div className="rounded-xl bg-shop-card/60 p-3.5 border border-current/8">
               <div className="flex items-baseline gap-2.5 flex-wrap">
-                <span className={cn("text-2xl font-black", isDiscounted ? "text-red-600 dark:text-red-400" : "text-shop")}>
+                <span className={cn("text-2xl font-black", isDiscounted ? "text-destructive dark:text-destructive" : "text-shop")}>
                   {priceStr}
                 </span>
                 {isDiscounted && (
@@ -418,7 +418,7 @@ function ProductPage() {
                     <span className="text-sm text-shop-muted line-through">
                       {formatPrice(Number(product.price), product.currency)}
                     </span>
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-black text-red-700 dark:bg-red-900/40 dark:text-red-400">
+                    <span className="rounded-full bg-destructive px-2 py-0.5 text-[11px] font-black text-destructive dark:bg-destructive/40 dark:text-destructive">
                       -{discountPct}%
                     </span>
                   </>
@@ -426,9 +426,9 @@ function ProductPage() {
               </div>
               {(product as any).promo_ends_at && (
                 <div className="mt-1.5 flex items-center gap-1.5 text-xs text-shop-muted">
-                  <Clock className="h-3 w-3 text-amber-500" />
+                  <Clock className="h-3 w-3 text-warning" />
                   Offre jusqu'au{" "}
-                  <span className="font-semibold text-amber-600">
+                  <span className="font-semibold text-warning">
                     {new Date((product as any).promo_ends_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}
                   </span>
                 </div>
@@ -440,8 +440,8 @@ function ProductPage() {
                     Rupture de stock
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success px-2.5 py-0.5 text-xs font-semibold text-success dark:bg-success/30 dark:text-success">
+                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
                     En stock — livraison disponible
                   </span>
                 )}
@@ -451,7 +451,7 @@ function ProductPage() {
             {/* ── Description ─────────────────── */}
             {product.description && (
               <div>
-                <h3 className="mb-1.5 text-[11px] font-bold uppercase tracking-widest text-shop-muted">
+                <h3 className="mb-1.5 text-[11px] font-bold uppercase tracking-normal text-shop-muted">
                   Description
                 </h3>
                 <div className={cn(
@@ -475,7 +475,7 @@ function ProductPage() {
             {variants.map((v) => (
               <div key={v.name}>
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-shop-muted">{v.name}</h3>
+                  <h3 className="text-[11px] font-bold uppercase tracking-normal text-shop-muted">{v.name}</h3>
                   {choice[v.name] && (
                     <span className="rounded-full bg-shop/10 px-2 py-0.5 text-xs font-bold text-shop">{choice[v.name]}</span>
                   )}
@@ -486,7 +486,7 @@ function ProductPage() {
                       key={o}
                       onClick={() => setChoice((c) => ({ ...c, [v.name]: o }))}
                       className={cn(
-                        "h-9 min-w-12 rounded-xl border-2 px-3 text-sm font-semibold transition-all duration-200 active:scale-95",
+                        "h-9 min-w-12 rounded-xl border-2 px-3 text-sm font-semibold transition-all duration-200 ",
                         choice[v.name] === o
                           ? "border-shop bg-shop text-shop-foreground shadow-sm"
                           : "border-current/15 bg-shop-card/60 hover:border-shop/50"
@@ -504,13 +504,13 @@ function ProductPage() {
               <div className="space-y-3">
                 {/* Qty */}
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-shop-muted">Quantité</span>
+                  <span className="text-[11px] font-bold uppercase tracking-normal text-shop-muted">Quantité</span>
                   <div className="flex items-center rounded-full border-2 border-current/15 bg-shop-card/60">
-                    <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-9 w-9 place-items-center rounded-full text-shop-muted hover:text-shop-fg active:scale-90" aria-label="Moins">
+                    <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-9 w-9 place-items-center rounded-full text-shop-muted hover:text-shop-fg " aria-label="Moins">
                       <Minus className="h-3.5 w-3.5" />
                     </button>
                     <span className="w-8 text-center text-sm font-black">{qty}</span>
-                    <button onClick={() => setQty((q) => Math.min(99, q + 1))} className="grid h-9 w-9 place-items-center rounded-full text-shop-muted hover:text-shop-fg active:scale-90" aria-label="Plus">
+                    <button onClick={() => setQty((q) => Math.min(99, q + 1))} className="grid h-9 w-9 place-items-center rounded-full text-shop-muted hover:text-shop-fg " aria-label="Plus">
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -526,7 +526,7 @@ function ProductPage() {
                   <button
                     onClick={addToCart}
                     className={cn(
-                      "flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-md transition-all duration-200 active:scale-95 bg-shop text-shop-foreground hover:opacity-90",
+                      "flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-md transition-all duration-200  bg-shop text-shop-foreground hover:opacity-90",
                       addedAnim && "scale-95 opacity-80"
                     )}
                   >
@@ -542,7 +542,7 @@ function ProductPage() {
                       href={buildWhatsAppUrl(shop.whatsapp, product.name, priceStr, shop.name)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-600 active:scale-95"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-success px-5 py-3 text-sm font-bold text-primary-foreground shadow-md transition-all hover:bg-success "
                     >
                       <MessageCircle className="h-4 w-4" />
                       Commander WhatsApp
@@ -577,7 +577,7 @@ function ProductPage() {
           <section className="mt-10 md:mt-14">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-shop/60">Boutique</p>
+                <p className="text-[10px] font-black uppercase tracking-normal text-shop/60">Boutique</p>
                 <h2 className="mt-0.5 font-shop-heading text-lg font-extrabold">Autres articles</h2>
               </div>
               <Link to="/b/$slug" params={{ slug }} className="flex items-center gap-1 text-xs font-bold text-shop hover:underline">
@@ -596,7 +596,7 @@ function ProductPage() {
                       <div className="overflow-hidden rounded-2xl bg-shop-card shadow-xs transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-0.5">
                         <div className="aspect-square overflow-hidden bg-shop-card/50">
                           {p.images[0] ? (
-                            <img src={mediaUrl(p.images[0])!} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <img src={mediaUrl(p.images[0])!} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 " />
                           ) : (
                             <div className="grid h-full place-items-center">
                               <Package className="h-6 w-6 opacity-20" />
@@ -606,7 +606,7 @@ function ProductPage() {
                         <div className="p-2.5">
                           <p className="line-clamp-2 text-xs font-semibold leading-snug">{p.name}</p>
                           <div className="mt-1 flex items-baseline gap-1">
-                            <span className={cn("text-sm font-black", pDisc && "text-red-600")}>{formatPrice(pPrice, p.currency)}</span>
+                            <span className={cn("text-sm font-black", pDisc && "text-destructive")}>{formatPrice(pPrice, p.currency)}</span>
                             {pDisc && <span className="text-[11px] line-through text-shop-muted">{formatPrice(Number(p.price), p.currency)}</span>}
                           </div>
                         </div>
@@ -625,14 +625,14 @@ function ProductPage() {
           <div className="mx-auto flex max-w-sm items-center gap-3">
             <div className="flex flex-col justify-center">
               <span className="text-[10px] text-shop-muted">Prix</span>
-              <span className={cn("text-base font-black leading-tight", isDiscounted ? "text-red-600 dark:text-red-400" : "text-shop")}>
+              <span className={cn("text-base font-black leading-tight", isDiscounted ? "text-destructive dark:text-destructive" : "text-shop")}>
                 {priceStr}
               </span>
             </div>
             <button
               onClick={addToCart}
               className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-xl bg-shop py-2.5 text-sm font-bold text-shop-foreground shadow-lg transition-all active:scale-95",
+                "flex flex-1 items-center justify-center gap-2 rounded-xl bg-shop py-2.5 text-sm font-bold text-shop-foreground shadow-soft transition-all ",
                 addedAnim && "scale-95 opacity-80"
               )}
             >

@@ -35,10 +35,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logAction } from "@/hooks/useIsAdmin";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/imported-database";
 import { deleteMerchant } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/commercants")({
+  head: () => ({ meta: [{ title: 'Commercants — MarketNet' }, { name: "description", content: 'Consultez et gérez commercants sur MarketNet.' }, { property: "og:title", content: 'Commercants — MarketNet' }, { property: "og:description", content: 'Consultez et gérez commercants sur MarketNet.' }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
   component: Merchants,
 });
 
@@ -263,10 +264,10 @@ function Merchants() {
 
   const FILTERS: { id: MerchantFilter; label: string; count: number; dotColor?: string }[] = [
     { id: "all", label: "Tous", count: counts.all },
-    { id: "active", label: "Actifs", count: counts.active, dotColor: "bg-emerald-500" },
-    { id: "pending", label: "En attente", count: counts.pending, dotColor: "bg-amber-500" },
-    { id: "suspended", label: "Suspendus", count: counts.suspended, dotColor: "bg-rose-500" },
-    { id: "withoutShop", label: "Sans boutique", count: counts.withoutShop, dotColor: "bg-slate-400" },
+    { id: "active", label: "Actifs", count: counts.active, dotColor: "bg-success" },
+    { id: "pending", label: "En attente", count: counts.pending, dotColor: "bg-warning" },
+    { id: "suspended", label: "Suspendus", count: counts.suspended, dotColor: "bg-destructive" },
+    { id: "withoutShop", label: "Sans boutique", count: counts.withoutShop, dotColor: "bg-muted" },
   ];
 
   return (
@@ -278,7 +279,7 @@ function Merchants() {
             <Users className="h-3.5 w-3.5" />
             Administration Marchands
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Commerçants & Utilisateurs</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal">Commerçants & Utilisateurs</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Gérez l'ensemble des comptes de la plateforme, leurs boutiques et leurs accès.
           </p>
@@ -444,10 +445,10 @@ function Merchants() {
                       <span
                         className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card ${
                           m.status === "active"
-                            ? "bg-emerald-500"
+                            ? "bg-success"
                             : m.status === "pending"
-                            ? "bg-amber-500"
-                            : "bg-rose-500"
+                            ? "bg-warning"
+                            : "bg-destructive"
                         }`}
                         title={m.status ?? "inconnu"}
                       />
@@ -459,7 +460,7 @@ function Merchants() {
                           {m.full_name || "Commerçant sans nom"}
                         </span>
                         {m.role === "admin" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-info text-info dark:bg-info/60 dark:text-info border border-info dark:border-info">
                             <ShieldCheck className="h-3 w-3" /> Admin
                           </span>
                         )}
@@ -514,18 +515,18 @@ function Merchants() {
                     {/* Status Pill */}
                     <div className="shrink-0">
                       {m.status === "active" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success text-success border border-success dark:bg-success/40 dark:text-success dark:border-success">
+                          <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                           Actif
                         </span>
                       ) : m.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-warning text-warning border border-warning dark:bg-warning/40 dark:text-warning dark:border-warning">
+                          <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                           En attente
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
-                          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive text-destructive border border-destructive dark:bg-destructive/40 dark:text-destructive dark:border-destructive">
+                          <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
                           Suspendu
                         </span>
                       )}
@@ -554,7 +555,7 @@ function Merchants() {
                             <span className="sr-only">Actions</span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5 shadow-lg">
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5 shadow-soft">
                           <DropdownMenuItem
                             onClick={() => setSelectedMerchant(m)}
                             className="rounded-lg text-xs font-medium cursor-pointer"
@@ -586,7 +587,7 @@ function Merchants() {
                           {m.status !== "active" && (
                             <DropdownMenuItem
                               onClick={() => setMerchantToToggle({ merchant: m, newStatus: "active" })}
-                              className="rounded-lg text-xs font-semibold text-emerald-600 focus:text-emerald-700 cursor-pointer"
+                              className="rounded-lg text-xs font-semibold text-success focus:text-success cursor-pointer"
                             >
                               <UserCheck className="mr-2 h-4 w-4" />
                               Activer le compte
@@ -596,7 +597,7 @@ function Merchants() {
                           {m.status !== "suspended" && !isSelf && (
                             <DropdownMenuItem
                               onClick={() => setMerchantToToggle({ merchant: m, newStatus: "suspended" })}
-                              className="rounded-lg text-xs font-semibold text-amber-600 focus:text-amber-700 cursor-pointer"
+                              className="rounded-lg text-xs font-semibold text-warning focus:text-warning cursor-pointer"
                             >
                               <UserX className="mr-2 h-4 w-4" />
                               Suspendre le compte
@@ -606,7 +607,7 @@ function Merchants() {
                           {!isSelf && (
                             <DropdownMenuItem
                               onClick={() => setMerchantToDelete(m)}
-                              className="rounded-lg text-xs font-semibold text-rose-600 focus:text-rose-700 cursor-pointer"
+                              className="rounded-lg text-xs font-semibold text-destructive focus:text-destructive cursor-pointer"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Supprimer le compte
@@ -625,7 +626,7 @@ function Merchants() {
 
       {/* Modal: Merchant Quick Details */}
       <Dialog open={!!selectedMerchant} onOpenChange={(open) => !open && setSelectedMerchant(null)}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-xl p-0 overflow-hidden rounded-2xl border shadow-xl">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-xl p-0 overflow-hidden rounded-2xl border shadow-lift">
           {selectedMerchant && (
             <div>
               {/* Header Banner */}
@@ -640,7 +641,7 @@ function Merchants() {
                         {selectedMerchant.full_name || "Commerçant"}
                       </h3>
                       {selectedMerchant.role === "admin" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-info text-info dark:bg-info/60 dark:text-info border border-info">
                           Administrateur
                         </span>
                       )}
@@ -648,16 +649,16 @@ function Merchants() {
                     <p className="text-xs text-muted-foreground mt-0.5">{selectedMerchant.email}</p>
                     <div className="mt-2 flex items-center gap-2">
                       {selectedMerchant.status === "active" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Compte actif
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success text-success dark:bg-success dark:text-success">
+                          <CheckCircle2 className="h-3 w-3 text-success" /> Compte actif
                         </span>
                       ) : selectedMerchant.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                          <Clock3 className="h-3 w-3 text-amber-600" /> En attente de validation
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning text-warning dark:bg-warning dark:text-warning">
+                          <Clock3 className="h-3 w-3 text-warning" /> En attente de validation
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
-                          <Ban className="h-3 w-3 text-rose-600" /> Compte suspendu
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-destructive text-destructive dark:bg-destructive dark:text-destructive">
+                          <Ban className="h-3 w-3 text-destructive" /> Compte suspendu
                         </span>
                       )}
                     </div>
@@ -669,7 +670,7 @@ function Merchants() {
               <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto">
                 {/* Profile Information Block */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-normal text-muted-foreground mb-3">
                     Informations Utilisateur
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -683,7 +684,7 @@ function Merchants() {
                           className="h-6 w-6 p-0 shrink-0"
                           onClick={() => copyToClipboard(selectedMerchant.id, "id")}
                         >
-                          {copiedId === "id" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                          {copiedId === "id" ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                         </Button>
                       </div>
                     </div>
@@ -716,7 +717,7 @@ function Merchants() {
 
                 {/* Boutique Block */}
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-normal text-muted-foreground mb-3">
                     Boutique Rattachée
                   </h4>
                   {selectedMerchant.shop ? (
@@ -814,7 +815,7 @@ function Merchants() {
                           onClick={() => {
                             setMerchantToToggle({ merchant: selectedMerchant, newStatus: "suspended" });
                           }}
-                          className="rounded-xl h-9 text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+                          className="rounded-xl h-9 text-warning border-warning hover:bg-warning dark:hover:bg-warning/40"
                         >
                           <Ban className="mr-1.5 h-3.5 w-3.5" /> Suspendre
                         </Button>
@@ -824,7 +825,7 @@ function Merchants() {
                           onClick={() => {
                             setMerchantToToggle({ merchant: selectedMerchant, newStatus: "active" });
                           }}
-                          className="rounded-xl h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                          className="rounded-xl h-9 bg-success hover:bg-success text-primary-foreground font-bold"
                         >
                           <Check className="mr-1.5 h-3.5 w-3.5" /> Réactiver
                         </Button>
@@ -864,12 +865,12 @@ function Merchants() {
                 <AlertDialogTitle className="flex items-center gap-2 text-lg">
                   {merchantToToggle.newStatus === "active" ? (
                     <>
-                      <UserCheck className="h-5 w-5 text-emerald-600" />
+                      <UserCheck className="h-5 w-5 text-success" />
                       Activer le compte commerçant
                     </>
                   ) : (
                     <>
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      <AlertTriangle className="h-5 w-5 text-warning" />
                       Suspendre le compte commerçant
                     </>
                   )}
@@ -911,8 +912,8 @@ function Merchants() {
                   onClick={() => handleUpdateStatus(merchantToToggle.merchant, merchantToToggle.newStatus)}
                   className={`rounded-xl font-bold ${
                     merchantToToggle.newStatus === "active"
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      : "bg-amber-600 hover:bg-amber-700 text-white"
+                      ? "bg-success hover:bg-success text-primary-foreground"
+                      : "bg-warning hover:bg-warning text-primary-foreground"
                   }`}
                 >
                   {isProcessing ? "Traitement..." : merchantToToggle.newStatus === "active" ? "Confirmer l'activation" : "Confirmer la suspension"}
@@ -940,31 +941,31 @@ function Merchants() {
           {merchantToDelete && (
             <>
               <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2 text-lg text-rose-600">
+                <AlertDialogTitle className="flex items-center gap-2 text-lg text-destructive">
                   <Trash2 className="h-5 w-5" />
                   Suppression irréversible
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-sm text-muted-foreground">
                   Vous êtes sur le point de supprimer définitivement le compte de{" "}
                   <strong className="text-foreground">{merchantToDelete.full_name || merchantToDelete.email}</strong>,
-                  sa boutique et toutes ses données. Cette action est <strong className="text-rose-600">irréversible</strong>.
+                  sa boutique et toutes ses données. Cette action est <strong className="text-destructive">irréversible</strong>.
                   Un e-mail de confirmation sera envoyé automatiquement au commerçant.
                 </AlertDialogDescription>
 
                 {/* Récapitulatif commerçant */}
-                <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-left space-y-1 mt-1">
-                  <p className="text-xs font-semibold text-rose-700 uppercase tracking-wide">Compte ciblé</p>
-                  <p className="text-sm font-bold text-rose-900">{merchantToDelete.full_name || "Sans nom"}</p>
-                  <p className="text-xs text-rose-700">{merchantToDelete.email}</p>
+                <div className="rounded-xl bg-destructive border border-destructive p-3 text-left space-y-1 mt-1">
+                  <p className="text-xs font-semibold text-destructive uppercase tracking-normal">Compte ciblé</p>
+                  <p className="text-sm font-bold text-destructive">{merchantToDelete.full_name || "Sans nom"}</p>
+                  <p className="text-xs text-destructive">{merchantToDelete.email}</p>
                   {merchantToDelete.shop && (
-                    <p className="text-xs text-rose-600">Boutique : <strong>{merchantToDelete.shop.name}</strong></p>
+                    <p className="text-xs text-destructive">Boutique : <strong>{merchantToDelete.shop.name}</strong></p>
                   )}
                 </div>
 
                 {/* Champ mot de passe admin */}
                 <div className="pt-2 text-left space-y-1.5">
                   <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                    <Lock className="h-3.5 w-3.5 text-rose-600" />
+                    <Lock className="h-3.5 w-3.5 text-destructive" />
                     Confirmez avec votre mot de passe administrateur
                   </label>
                   <div className="relative">
@@ -973,7 +974,7 @@ function Merchants() {
                       placeholder="Votre mot de passe admin..."
                       value={adminPassword}
                       onChange={(e) => { setAdminPassword(e.target.value); setAdminPasswordError(""); }}
-                      className="rounded-xl pr-10 text-sm border-rose-200 focus:border-rose-400"
+                      className="rounded-xl pr-10 text-sm border-destructive focus:border-destructive"
                       onKeyDown={(e) => { if (e.key === "Enter") handleDeleteMerchant(merchantToDelete); }}
                     />
                     <button
@@ -985,7 +986,7 @@ function Merchants() {
                     </button>
                   </div>
                   {adminPasswordError && (
-                    <p className="text-xs text-rose-600 flex items-center gap-1">
+                    <p className="text-xs text-destructive flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3" />
                       {adminPasswordError}
                     </p>
@@ -1028,31 +1029,31 @@ function MetricCard({
 }) {
   const accentClasses = {
     primary: "from-primary/20 to-transparent text-primary bg-primary/10 border-primary/20",
-    green: "from-emerald-500/20 to-transparent text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
-    amber: "from-amber-500/20 to-transparent text-amber-600 bg-amber-500/10 border-amber-500/20",
-    blue: "from-blue-500/20 to-transparent text-blue-600 bg-blue-500/10 border-blue-500/20",
-    rose: "from-rose-500/20 to-transparent text-rose-600 bg-rose-500/10 border-rose-500/20",
+    green: "from-emerald-500/20 to-transparent text-success bg-success/10 border-success/20",
+    amber: "from-amber-500/20 to-transparent text-warning bg-warning/10 border-warning/20",
+    blue: "from-blue-500/20 to-transparent text-info bg-info/10 border-info/20",
+    rose: "from-rose-500/20 to-transparent text-destructive bg-destructive/10 border-destructive/20",
   }[accent];
 
   const barClasses = {
     primary: "bg-primary",
-    green: "bg-emerald-500",
-    amber: "bg-amber-500",
-    blue: "bg-blue-500",
-    rose: "bg-rose-500",
+    green: "bg-success",
+    amber: "bg-warning",
+    blue: "bg-info",
+    rose: "bg-destructive",
   }[accent];
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border bg-card p-4 sm:p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-primary/30">
       <div className={`absolute inset-x-0 top-0 h-0.5 ${barClasses}`} />
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
-        <div className={`rounded-xl p-2.5 border transition-transform duration-200 group-hover:scale-110 ${accentClasses}`}>
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-normal">{label}</span>
+        <div className={`rounded-xl p-2.5 border transition-transform duration-200  ${accentClasses}`}>
           <Icon className="h-4 w-4" />
         </div>
       </div>
       <div className="mt-3">
-        <div className="text-2xl sm:text-3xl font-black tracking-tight">{value}</div>
+        <div className="text-2xl sm:text-3xl font-black tracking-normal">{value}</div>
         {subtext && <p className="mt-1 text-xs text-muted-foreground">{subtext}</p>}
       </div>
     </div>

@@ -40,7 +40,7 @@ describe("client SasPay", () => {
 
     const session = await createSasPayCheckout({
       amount: "7.00",
-      currency: "USD",
+      currency: "USD" as any,
       description: "Abonnement MarketNet Pro mensuel",
       country: "CD",
       customer_email: "merchant@example.test",
