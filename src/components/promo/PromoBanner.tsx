@@ -102,12 +102,12 @@ export function PromoBanner({ promos, slug, currency, whatsapp }: { promos: Publ
     <section
       aria-roledescription="carrousel"
       aria-label="Offres promotionnelles"
-      className="group relative w-full overflow-hidden rounded-shop shadow-sm"
+      className="group relative w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/70 shadow-xs bg-slate-900"
       onMouseEnter={() => { userInteracted.current = true; }}
       onMouseLeave={() => { userInteracted.current = false; }}
     >
-      {/* Conteneur Embla à hauteur unifiée compacte : 190px mobile / 225px tablette / 260px bureau */}
-      <div ref={ref} className="h-[190px] sm:h-[225px] md:h-[260px] w-full overflow-hidden">
+      {/* Conteneur Embla à hauteur compacte et proportionnée : 160px mobile / 190px tablette / 220px bureau */}
+      <div ref={ref} className="h-[165px] sm:h-[195px] md:h-[225px] w-full overflow-hidden">
         <div className="flex h-full">
           {promos.map((p, i) => (
             <div

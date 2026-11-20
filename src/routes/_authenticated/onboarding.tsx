@@ -74,6 +74,7 @@ function Onboarding() {
   const [creationStepIndex, setCreationStepIndex] = useState(0);
   const [creationProgress, setCreationProgress] = useState(0);
   const [slugState, setSlugState] = useState<"idle" | "checking" | "free" | "taken">("idle");
+  const [autoSlug, setAutoSlug] = useState(true);
   const checkId = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -496,11 +497,11 @@ function Onboarding() {
                       const name = e.target.value;
                       set({
                         name,
-                        slug: slugify(name),
+                        ...(autoSlug ? { slug: slugify(name) } : {}),
                       });
                     }}
                     className="h-12 rounded-xl bg-background border-input text-base font-medium px-4 focus-visible:ring-1 focus-visible:ring-primary"
-                                      />
+                  />
                 </div>
 
                 {/* Lien public attribué */}
@@ -516,11 +517,12 @@ function Onboarding() {
                       id="shop-slug"
                       className="h-full min-w-0 flex-1 bg-transparent outline-none font-medium text-foreground truncate px-1 text-sm"
                       value={draft.slug}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        setAutoSlug(false);
                         set({
                           slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 42),
-                        })
-                      }
+                        });
+                      }}
                       placeholder="nom-de-boutique"
                     />
                     {slugState === "checking" && (
@@ -530,6 +532,21 @@ function Onboarding() {
                       <Check className="h-3.5 w-3.5 text-success shrink-0" />
                     )}
                   </div>
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none pt-1">
+                    <input
+                      type="checkbox"
+                      checked={autoSlug}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setAutoSlug(checked);
+                        if (checked && draft.name) {
+                          set({ slug: slugify(draft.name) });
+                        }
+                      }}
+                      className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+                    />
+                    <span>Générer automatiquement le lien depuis le nom</span>
+                  </label>
                   {slugState === "taken" && (
                     <p className="text-xs text-destructive">Ce lien est déjà pris, vous pouvez le modifier.</p>
                   )}

@@ -14,7 +14,7 @@ import { publicShopQuery } from "@/lib/storefront.query";
 import { ProductCard } from "@/components/store/StoreParts";
 import { useCart } from "@/components/store/cart";
 import { cn } from "@/lib/utils";
-import { formatPrice, type Variant } from "@/lib/marketnet";
+import { formatPrice, parseShopTheme, type Variant } from "@/lib/marketnet";
 
 export const Route = createFileRoute("/b/$slug/produits")({
   loader: ({ context, params }: any) =>
@@ -37,9 +37,17 @@ function ShopAllProductsPage() {
   const { data } = useSuspenseQuery(publicShopQuery(slug));
   const { shop, products, categories } = data;
   const { add } = useCart();
+  const themeConfig = parseShopTheme(shop.theme);
 
   const [cat, setCat] = useState<string | null>(null);
   const [q, setQ] = useState("");
+
+  const gridContainerClass =
+    themeConfig.grid === "grid-large"
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+      : themeConfig.grid === "list"
+      ? "flex flex-col gap-3"
+      : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4";
 
   const list = useMemo(
     () =>
@@ -156,7 +164,7 @@ function ShopAllProductsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className={gridContainerClass}>
             {list.map((p) => (
               <ProductCard
                 key={p.id}

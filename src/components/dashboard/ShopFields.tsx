@@ -31,6 +31,8 @@ import {
   mediaUrl,
   slugify,
   SLUG_RE,
+  parseShopTheme,
+  serializeShopTheme,
 } from "@/lib/marketnet";
 import { compressAndUpload } from "@/lib/upload";
 import { cloudinaryUploadSignature } from "@/lib/cloudinary.functions";
@@ -56,6 +58,7 @@ const sel = "flex h-12 w-full rounded-xl border border-input bg-card px-3 text-s
 
 export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { slugLocked?: boolean; currentSlug?: string }) {
   const [slugState, setSlugState] = useState<"idle" | "checking" | "free" | "taken" | "error">("idle");
+  const [autoSlug, setAutoSlug] = useState<boolean>(!currentSlug);
   const checkId = useRef(0);
 
   const isCurrentSlug = !!currentSlug && draft.slug === currentSlug;
@@ -95,12 +98,13 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
           className="h-12 w-full min-w-0"
           value={draft.name}
           maxLength={80}
-          onChange={(e) =>
+          onChange={(e) => {
+            const newName = e.target.value;
             set({
-              name: e.target.value,
-              ...(slugLocked === undefined && !currentSlug ? { slug: slugify(e.target.value) } : {}),
-            })
-          }
+              name: newName,
+              ...(autoSlug && !isLocked ? { slug: slugify(newName) } : {}),
+            });
+          }}
         />
       </Field>
       <Field label="Lien de la boutique">
@@ -139,11 +143,12 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
             className="h-full min-w-0 flex-1 bg-transparent pl-0.5 pr-2 outline-none disabled:opacity-90 disabled:cursor-not-allowed font-medium text-xs sm:text-sm truncate text-foreground"
             value={draft.slug}
             disabled={isLocked}
-            onChange={(e) =>
+            onChange={(e) => {
+              setAutoSlug(false);
               set({
                 slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 42),
-              })
-            }
+              });
+            }}
           />
           {isCurrentSlug && <Check className="mr-3 h-4 w-4 text-success shrink-0" />}
           {!isLocked && slugState === "checking" && (
@@ -154,6 +159,23 @@ export function IdentityFields({ draft, set, slugLocked, currentSlug }: P & { sl
             <XCircle className="mr-3 h-4 w-4 text-destructive shrink-0" />
           )}
         </div>
+        {!isLocked && (
+          <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer select-none pt-1">
+            <input
+              type="checkbox"
+              checked={autoSlug}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setAutoSlug(checked);
+                if (checked && draft.name) {
+                  set({ slug: slugify(draft.name) });
+                }
+              }}
+              className="rounded border-slate-300 text-[#4F46E5] focus:ring-[#4F46E5] h-3.5 w-3.5 cursor-pointer"
+            />
+            <span>Générer automatiquement le lien depuis le nom</span>
+          </label>
+        )}
         {!isLocked && slugState === "taken" && (
           <p className="text-xs font-medium text-destructive">Ce lien est déjà pris, choisissez-en un autre.</p>
         )}
@@ -283,9 +305,10 @@ export function ContactFields({ draft, set }: P) {
 }
 
 export function AppearanceFields({ draft, set }: P) {
-  const [selectedModel, setSelectedModel] = useState<string>("generaliste");
-  const [selectedFont, setSelectedFont] = useState<string>("sans");
-  const [selectedGrid, setSelectedGrid] = useState<string>("grid-2");
+  const themeSettings = parseShopTheme(draft.theme);
+  const selectedModel = themeSettings.model;
+  const selectedFont = themeSettings.font;
+  const selectedGrid = themeSettings.grid;
 
   // États pliables accordéon pour chaque bloc (comme Vytrini)
   const [openModel, setOpenModel] = useState(false);
@@ -296,7 +319,7 @@ export function AppearanceFields({ draft, set }: P) {
 
   // Labels dynamiques pour résumer la sélection quand la section est fermée
   const currentModelObj = SHOP_PAGE_MODELS.find((m) => m.id === selectedModel);
-  const currentThemeObj = THEMES.find((t) => t.id === draft.theme);
+  const currentThemeObj = THEMES.find((t) => t.id === themeSettings.theme);
   const currentFontObj = SHOP_FONTS.find((f) => f.id === selectedFont);
   const currentGridObj = PRODUCT_GRID_STYLES.find((g) => g.id === selectedGrid);
 
@@ -352,7 +375,7 @@ export function AppearanceFields({ draft, set }: P) {
                   <button
                     key={m.id}
                     type="button"
-                    onClick={() => setSelectedModel(m.id)}
+                    onClick={() => set({ theme: serializeShopTheme({ model: m.id }, draft.theme) })}
                     className={cn(
                       "flex items-start gap-3 p-3.5 rounded-2xl border text-left transition cursor-pointer relative",
                       isSelected
@@ -419,12 +442,12 @@ export function AppearanceFields({ draft, set }: P) {
             <p className="text-xs text-slate-500 mb-3">Styles modernes sans encombrement</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 min-w-0">
               {THEMES.map((t) => {
-                const isSelected = draft.theme === t.id;
+                const isSelected = themeSettings.theme === t.id;
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    onClick={() => set({ theme: t.id })}
+                    onClick={() => set({ theme: serializeShopTheme({ theme: t.id }, draft.theme) })}
                     className={cn(
                       "rounded-2xl border-2 p-2.5 sm:p-3 text-left transition cursor-pointer min-w-0",
                       isSelected
@@ -577,7 +600,7 @@ export function AppearanceFields({ draft, set }: P) {
                   <button
                     key={f.id}
                     type="button"
-                    onClick={() => setSelectedFont(f.id)}
+                    onClick={() => set({ theme: serializeShopTheme({ font: f.id }, draft.theme) })}
                     className={cn(
                       "p-3 rounded-2xl border text-left transition cursor-pointer",
                       isSelected
@@ -630,7 +653,7 @@ export function AppearanceFields({ draft, set }: P) {
                   <button
                     key={g.id}
                     type="button"
-                    onClick={() => setSelectedGrid(g.id)}
+                    onClick={() => set({ theme: serializeShopTheme({ grid: g.id }, draft.theme) })}
                     className={cn(
                       "flex items-center justify-between w-full p-3.5 rounded-2xl border text-left transition cursor-pointer",
                       isSelected

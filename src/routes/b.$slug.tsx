@@ -20,7 +20,7 @@ import { recordShopVisit } from "@/lib/storefront.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { CartProvider, useCart } from "@/components/store/cart";
 import { CartSheet } from "@/components/store/CartSheet";
-import { absoluteMediaUrl, mediaUrl, shopStyle, formatPrice } from "@/lib/marketnet";
+import { absoluteMediaUrl, mediaUrl, shopStyle, formatPrice, parseShopTheme } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/b/$slug")({
@@ -81,11 +81,22 @@ function ShopLayout() {
   }, [slug]);
 
   const isOffline = !shop.is_published || shop.is_suspended;
+  const themeConfig = parseShopTheme(shop.theme);
+  const fontClass =
+    themeConfig.font === "display"
+      ? "font-display"
+      : themeConfig.font === "serif"
+      ? "font-serif"
+      : "font-sans";
 
   return (
     <CartProvider slug={slug}>
       <div
-        className={cn(`theme-${shop.theme || "savane"}`, "site-root min-h-screen text-slate-800 bg-[#f4f8fa] font-sans selection:bg-[#4F46E5] selection:text-white")}
+        className={cn(
+          `theme-${themeConfig.theme}`,
+          fontClass,
+          "site-root min-h-screen text-slate-800 bg-[#f4f8fa] selection:bg-[#4F46E5] selection:text-white"
+        )}
         style={shopStyle(shop.primary_color || "#4F46E5")}
       >
         {/* ── 1. BANDEAU TICKER DÉFILANT EN HAUT ── */}
@@ -224,7 +235,9 @@ function VytriniFloatingNavbar({
           </span>
           {/* Badge certifié si boutique active — pastille verte retirée */}
           {shop.is_published && !shop.is_suspended && (
-            <BadgeCheck className="h-4 w-4 text-[#4F46E5] shrink-0" title="Boutique certifiée MarketNet" />
+            <span title="Boutique certifiée MarketNet" className="inline-flex">
+              <BadgeCheck className="h-4 w-4 text-[#4F46E5] shrink-0" />
+            </span>
           )}
         </Link>
 

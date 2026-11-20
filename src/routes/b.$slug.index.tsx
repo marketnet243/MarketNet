@@ -17,7 +17,7 @@ import { StoreOfflineView } from "@/components/store/StoreOfflineView";
 import { PromoBanner } from "@/components/promo/PromoBanner";
 import { useCart } from "@/components/store/cart";
 import { cn } from "@/lib/utils";
-import { absoluteMediaUrl, formatPrice, mediaUrl, type Variant } from "@/lib/marketnet";
+import { absoluteMediaUrl, formatPrice, mediaUrl, parseShopTheme, type Variant } from "@/lib/marketnet";
 
 export const Route = createFileRoute("/b/$slug/")({
   loader: ({ context, params }: any) =>
@@ -101,9 +101,19 @@ function ShopHome() {
 
   const featured = products.filter((p) => p.featured);
   const isOffline = !shop.is_published || shop.is_suspended;
+  const themeConfig = parseShopTheme(shop.theme);
 
-  // Affichage des 6 premiers produits sur l'accueil
-  const homeProducts = useMemo(() => products.slice(0, 6), [products]);
+  // Nombre de produits sur l'accueil selon le modèle
+  const maxHomeCount = themeConfig.model === "mode" ? 8 : 6;
+  const homeProducts = useMemo(() => products.slice(0, maxHomeCount), [products, maxHomeCount]);
+
+  // Disposition de la grille selon les réglages
+  const gridContainerClass =
+    themeConfig.grid === "grid-large"
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+      : themeConfig.grid === "list"
+      ? "flex flex-col gap-3"
+      : "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4";
 
   if (isOffline) {
     return (
@@ -167,7 +177,12 @@ function ShopHome() {
           </section>
         )}
 
-        {/* ── SECTION PRODUITS VEDETTES (6 PRODUITS MAX SUR L'ACCUEIL) ── */}
+        {/* ── SI MODÈLE VITRINE : ATOUTS COMMERÇANT EN PREMIER ── */}
+        {themeConfig.model === "vitrine" && (
+          <StoreFeaturesSection shopName={shop.name} />
+        )}
+
+        {/* ── SECTION PRODUITS VEDETTES ── */}
         <section id="catalogue" className="mt-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div>
@@ -181,7 +196,7 @@ function ShopHome() {
             </span>
           </div>
 
-          {/* ── GRILLE DES 6 ARTICLES ── */}
+          {/* ── GRILLE DES ARTICLES (DYNAMIQUE SELON STYLE SÉLECTIONNÉ) ── */}
           {products.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-12 text-center">
               <PackageSearch className="h-10 w-10 text-slate-300 mx-auto mb-3" />
@@ -192,7 +207,7 @@ function ShopHome() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className={gridContainerClass}>
                 {homeProducts.map((p) => (
                   <ProductCard
                     key={p.id}
@@ -225,8 +240,10 @@ function ShopHome() {
           )}
         </section>
 
-        {/* ── 4. SECTION POURQUOI CHOISIR (ATOUTS CLIENTS VYTRINI) ── */}
-        <StoreFeaturesSection shopName={shop.name} />
+        {/* ── SECTION POURQUOI CHOISIR (POUR LES AUTRES MODÈLES) ── */}
+        {themeConfig.model !== "vitrine" && (
+          <StoreFeaturesSection shopName={shop.name} />
+        )}
 
       </div>
     </div>

@@ -21,6 +21,8 @@ import {
   Headphones,
   CheckCircle2,
   Lock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
@@ -29,11 +31,13 @@ import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
 import React, { useState, useRef, useEffect } from "react";
 
-/** Hook : compte de 0 → target dès que l'élément est visible */
-function useCountUp(target: number, duration = 1200) {
-  const [value, setValue] = useState(0);
+/** Hook : anime simultanément les compteurs quand le conteneur entre dans le viewport */
+function useMetricsCounter() {
+  const [sold, setSold] = useState(0);
+  const [clients, setClients] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const started = useRef(false);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -42,21 +46,24 @@ function useCountUp(target: number, duration = 1200) {
         if (entry.isIntersecting && !started.current) {
           started.current = true;
           const start = performance.now();
+          const duration = 1200;
           const tick = (now: number) => {
             const progress = Math.min((now - start) / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-            setValue(Math.round(eased * target));
+            setSold(Math.round(eased * 200));
+            setClients(Math.round(eased * 150));
             if (progress < 1) requestAnimationFrame(tick);
           };
           requestAnimationFrame(tick);
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.2 }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [target, duration]);
-  return { value, ref };
+  }, []);
+
+  return { sold, clients, ref };
 }
 
 type ShopLike = Pick<
@@ -165,7 +172,9 @@ export function StoreHeader({
               {shop.name}
             </h1>
             {isVerified && (
-              <BadgeCheck className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-300 shrink-0" title="Boutique certifiée MarketNet" />
+              <span title="Boutique certifiée MarketNet" className="inline-flex">
+                <BadgeCheck className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-300 shrink-0" />
+              </span>
             )}
           </div>
 
@@ -328,20 +337,19 @@ export function StoreHeader({
    1b. BARRE DE MÉTRIQUES ANIMÉES (compteur déclenché à l'entrée dans le viewport)
    ══════════════════════════════════════════════════════════════════════════ */
 function MetricsBar() {
-  const c1 = useCountUp(200);
-  const c2 = useCountUp(150);
+  const { sold, clients, ref } = useMetricsCounter();
   return (
     <div className="border-b border-slate-200 bg-white py-4 sm:py-5 shadow-xs">
-      <div ref={c1.ref} className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+      <div ref={ref} className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
         <div>
           <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">
-            +{c1.value}
+            +{sold}
           </span>
           <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Produits vendus</span>
         </div>
         <div className="border-x border-slate-100">
           <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">
-            +{c2.value}
+            +{clients}
           </span>
           <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Clients satisfaits</span>
         </div>
@@ -557,5 +565,120 @@ export function StoreFeaturesSection({ shopName }: { shopName: string }) {
         })}
       </div>
     </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4. BANDEAU TICKER DÉFILANT EN TÊTE
+   ══════════════════════════════════════════════════════════════════════════ */
+export function VytriniAnnouncementTicker({ shop }: { shop: any }) {
+  const shopName = shop?.name || "Boutique";
+  const annonces = [
+    `Livraison rapide partout en RDC • Commandes directes sur WhatsApp`,
+    `Catalogue officiel en ligne de ${shopName} • Prix en $ et FC`,
+    `Service client réactif et assistance personnalisée`,
+  ];
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setIdx((prev) => (prev + 1) % annonces.length);
+    }, 4500);
+    return () => clearInterval(t);
+  }, [annonces.length]);
+
+  return (
+    <div
+      className="w-full h-9 sm:h-10 text-white text-[11px] sm:text-xs flex items-center justify-between px-3 sm:px-4 shadow-xs select-none"
+      style={{ background: "var(--shop-primary, #1E293B)" }}
+    >
+      <button
+        type="button"
+        aria-label="Annonce précédente"
+        onClick={() => setIdx((prev) => (prev - 1 + annonces.length) % annonces.length)}
+        className="h-full px-2 flex items-center justify-center opacity-70 hover:opacity-100 cursor-pointer transition-opacity"
+      >
+        <ChevronLeft className="h-3.5 w-3.5" />
+      </button>
+
+      <div className="overflow-hidden text-center truncate px-2 font-medium">
+        <span className="inline-block transition-transform duration-300">
+          {annonces[idx]}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Annonce suivante"
+        onClick={() => setIdx((prev) => (prev + 1) % annonces.length)}
+        className="h-full px-2 flex items-center justify-center opacity-70 hover:opacity-100 cursor-pointer transition-opacity"
+      >
+        <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5. FOOTER OFFICIEL SANS NUMÉRO EN CLAIR (BOUTON WHATSAPP PUR)
+   ══════════════════════════════════════════════════════════════════════════ */
+export function VytriniStoreFooter({ shop }: { shop: any }) {
+  const name = shop?.name || "Boutique";
+  const whatsappDigits = shop?.whatsapp?.replace(/\D/g, "") || "";
+  const whatsappUrl = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
+    `Bonjour ${name}, je souhaiterais plus d'informations.`
+  )}`;
+
+  return (
+    <footer id="contact" className="mt-16 border-t border-slate-200 bg-white pt-10 pb-14 px-4 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8 border-b border-slate-100">
+          <div>
+            <h3 className="font-extrabold text-lg sm:text-xl text-slate-900">{name}</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
+              Disponibilité • Fiabilité • Performance. Commandes en direct sans intermédiaire.
+            </p>
+            {(shop?.city || shop?.hours) && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                {shop?.city && (
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {shop.city}
+                  </span>
+                )}
+                {shop?.hours && (
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    {shop.hours}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row md:justify-end gap-3 items-start sm:items-center">
+            {whatsappDigits && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 h-11 px-6 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-colors"
+              >
+                <MessageCircle className="h-4 w-4 fill-white" />
+                <span>Écrire sur WhatsApp</span>
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+          <p>© {new Date().getFullYear()} {name}. Tous droits réservés.</p>
+          <p>
+            Boutique propulsée par{" "}
+            <span className="font-bold text-[#4F46E5]">MarketNet</span> • 0% de commission
+          </p>
+        </div>
+      </div>
+    </footer>
   );
 }

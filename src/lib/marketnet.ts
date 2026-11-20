@@ -132,7 +132,54 @@ export function formatPrice(n: number, currency: string) {
 export function slugify(s: string) {
   return s
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 42);
+    .toLowerCase()
+    .replace(/\s+/g, "") // Supprime les espaces ("landry store" -> "landrystore")
+    .replace(/[^a-z0-9-]+/g, "")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 42);
+}
+
+export type ShopThemeSettings = {
+  theme: string;
+  model: "generaliste" | "mode" | "beaute" | "vitrine" | string;
+  font: "sans" | "display" | "serif" | string;
+  grid: "grid-2" | "grid-large" | "list" | string;
+};
+
+export function parseShopTheme(raw?: string | null): ShopThemeSettings {
+  const defaults: ShopThemeSettings = {
+    theme: "savane",
+    model: "generaliste",
+    font: "sans",
+    grid: "grid-2",
+  };
+  if (!raw) return defaults;
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return {
+        theme: parsed.theme || defaults.theme,
+        model: parsed.model || defaults.model,
+        font: parsed.font || defaults.font,
+        grid: parsed.grid || defaults.grid,
+      };
+    } catch {
+      return defaults;
+    }
+  }
+  return { ...defaults, theme: trimmed };
+}
+
+export function serializeShopTheme(
+  settings: Partial<ShopThemeSettings>,
+  existingRaw?: string | null
+): string {
+  const current = parseShopTheme(existingRaw);
+  return JSON.stringify({
+    ...current,
+    ...settings,
+  });
 }
 
 export const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,40}[a-z0-9]$/;

@@ -36,7 +36,7 @@ export function PromoSlide({
     <button
       type="button"
       onClick={onCta}
-      className="inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-shop px-4 sm:px-5 text-xs sm:text-sm font-bold text-shop-foreground shadow-sm transition-all duration-200 hover:brightness-105 hover:shadow-md active:scale-95 shrink-0"
+      className="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-xl bg-shop px-3.5 sm:px-4 text-xs font-bold text-shop-foreground shadow-xs transition-all duration-200 hover:brightness-105 hover:shadow-md active:scale-95 shrink-0 cursor-pointer"
     >
       <span>{promo.button_label || "Profiter de l'offre"}</span>
       <ArrowRight className="h-3.5 w-3.5 opacity-80" />
@@ -44,11 +44,11 @@ export function PromoSlide({
   );
 
   const base = cn(
-    "relative h-[200px] sm:h-[235px] md:h-[265px] w-full overflow-hidden rounded-2xl transition-all duration-300 shadow-sm select-none",
+    "relative h-full w-full overflow-hidden transition-all duration-300 shadow-xs select-none",
     className
   );
 
-  // 1. HERO IMMERSIF (Visuel plein écran avec cartouche en verre dépoli haut de gamme)
+  // 1. HERO IMMERSIF (Visuel plein écran avec cartouche élégant)
   if (t === "fullscreen") {
     return (
       <div className={cn(base, "group cursor-pointer")}>
@@ -61,27 +61,27 @@ export function PromoSlide({
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-shop via-shop/80 to-shop/40" />
         )}
-        {/* Dégradés cinéma pour contraste et lisibilité parfaits */}
+        {/* Dégradés pour contraste et lisibilité parfaits */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/20" />
 
-        {/* Cartouche flottant en verre dépoli élégant */}
-        <div className="absolute left-3 bottom-3 right-3 sm:right-auto sm:left-4 sm:bottom-4 sm:max-w-md rounded-2xl bg-black/65 dark:bg-black/75 p-3.5 sm:p-4.5 text-white shadow-2xl backdrop-blur-xl border border-white/20 transition-all duration-300 group-hover:translate-y-[-2px]">
-          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+        {/* Cartouche flottant élégant */}
+        <div className="absolute left-2.5 bottom-2.5 right-2.5 sm:right-auto sm:left-4 sm:bottom-4 sm:max-w-md rounded-xl sm:rounded-2xl bg-black/70 p-2.5 sm:p-4 text-white shadow-xl backdrop-blur-md border border-white/15 transition-all duration-200">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
             {disc ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 px-2.5 py-0.5 text-[11px] font-black text-white shadow-md uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 px-2 py-0.5 text-[10px] sm:text-[11px] font-black text-white shadow-xs uppercase tracking-wider">
                 <Sparkles className="h-2.5 w-2.5" />
                 {disc}
               </span>
             ) : promo.badge_label ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-shop px-2.5 py-0.5 text-[11px] font-black text-shop-foreground shadow-xs uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-full bg-shop px-2 py-0.5 text-[10px] sm:text-[11px] font-black text-shop-foreground shadow-xs uppercase tracking-wider">
                 <Sparkles className="h-2.5 w-2.5" />
                 {promo.badge_label}
               </span>
             ) : null}
 
             {promo.ends_at && (
-              <span className="text-[10px] sm:text-xs text-white/80 font-medium flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-lg backdrop-blur-xs">
+              <span className="text-[9px] sm:text-[11px] text-white/80 font-medium flex items-center gap-1 bg-white/15 px-2 py-0.5 rounded-lg">
                 <Clock className="h-3 w-3 opacity-80" />
                 <span>Jusqu'au {new Date(promo.ends_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
               </span>
@@ -89,24 +89,24 @@ export function PromoSlide({
           </div>
 
           <div className="space-y-0.5">
-            <h2 className="font-shop-heading text-sm sm:text-lg font-black leading-tight line-clamp-1 sm:line-clamp-2 text-white drop-shadow-sm tracking-tight">
+            <h2 className="font-shop-heading text-xs sm:text-base font-black leading-tight line-clamp-1 sm:line-clamp-2 text-white drop-shadow-xs">
               {promo.title}
             </h2>
             {promo.description && (
-              <p className="line-clamp-1 text-xs leading-normal text-white/80 font-medium">
+              <p className="line-clamp-1 text-[11px] sm:text-xs leading-normal text-white/80 font-medium">
                 {promo.description}
               </p>
             )}
           </div>
 
-          <div className="mt-2.5 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2">
             <button
               type="button"
               onClick={onCta}
-              className="inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl bg-white text-black hover:bg-white/90 px-4 sm:px-5 text-xs sm:text-sm font-bold shadow-lg transition-all duration-200 active:scale-95"
+              className="inline-flex h-7 sm:h-8 items-center justify-center gap-1.5 rounded-lg bg-white text-slate-900 hover:bg-white/90 px-3 sm:px-4 text-[11px] sm:text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
             >
-              <span>{promo.button_label || "Profiter de l'offre"}</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <span>{promo.button_label || "En profiter"}</span>
+              <ArrowRight className="h-3 w-3" />
             </button>
           </div>
         </div>
