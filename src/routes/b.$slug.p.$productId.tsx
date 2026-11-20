@@ -143,7 +143,8 @@ function ProductPage() {
   const { data } = useSuspenseQuery(publicShopQuery(slug));
   const product = data.products.find((p) => p.id === productId)!;
   const { shop } = data;
-  const variants = (product.variants as Variant[]) ?? [];
+  const rawVariants = Array.isArray(product.variants) ? (product.variants as any[]) : [];
+  const variants = rawVariants.filter((v) => v && !v._meta && v.name);
 
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -158,14 +159,36 @@ function ProductPage() {
   const out = product.status === "out_of_stock";
   const imgs = product.images.length ? product.images : [];
 
-  const isDiscounted =
-    (product as any).discounted_price != null &&
-    (product as any).discounted_price < Number(product.price);
-  const effectivePrice = isDiscounted
-    ? (product as any).discounted_price
-    : Number(product.price);
+  // Helper lecture option label et prix spécifique optionnel
+  const getOptLabel = (o: any) => (typeof o === "object" && o ? o.name || o.label || "" : String(o));
+  const getOptPrice = (o: any): number | null => (typeof o === "object" && o && o.price != null && !isNaN(Number(o.price)) ? Number(o.price) : null);
+
+  // Vérifier si une option sélectionnée a un prix spécifique propre
+  let variantSpecificPrice: number | null = null;
+  for (const v of variants) {
+    const sel = choice[v.name];
+    if (sel && Array.isArray(v.options)) {
+      const match = v.options.find((o: any) => getOptLabel(o) === sel);
+      const p = getOptPrice(match);
+      if (p !== null) variantSpecificPrice = p;
+    }
+  }
+
+  const basePrice = Number(product.price);
+  const productOriginalPrice = Number((product as any).original_price || basePrice);
+  const hasPromoOrComparePrice =
+    ((product as any).discounted_price != null && (product as any).discounted_price < productOriginalPrice) ||
+    productOriginalPrice > basePrice;
+
+  // Calcul du prix effectif selon variante ou réduction
+  const effectivePrice = variantSpecificPrice !== null
+    ? variantSpecificPrice
+    : ((product as any).discounted_price != null ? Number((product as any).discounted_price) : basePrice);
+
+  const displayOriginalPrice = productOriginalPrice > effectivePrice ? productOriginalPrice : null;
+  const isDiscounted = displayOriginalPrice !== null && displayOriginalPrice > effectivePrice;
   const discountPct = isDiscounted
-    ? Math.round((1 - effectivePrice / Number(product.price)) * 100)
+    ? Math.round(((displayOriginalPrice - effectivePrice) / displayOriginalPrice) * 100)
     : 0;
 
   const priceStr = formatPrice(effectivePrice, product.currency);
@@ -210,7 +233,7 @@ function ProductPage() {
         image: product.images[0],
         variant: variants.map((v) => `${v.name}: ${choice[v.name]}`).join(", ") || undefined,
         promo_id: (product as any).promo_id,
-        original_price: Number(product.price),
+        original_price: displayOriginalPrice || Number(product.price),
       },
       qty
     );
@@ -431,10 +454,10 @@ function ProductPage() {
                 <span className={cn("text-3xl sm:text-4xl font-black tracking-tight", isDiscounted ? "text-rose-600" : "text-[#4F46E5]")}>
                   {priceStr}
                 </span>
-                {isDiscounted && (
+                {isDiscounted && displayOriginalPrice && (
                   <div className="flex items-center gap-2">
                     <span className="text-base text-slate-400 line-through">
-                      {formatPrice(Number(product.price), product.currency)}
+                      {formatPrice(displayOriginalPrice, product.currency)}
                     </span>
                     <span className="rounded-full bg-rose-100 text-rose-700 px-2.5 py-0.5 text-xs font-black">
                       Économisez {discountPct}%
@@ -498,21 +521,38 @@ function ProductPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {v.options.map((o) => (
-                    <button
-                      key={o}
-                      type="button"
-                      onClick={() => setChoice((c) => ({ ...c, [v.name]: o }))}
-                      className={cn(
-                        "h-10 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer",
-                        choice[v.name] === o
-                          ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] shadow-xs"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                      )}
-                    >
-                      {o}
-                    </button>
-                  ))}
+                  {(Array.isArray(v.options) ? v.options : []).map((o: any) => {
+                    const label = getOptLabel(o);
+                    const optPrice = getOptPrice(o);
+                    const isSelected = choice[v.name] === label;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setChoice((c) => ({ ...c, [v.name]: label }))}
+                        className={cn(
+                          "h-10 px-3.5 rounded-xl text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-2",
+                          isSelected
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5] shadow-xs"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        )}
+                      >
+                        <span>{label}</span>
+                        {optPrice !== null && (
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
+                              isSelected
+                                ? "bg-[#4F46E5]/15 text-[#4F46E5]"
+                                : "bg-slate-100 text-slate-500"
+                            )}
+                          >
+                            {formatPrice(optPrice, product.currency)}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}

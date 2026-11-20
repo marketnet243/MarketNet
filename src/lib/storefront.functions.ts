@@ -62,13 +62,28 @@ export const getPublicShop = createServerFn({ method: "GET" })
       products: (p.promotion_products ?? []).sort((a, b) => a.position - b.position),
     }));
 
-    // Attach active discounts to each product (handling multiple promotions: best discount wins)
+    // Attach active discounts or manual compare-at price to each product
     const productsWithPromos = (products ?? []).map((prod) => {
-      let bestDiscountedPrice = Number(prod.price);
+      // 1. Détection d'un prix barré manuel (enregistré dans les métadonnées de variantes)
+      const rawVars = Array.isArray(prod.variants) ? (prod.variants as any[]) : [];
+      const meta = rawVars.find((v) => v && v._meta);
+      const manualOriginalPrice = meta?.original_price ? Number(meta.original_price) : null;
+      const cleanVariants = rawVars.filter((v) => !v || !v._meta);
+
+      let originalPrice = Number(prod.price);
+      let bestDiscountedPrice: number | null = null;
       let bestDiscountBadge: string | null = null;
       let activePromoId: string | null = null;
       let promoEndDate: string | null = null;
 
+      if (manualOriginalPrice && manualOriginalPrice > Number(prod.price)) {
+        originalPrice = manualOriginalPrice;
+        bestDiscountedPrice = Number(prod.price);
+        const pct = Math.round(((manualOriginalPrice - Number(prod.price)) / manualOriginalPrice) * 100);
+        bestDiscountBadge = `-${pct}%`;
+      }
+
+      // 2. Vérification des promotions planifiées
       for (const p of validPromos) {
         const link = (p.promotion_products ?? []).find((pp) => pp.product_id === prod.id);
         if (link || (p.promotion_products ?? []).length === 0) {
@@ -82,7 +97,7 @@ export const getPublicShop = createServerFn({ method: "GET" })
               discPrice = Math.max(0, discPrice - Number(discVal));
             }
 
-            if (discPrice < bestDiscountedPrice) {
+            if (bestDiscountedPrice === null || discPrice < bestDiscountedPrice) {
               bestDiscountedPrice = discPrice;
               bestDiscountBadge = discType === "percent" ? `-${Number(discVal)}%` : `-${Number(discVal)} ${prod.currency}`;
               activePromoId = p.id;
@@ -94,8 +109,9 @@ export const getPublicShop = createServerFn({ method: "GET" })
 
       return {
         ...prod,
-        original_price: Number(prod.price),
-        discounted_price: bestDiscountedPrice < Number(prod.price) ? bestDiscountedPrice : null,
+        variants: cleanVariants,
+        original_price: originalPrice,
+        discounted_price: bestDiscountedPrice !== null && bestDiscountedPrice < originalPrice ? bestDiscountedPrice : null,
         discount_badge: bestDiscountBadge,
         promo_id: activePromoId,
         promo_ends_at: promoEndDate,

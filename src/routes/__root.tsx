@@ -129,11 +129,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange(event => {
-      if (event === "SIGNED_OUT") queryClient.clear();
+      if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem("marketnet-auth-return");
+        queryClient.clear();
+      }
       if (event === "SIGNED_IN") {
         const authReturn = sessionStorage.getItem("marketnet-auth-return");
+        sessionStorage.removeItem("marketnet-auth-return");
         if (window.location.pathname === "/" && authReturn) {
-          sessionStorage.removeItem("marketnet-auth-return");
           window.location.assign(authReturn);
         }
       }

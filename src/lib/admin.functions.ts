@@ -86,7 +86,7 @@ export const notifyMerchantAccountDeletion = createServerFn({ method: "POST" })
   });
 
 /**
- * Alerte admin pour toute nouvelle inscription sur la plateforme
+ * Inscription : envoi de l'e-mail officiel de bienvenue à l'utilisateur + notification admin
  */
 export const notifyNewUserRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -98,13 +98,25 @@ export const notifyNewUserRegistration = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     try {
+      // 1. E-mail de bienvenue officiel envoyé à l'utilisateur
+      const { sendUserWelcomeEmail } = await import("./email-template.server");
+      await sendUserWelcomeEmail({
+        email: data.email,
+        fullName: data.fullName || "Cher commerçant",
+      });
+    } catch (welcomeErr) {
+      console.warn("[notifyNewUserRegistration] Erreur email bienvenue utilisateur:", welcomeErr);
+    }
+
+    try {
+      // 2. Notification admin
       const { sendNewUserAdminNotification } = await import("./invoices.server");
       await sendNewUserAdminNotification({
         email: data.email,
         fullName: data.fullName,
       });
     } catch (err) {
-      console.warn("[notifyNewUserRegistration] Erreur d'envoi non bloquante:", err);
+      console.warn("[notifyNewUserRegistration] Erreur notification admin:", err);
     }
     return { ok: true };
   });

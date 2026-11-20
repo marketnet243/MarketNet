@@ -107,8 +107,18 @@ function Onboarding() {
     await supabase.auth.updateUser({ data: { onboarding_step: s } });
   };
 
-  // Redirection automatique si le commerçant a déjà une boutique
+  // Redirection automatique si le commerçant a déjà une boutique ou est admin
   useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
+        if (isAdmin) {
+          navigate({ to: "/admin" });
+          return;
+        }
+      }
+    });
+
     if (shop && !launching) {
       navigate({ to: "/dashboard" });
     }

@@ -50,18 +50,29 @@ export const Route = createFileRoute("/_authenticated/dashboard/produits")({
   component: ProductsPage,
 });
 
+type VariantOptionItem = {
+  name: string;
+  price: string; // Prix spécifique optionnel pour cette option
+};
+
+type VariantGroup = {
+  name: string;
+  options: VariantOptionItem[];
+};
+
 type Form = {
   id?: string;
   name: string;
   description: string;
   price: string;
+  original_price: string; // Prix barré (optionnel)
   currency: string;
   images: string[];
   category_id: string;
   stock: string;
   status: Product["status"];
   featured: boolean;
-  variants: { name: string; options: string }[];
+  variants: VariantGroup[];
 };
 const MAX_IMAGES = 6;
 
@@ -78,6 +89,7 @@ function ProductsPage() {
     name: "",
     description: "",
     price: "",
+    original_price: "",
     currency: shop.currency,
     images: [],
     category_id: "",
@@ -87,19 +99,38 @@ function ProductsPage() {
     variants: [],
   });
 
-  const edit = (p: Product): Form => ({
-    id: p.id,
-    name: p.name,
-    description: p.description ?? "",
-    price: String(p.price),
-    currency: p.currency,
-    images: p.images,
-    category_id: p.category_id ?? "",
-    stock: p.stock == null ? "" : String(p.stock),
-    status: p.status,
-    featured: p.featured,
-    variants: ((p.variants as Variant[]) ?? []).map((v) => ({ name: v.name, options: v.options.join(", ") })),
-  });
+  const edit = (p: Product): Form => {
+    const rawVariants = Array.isArray(p.variants) ? (p.variants as any[]) : [];
+    const meta = rawVariants.find((v) => v && v._meta);
+    const parsedOriginalPrice = meta?.original_price ? String(meta.original_price) : "";
+    const cleanVariants = rawVariants.filter((v) => v && !v._meta && v.name);
+
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description ?? "",
+      price: String(p.price),
+      original_price: parsedOriginalPrice,
+      currency: p.currency,
+      images: p.images,
+      category_id: p.category_id ?? "",
+      stock: p.stock == null ? "" : String(p.stock),
+      status: p.status,
+      featured: p.featured,
+      variants: cleanVariants.map((v) => {
+        const opts = Array.isArray(v.options) ? v.options : [];
+        return {
+          name: v.name,
+          options: opts.map((o: any) => {
+            if (typeof o === "object" && o !== null) {
+              return { name: String(o.name || o.label || ""), price: o.price != null ? String(o.price) : "" };
+            }
+            return { name: String(o), price: "" };
+          }),
+        };
+      }),
+    };
+  };
 
   const list = (products ?? []).filter((p) => p.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -359,6 +390,33 @@ function ProductForm({
     if (!isFinite(price) || price <= 0) return toast.error("Le prix doit être strictement supérieur à 0");
     const stock = f.stock.trim() === "" ? null : parseInt(f.stock, 10);
     if (stock !== null && (isNaN(stock) || stock < 0)) return toast.error("Stock invalide");
+
+    // Prix barré optionnel
+    const rawOrig = f.original_price?.trim() ? Number(f.original_price.replace(",", ".")) : null;
+    const originalPriceNum = rawOrig && isFinite(rawOrig) && rawOrig > price ? rawOrig : null;
+
+    // Variantes propres avec options et prix optionnels
+    const cleanVariants = f.variants
+      .filter((v) => v.name.trim() && v.options.length > 0)
+      .map((v) => ({
+        name: v.name.trim(),
+        options: v.options
+          .filter((o) => o.name.trim())
+          .map((o) => {
+            const p = o.price?.trim() ? Number(o.price.replace(",", ".")) : null;
+            if (p != null && isFinite(p) && p > 0) {
+              return { name: o.name.trim(), price: p };
+            }
+            return o.name.trim();
+          }),
+      }))
+      .filter((v) => v.options.length > 0);
+
+    const variantsPayload = [
+      ...(originalPriceNum ? [{ _meta: true, original_price: originalPriceNum }] : []),
+      ...cleanVariants,
+    ];
+
     const row = {
       shop_id: shopId,
       name: f.name.trim().slice(0, 120),
@@ -370,15 +428,7 @@ function ProductForm({
       stock,
       status: f.status,
       featured: f.featured,
-      variants: f.variants
-        .filter((v) => v.name.trim() && v.options.trim())
-        .map((v) => ({
-          name: v.name.trim(),
-          options: v.options
-            .split(",")
-            .map((o) => o.trim())
-            .filter(Boolean),
-        })),
+      variants: variantsPayload,
     };
     setBusy(true);
     const { error } = f.id
@@ -451,25 +501,56 @@ function ProductForm({
         />
       </div>
 
-      {/* Prix + Devise */}
-      <div className="grid grid-cols-[1fr_110px] gap-3">
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Prix</Label>
-          <input
-            className={selClass}
-            inputMode="decimal"
-            placeholder="0.00"
-            value={f.price}
-            onChange={(e) => set({ price: e.target.value })}
-          />
+      {/* Prix de vente + Prix barré optionnel + Devise */}
+      <div className="space-y-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_100px] gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Prix de vente</Label>
+            <input
+              className={selClass}
+              inputMode="decimal"
+              placeholder="Ex: 15000"
+              value={f.price}
+              onChange={(e) => set({ price: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Prix barré</Label>
+              <span className="text-[10px] text-slate-400 font-medium">Optionnel</span>
+            </div>
+            <input
+              className={selClass}
+              inputMode="decimal"
+              placeholder="Ex: 20000"
+              value={f.original_price}
+              onChange={(e) => set({ original_price: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Devise</Label>
+            <select className={selClass} value={f.currency} onChange={(e) => set({ currency: e.target.value })}>
+              <option>CDF</option>
+              <option>USD</option>
+            </select>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Devise</Label>
-          <select className={selClass} value={f.currency} onChange={(e) => set({ currency: e.target.value })}>
-            <option>USD</option>
-            <option>CDF</option>
-          </select>
-        </div>
+
+        {/* Remise calculée en temps réel */}
+        {(() => {
+          const p = Number(f.price?.replace(",", "."));
+          const op = Number(f.original_price?.replace(",", "."));
+          if (isFinite(p) && isFinite(op) && op > p && p > 0) {
+            const diff = op - p;
+            const pct = Math.round((diff / op) * 100);
+            return (
+              <p className="text-xs text-emerald-600 font-semibold pt-0.5">
+                Remise calculée : -{pct}% (Économie de {diff.toLocaleString("fr-FR")} {f.currency})
+              </p>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       {/* Description */}
@@ -531,41 +612,138 @@ function ProductForm({
         <Switch checked={f.featured} onCheckedChange={(v) => set({ featured: v })} />
       </div>
 
-      {/* Variantes */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Variantes (optionnel)</Label>
+      {/* Variantes & Options avec prix optionnels */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Variantes (optionnel)</Label>
+            <p className="text-[11px] text-slate-400">Ex: Tailles, Couleurs, Volumes. Chaque option peut avoir son propre prix.</p>
+          </div>
           <button
             type="button"
-            onClick={() => set({ variants: [...f.variants, { name: "", options: "" }] })}
+            onClick={() =>
+              set({
+                variants: [
+                  ...f.variants,
+                  { name: "", options: [{ name: "", price: "" }] },
+                ],
+              })
+            }
             className="flex items-center gap-1 text-xs font-semibold text-[#4F46E5] hover:text-[#4338CA] transition-colors cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
-            Ajouter
+            Ajouter une variante
           </button>
         </div>
+
         {f.variants.map((v, i) => (
-          <div key={i} className="mt-2 flex gap-2">
-            <input
-              className="h-10 w-28 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20"
-              placeholder="Taille"
-              value={v.name}
-              onChange={(e) => set({ variants: f.variants.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })}
-            />
-            <input
-              className="h-10 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20"
-              placeholder="S, M, L, XL"
-              value={v.options}
-              onChange={(e) => set({ variants: f.variants.map((x, j) => (j === i ? { ...x, options: e.target.value } : x)) })}
-            />
-            <button
-              type="button"
-              aria-label="Retirer"
-              onClick={() => set({ variants: f.variants.filter((_, j) => j !== i) })}
-              className="h-10 w-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <input
+                className="h-10 w-full max-w-[200px] rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20"
+                placeholder="Ex: Taille, Format…"
+                value={v.name}
+                onChange={(e) =>
+                  set({
+                    variants: f.variants.map((x, j) =>
+                      j === i ? { ...x, name: e.target.value } : x
+                    ),
+                  })
+                }
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  set({
+                    variants: f.variants.map((x, j) =>
+                      j === i
+                        ? { ...x, options: [...x.options, { name: "", price: "" }] }
+                        : x
+                    ),
+                  })
+                }
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#4F46E5] hover:underline cursor-pointer"
+              >
+                <Plus className="h-3 w-3" />
+                Ajouter une option
+              </button>
+              <button
+                type="button"
+                aria-label="Supprimer la variante"
+                onClick={() => set({ variants: f.variants.filter((_, j) => j !== i) })}
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer ml-auto"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Liste des options pour cette variante */}
+            <div className="space-y-2 pt-1">
+              {v.options.map((opt, optIdx) => (
+                <div key={optIdx} className="flex items-center gap-2">
+                  <input
+                    className="h-9 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20"
+                    placeholder="Option (ex: XL, 500ml, Pack duo)"
+                    value={opt.name}
+                    onChange={(e) =>
+                      set({
+                        variants: f.variants.map((x, j) =>
+                          j === i
+                            ? {
+                                ...x,
+                                options: x.options.map((o, k) =>
+                                  k === optIdx ? { ...o, name: e.target.value } : o
+                                ),
+                              }
+                            : x
+                        ),
+                      })
+                    }
+                  />
+                  <div className="relative w-36">
+                    <input
+                      className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-3 pr-8 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20"
+                      inputMode="decimal"
+                      placeholder="Prix optionnel"
+                      value={opt.price}
+                      onChange={(e) =>
+                        set({
+                          variants: f.variants.map((x, j) =>
+                            j === i
+                              ? {
+                                  ...x,
+                                  options: x.options.map((o, k) =>
+                                    k === optIdx ? { ...o, price: e.target.value } : o
+                                  ),
+                                }
+                              : x
+                          ),
+                        })
+                      }
+                    />
+                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none">
+                      {f.currency}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Supprimer cette option"
+                    onClick={() =>
+                      set({
+                        variants: f.variants.map((x, j) =>
+                          j === i
+                            ? { ...x, options: x.options.filter((_, k) => k !== optIdx) }
+                            : x
+                        ),
+                      })
+                    }
+                    className="h-9 w-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:text-rose-600 transition-colors cursor-pointer shrink-0"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>

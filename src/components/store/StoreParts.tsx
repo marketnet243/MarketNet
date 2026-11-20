@@ -27,7 +27,37 @@ import { Link } from "@tanstack/react-router";
 import type { Shop, Product } from "@/hooks/useMyShop";
 import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+
+/** Hook : compte de 0 → target dès que l'élément est visible */
+function useCountUp(target: number, duration = 1200) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            setValue(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.4 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [target, duration]);
+  return { value, ref };
+}
 
 type ShopLike = Pick<
   Shop,
@@ -122,20 +152,22 @@ export function StoreHeader({
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
 
         {/* Contenu textuel sans logo au milieu (le logo est déjà dans la navbar) */}
-        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14 text-center space-y-3.5">
-          {/* Badge Catégorie */}
+        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14 text-center flex flex-col items-center space-y-3.5">
+          {/* Badge Catégorie : TOUJOURS en haut, centré au-dessus du nom */}
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3.5 py-1 text-xs font-semibold text-white shadow-xs">
             <span className="h-2 w-2 rounded-full bg-[#4F46E5] animate-pulse" />
             <span>{getShopCategoryLabel(shop) || "Boutique Officielle"}</span>
           </div>
 
-          {/* Titre Principal de la Boutique */}
-          <h1 className="font-shop-heading text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-md inline-flex items-center justify-center gap-2 flex-wrap">
-            {shop.name}
+          {/* Titre Principal de la Boutique + Badge Certifié en-dessous */}
+          <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap">
+            <h1 className="font-shop-heading text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
+              {shop.name}
+            </h1>
             {isVerified && (
               <BadgeCheck className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-300 shrink-0" title="Boutique certifiée MarketNet" />
             )}
-          </h1>
+          </div>
 
           {/* Description avec gestion intelligente des textes longs pour ne pas casser le Hero */}
           <div className="max-w-xl mx-auto">
@@ -241,23 +273,8 @@ export function StoreHeader({
         </div>
       </div>
 
-      {/* ── CHIFFRES CLÉS (Metrics Bar) ── */}
-      <div className="border-b border-slate-200 bg-white py-4 sm:py-5 shadow-xs">
-        <div className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
-          <div>
-            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">+200</span>
-            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Produits vendus</span>
-          </div>
-          <div className="border-x border-slate-100">
-            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">+150</span>
-            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Clients satisfaits</span>
-          </div>
-          <div>
-            <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">Sous 24 h</span>
-            <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Livraison rapide</span>
-          </div>
-        </div>
-      </div>
+      {/* ── CHIFFRES CLÉS ANIMÉS (Metrics Bar) ── */}
+      <MetricsBar />
 
       {/* ── 4 BADGES DE RÉASSURANCE CLIENT ── */}
       <div className="mx-auto max-w-5xl px-4 py-5 sm:py-6">
@@ -304,6 +321,38 @@ export function StoreHeader({
         </div>
       </div>
     </header>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1b. BARRE DE MÉTRIQUES ANIMÉES (compteur déclenché à l'entrée dans le viewport)
+   ══════════════════════════════════════════════════════════════════════════ */
+function MetricsBar() {
+  const c1 = useCountUp(200);
+  const c2 = useCountUp(150);
+  return (
+    <div className="border-b border-slate-200 bg-white py-4 sm:py-5 shadow-xs">
+      <div ref={c1.ref} className="mx-auto max-w-5xl px-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+        <div>
+          <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">
+            +{c1.value}
+          </span>
+          <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Produits vendus</span>
+        </div>
+        <div className="border-x border-slate-100">
+          <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">
+            +{c2.value}
+          </span>
+          <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Clients satisfaits</span>
+        </div>
+        <div>
+          <span className="font-shop-heading text-lg sm:text-2xl font-extrabold text-[#4F46E5] block">
+            24 h
+          </span>
+          <span className="text-[11px] sm:text-xs text-slate-500 block mt-0.5">Livraison rapide</span>
+        </div>
+      </div>
+    </div>
   );
 }
 

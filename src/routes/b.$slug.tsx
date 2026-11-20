@@ -222,9 +222,7 @@ function VytriniFloatingNavbar({
           <span className="font-bold text-xs sm:text-base text-slate-900 truncate max-w-[120px] sm:max-w-xs group-hover:text-[#4F46E5] transition-colors">
             {shop.name}
           </span>
-          {/* Pastille verte "en ligne" */}
-          <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="En ligne" />
-          {/* Badge certifié si boutique active */}
+          {/* Badge certifié si boutique active — pastille verte retirée */}
           {shop.is_published && !shop.is_suspended && (
             <BadgeCheck className="h-4 w-4 text-[#4F46E5] shrink-0" title="Boutique certifiée MarketNet" />
           )}
@@ -508,10 +506,21 @@ function VytriniStoreFooter({ shop }: { shop: any }) {
             <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">
               Disponibilité • Fiabilité • Performance. Commandes en direct sans intermédiaire.
             </p>
-            {shop.city && (
-              <p className="text-xs text-slate-400 mt-2">
-                📍 {shop.city} {shop.hours ? `• 🕒 ${shop.hours}` : ""}
-              </p>
+            {(shop.city || shop.hours) && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                {shop.city && (
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {shop.city}
+                  </span>
+                )}
+                {shop.hours && (
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {shop.hours}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
