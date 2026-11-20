@@ -690,11 +690,11 @@ function ProductPage() {
 
       {/* ── BARRE STICKY BOTTOM SUR MOBILE ── */}
       {!out && (
-        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md md:hidden shadow-lg">
-          <div className="mx-auto flex max-w-sm items-center gap-3">
+        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-3 py-2.5 backdrop-blur-md md:hidden shadow-lg">
+          <div className="mx-auto flex max-w-sm items-center gap-2.5">
             <div className="flex flex-col justify-center min-w-0">
-              <span className="text-[10px] text-slate-400 font-semibold uppercase">Prix unitaire</span>
-              <span className={cn("text-base font-black truncate", isDiscounted ? "text-rose-600" : "text-[#4F46E5]")}>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wide">Prix</span>
+              <span className={cn("text-sm font-black truncate", isDiscounted ? "text-rose-600" : "text-[#4F46E5]")}>
                 {priceStr}
               </span>
             </div>
@@ -702,18 +702,18 @@ function ProductPage() {
               type="button"
               onClick={addToCart}
               className={cn(
-                "flex-1 h-13 px-5 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.98] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-indigo-500/25 transition-all cursor-pointer",
+                "flex-1 h-11 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.98] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 transition-all cursor-pointer",
                 addedAnim && "bg-emerald-600"
               )}
             >
               {addedAnim ? (
                 <>
-                  <CheckCircle2 className="h-5 w-5" />
+                  <CheckCircle2 className="h-4 w-4" />
                   <span>Ajouté !</span>
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="h-5 w-5" />
+                  <ShoppingBag className="h-4 w-4" />
                   <span>Ajouter au panier</span>
                 </>
               )}

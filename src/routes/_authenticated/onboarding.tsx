@@ -281,6 +281,15 @@ function Onboarding() {
     }
   }
 
+  // ══════════════ Loader pendant restauration de l'étape ══════════════
+  if (!stepRestored) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary opacity-60" />
+      </div>
+    );
+  }
+
   // ══════════════ Écran de l'assistant de création ══════════════
   if (launching && busy) {
     const pct = Math.round(creationProgress);

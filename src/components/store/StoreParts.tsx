@@ -73,6 +73,9 @@ export function StoreHeader({
 }) {
   const banner = mediaUrl(shop.banner_url);
   const hasWhatsapp = (shop.whatsapp?.replace(/\D/g, "") || "").length >= 8;
+  // Couleur primaire de la boutique (depuis CSS var ou fallback indigo)
+  const primaryColor = "#4F46E5";
+  const isVerified = isPublished && !isSuspended;
 
   function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -110,9 +113,13 @@ export function StoreHeader({
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950" />
         )}
 
-        {/* Double overlay pour garantir un contraste parfait quel que soit l'image */}
-        <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60" />
+        {/* Overlay léger pour contraste lisible sans noircir l'image */}
+        {banner ? (
+          <div className="absolute inset-0 bg-slate-950/45" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
 
         {/* Contenu textuel sans logo au milieu (le logo est déjà dans la navbar) */}
         <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14 text-center space-y-3.5">
@@ -123,8 +130,11 @@ export function StoreHeader({
           </div>
 
           {/* Titre Principal de la Boutique */}
-          <h1 className="font-shop-heading text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
+          <h1 className="font-shop-heading text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-md inline-flex items-center justify-center gap-2 flex-wrap">
             {shop.name}
+            {isVerified && (
+              <BadgeCheck className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-300 shrink-0" title="Boutique certifiée MarketNet" />
+            )}
           </h1>
 
           {/* Description avec gestion intelligente des textes longs pour ne pas casser le Hero */}
@@ -149,7 +159,7 @@ export function StoreHeader({
           </div>
 
           {/* Actions Clés Responsive : boutons compacts et bien taillés sur mobile */}
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3 pt-2">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 pt-2 flex-wrap">
             <Link
               to="/b/$slug/produits"
               params={{ slug: shop.slug }}
@@ -169,7 +179,7 @@ export function StoreHeader({
                 className="inline-flex items-center justify-center gap-1.5 h-11 px-4 sm:px-5 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm shadow-md transition-colors whitespace-nowrap"
               >
                 <MessageCircle className="h-4 w-4 text-[#25D366] shrink-0" />
-                <span>WhatsApp</span>
+                <span className="hidden xs:inline sm:inline">WhatsApp</span>
               </a>
             )}
 

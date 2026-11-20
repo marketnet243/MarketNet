@@ -13,6 +13,7 @@ import {
   Store,
   Menu,
   Package,
+  BadgeCheck,
 } from "lucide-react";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { recordShopVisit } from "@/lib/storefront.functions";
@@ -145,7 +146,7 @@ function VytriniAnnouncementTicker({ shop }: { shop: any }) {
   }, [annonces.length]);
 
   return (
-    <div className="fixed inset-x-0 top-0 z-60 h-9 sm:h-10 bg-[#1E293B] text-slate-200 text-[11px] sm:text-xs flex items-center justify-between px-3 sm:px-4 shadow-xs select-none">
+    <div className="fixed inset-x-0 top-0 z-60 h-9 sm:h-10 text-white text-[11px] sm:text-xs flex items-center justify-between px-3 sm:px-4 shadow-xs select-none" style={{ background: "var(--shop-primary, #1E293B)" }}>
       <button
         type="button"
         aria-label="Annonce précédente"
@@ -221,7 +222,12 @@ function VytriniFloatingNavbar({
           <span className="font-bold text-xs sm:text-base text-slate-900 truncate max-w-[120px] sm:max-w-xs group-hover:text-[#4F46E5] transition-colors">
             {shop.name}
           </span>
+          {/* Pastille verte "en ligne" */}
           <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title="En ligne" />
+          {/* Badge certifié si boutique active */}
+          {shop.is_published && !shop.is_suspended && (
+            <BadgeCheck className="h-4 w-4 text-[#4F46E5] shrink-0" title="Boutique certifiée MarketNet" />
+          )}
         </Link>
 
         {/* CENTRE : LIENS DE NAVIGATION RAPIDE (DESKTOP) */}
