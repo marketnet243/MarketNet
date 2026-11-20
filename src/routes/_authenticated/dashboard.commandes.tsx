@@ -14,6 +14,9 @@ import {
   SlidersHorizontal,
   Calendar as CalendarIcon,
   X,
+  TrendingUp,
+  AlertCircle,
+  PackageCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -27,11 +30,11 @@ export const Route = createFileRoute("/_authenticated/dashboard/commandes")({
   head: () => ({
     meta: [
       { property: "og:title", content: "Commandes — MarketNet" },
-      { property: "og:description", content: "Suivez vos commandes WhatsApp." },
+      { property: "og:description", content: "Suivez et gérez vos commandes en direct." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Commandes — MarketNet" },
-      { name: "description", content: "Suivez vos commandes WhatsApp." },
+      { name: "description", content: "Suivez et gérez vos commandes en direct." },
     ],
   }),
   component: OrdersPage,
@@ -50,14 +53,14 @@ const STATUS_CONFIG: Record<
   confirmed: {
     label: "Confirmée",
     icon: CheckCircle2,
-    badgeClass: "bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]",
-    iconBoxClass: "bg-[#EEF2FF] text-[#4F46E5]",
+    badgeClass: "bg-blue-50 text-blue-700 border border-blue-200",
+    iconBoxClass: "bg-blue-50 text-blue-700",
   },
   delivered: {
     label: "Livrée",
     icon: Truck,
-    badgeClass: "bg-slate-100 text-slate-700 border border-slate-200",
-    iconBoxClass: "bg-slate-100 text-slate-700",
+    badgeClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    iconBoxClass: "bg-emerald-50 text-emerald-700",
   },
   cancelled: {
     label: "Annulée",
@@ -86,7 +89,7 @@ function OrdersPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: orders, isLoading } = useQuery({
+  const { data: orders = [], isLoading } = useQuery({
     queryKey: ["orders", shop?.id],
     enabled: !!shop,
     queryFn: async () =>
@@ -96,17 +99,46 @@ function OrdersPage() {
           .select("*")
           .eq("shop_id", shop!.id)
           .order("created_at", { ascending: false })
-          .limit(200)
+          .limit(250)
       ).data ?? [],
   });
 
+  // ── STATISTIQUES DYNAMIQUES GLOBALES ──
+  const stats = useMemo(() => {
+    const total = orders.length;
+    const newCount = orders.filter((o) => o.status === "new").length;
+    const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
+    const deliveredCount = orders.filter((o) => o.status === "delivered").length;
+    const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+
+    // Calcul du chiffre d'affaires cumulé (hors annulées)
+    const activeOrders = orders.filter((o) => o.status !== "cancelled");
+    const currency = shop?.currency || "USD";
+    const totalRevenue = activeOrders.reduce((sum, o) => sum + Number(o.total_amount || o.total || 0), 0);
+
+    return {
+      total,
+      newCount,
+      confirmedCount,
+      deliveredCount,
+      cancelledCount,
+      totalRevenue,
+      currency,
+    };
+  }, [orders, shop?.currency]);
+
+  // ── FILTRE DYNAMIQUE DES COMMANDES ──
   const filtered = useMemo(() => {
     if (!orders) return [];
     let list = [...orders];
 
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter((o) => (o.customer_name || "").toLowerCase().includes(q));
+      list = list.filter(
+        (o) =>
+          (o.customer_name || "").toLowerCase().includes(q) ||
+          String(o.id).toLowerCase().includes(q)
+      );
     }
 
     if (statusFilter !== "all") {
@@ -149,43 +181,101 @@ function OrdersPage() {
     return list;
   }, [orders, search, statusFilter, dateFilter, dateRange]);
 
-  const newCount = orders?.filter((o) => o.status === "new").length ?? 0;
-
   return (
-    <div className="space-y-5 max-w-4xl mx-auto">
-      {/* ── EN-TÊTE ── */}
+    <div className="space-y-5 max-w-5xl mx-auto pb-10">
+      {/* ── EN-TÊTE DE LA PAGE ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900">Commandes</h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {orders?.length ?? 0} commande{(orders?.length ?? 0) > 1 ? "s" : ""} au total
-            {newCount > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-[#4F46E5] px-2 py-0.5 text-[10px] font-bold text-white">
-                {newCount} à traiter
-              </span>
-            )}
+            Suivi en temps réel de vos commandes et livraisons WhatsApp.
           </p>
+        </div>
+        {stats.newCount > 0 && (
+          <span className="self-start sm:self-auto inline-flex items-center gap-1.5 rounded-full bg-[#4F46E5] px-3 py-1 text-xs font-bold text-white shadow-xs">
+            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+            <span>{stats.newCount} nouvelle{stats.newCount > 1 ? "s" : ""} commande{stats.newCount > 1 ? "s" : ""}</span>
+          </span>
+        )}
+      </div>
+
+      {/* ── CARTES DE STATISTIQUES DYNAMIQUES ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Total commandes */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total commandes</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              <ShoppingBag className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-xl font-extrabold text-slate-900 tabular-nums">{stats.total}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+            {formatPrice(stats.totalRevenue, stats.currency)} générés
+          </p>
+        </div>
+
+        {/* Nouvelles commandes */}
+        <div className={cn(
+          "rounded-2xl border p-4 shadow-xs transition-colors",
+          stats.newCount > 0
+            ? "border-[#4F46E5]/40 bg-[#EEF2FF]/40"
+            : "border-slate-200/80 bg-white"
+        )}>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#4F46E5]">À traiter</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <Clock className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-xl font-extrabold text-[#4F46E5] tabular-nums">{stats.newCount}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            {stats.newCount > 0 ? "Réponse requise" : "Tout est à jour"}
+          </p>
+        </div>
+
+        {/* Confirmées */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Confirmées</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-xl font-extrabold text-slate-900 tabular-nums">{stats.confirmedCount}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">En préparation</p>
+        </div>
+
+        {/* Livrées */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Livrées</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+              <Truck className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-2 text-xl font-extrabold text-slate-900 tabular-nums">{stats.deliveredCount}</p>
+          <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">Ventes finalisées</p>
         </div>
       </div>
 
-      {/* ── FILTRES RAPIDES EN PILULES (Style Vytrini) ── */}
-      <div className="rounded-3xl bg-white border border-slate-200/70 shadow-xs p-4 space-y-3">
-        {/* Barre de recherche */}
+      {/* ── BARRE DE RECHERCHE ET PILULES DE FILTRES DYNAMIQUES ── */}
+      <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs p-4 space-y-3.5">
         <div className="flex gap-2">
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un client, numéro..."
-              className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5]/40 transition-colors"
+              placeholder="Rechercher par nom de client, #id…"
+              className="h-11 w-full rounded-2xl border border-slate-200 bg-slate-50/80 pl-10 pr-10 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5]/50 transition-colors"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -195,76 +285,86 @@ function OrdersPage() {
             type="button"
             onClick={() => setShowFilters((v) => !v)}
             className={cn(
-              "flex h-11 items-center gap-2 rounded-2xl border px-3.5 text-xs font-bold transition-colors cursor-pointer",
+              "flex h-11 items-center gap-2 rounded-2xl border px-3.5 text-xs font-bold transition-colors cursor-pointer shrink-0",
               showFilters
                 ? "bg-[#4F46E5] text-white border-[#4F46E5]"
                 : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
             )}
           >
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Filtres</span>
+            <span className="hidden sm:inline">Période</span>
           </button>
         </div>
 
-        {/* Status Pills */}
+        {/* Pilules de statut avec compteurs dynamiques réels */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
             onClick={() => setStatus("all")}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-              statusFilter === "all" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              statusFilter === "all"
+                ? "bg-[#4F46E5] text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
-            Toutes ({orders?.length ?? 0})
+            Toutes ({stats.total})
           </button>
           <button
             type="button"
             onClick={() => setStatus("new")}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-              statusFilter === "new" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              statusFilter === "new"
+                ? "bg-[#4F46E5] text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
-            Nouvelles ({orders?.filter((o) => o.status === "new").length ?? 0})
+            Nouvelles ({stats.newCount})
           </button>
           <button
             type="button"
             onClick={() => setStatus("confirmed")}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-              statusFilter === "confirmed" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              statusFilter === "confirmed"
+                ? "bg-[#4F46E5] text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
-            Confirmées
+            Confirmées ({stats.confirmedCount})
           </button>
           <button
             type="button"
             onClick={() => setStatus("delivered")}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-              statusFilter === "delivered" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              statusFilter === "delivered"
+                ? "bg-[#4F46E5] text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
-            Livrées
+            Livrées ({stats.deliveredCount})
           </button>
           <button
             type="button"
             onClick={() => setStatus("cancelled")}
             className={cn(
               "shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer",
-              statusFilter === "cancelled" ? "bg-[#4F46E5] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              statusFilter === "cancelled"
+                ? "bg-[#4F46E5] text-white shadow-xs"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             )}
           >
-            Annulées
+            Annulées ({stats.cancelledCount})
           </button>
         </div>
 
-        {/* Filtres avancés dépliables */}
+        {/* Filtres de date dépliables */}
         {showFilters && (
-          <div className="flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 animate-in fade-in duration-150">
+          <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 animate-in fade-in duration-150">
             <div className="flex flex-col gap-1 min-w-[150px]">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Période</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Filtrer par date</label>
               <select
                 value={dateFilter}
                 onChange={(e) => {
@@ -323,7 +423,7 @@ function OrdersPage() {
             )}
 
             {(statusFilter !== "all" || dateFilter !== "all" || search) && (
-              <div className="flex items-end">
+              <div>
                 <button
                   type="button"
                   onClick={() => {
@@ -342,15 +442,15 @@ function OrdersPage() {
         )}
       </div>
 
-      {/* ── LISTE DES COMMANDES ── */}
+      {/* ── LISTE DES COMMANDES FLUIDE ET RESPONSIVE ── */}
       {isLoading ? (
-        <div className="rounded-3xl bg-white border border-slate-200/70 shadow-xs p-12 text-center text-slate-400 text-xs">
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs p-12 text-center text-slate-400 text-xs">
           Chargement de vos commandes…
         </div>
-      ) : !orders?.length ? (
+      ) : orders.length === 0 ? (
         <div className="rounded-3xl bg-white border border-dashed border-slate-200 p-12 text-center space-y-3">
-          <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
-            <ShoppingBag className="h-6 w-6 text-slate-400" />
+          <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <ShoppingBag className="h-6 w-6" />
           </div>
           <div>
             <h3 className="font-bold text-sm text-slate-900">Aucune commande pour le moment</h3>
@@ -361,10 +461,10 @@ function OrdersPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl bg-white border border-dashed border-slate-200 p-10 text-center text-xs text-slate-400">
-          Aucune commande ne correspond à votre recherche.
+          Aucune commande ne correspond aux filtres sélectionnés.
         </div>
       ) : (
-        <div className="rounded-3xl bg-white border border-slate-200/70 shadow-xs overflow-hidden">
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="divide-y divide-slate-100">
             {filtered.map((o) => {
               const config = STATUS_CONFIG[o.status] || STATUS_CONFIG.new;
@@ -392,44 +492,48 @@ function OrdersPage() {
                   key={o.id}
                   to="/dashboard/commandes/$orderId"
                   params={{ orderId: o.id }}
-                  className="flex items-center justify-between gap-4 px-4 py-3.5 hover:bg-slate-50/80 transition-colors group"
+                  className="block p-4 sm:px-5 sm:py-4 hover:bg-slate-50/80 transition-colors group cursor-pointer"
                 >
-                  {/* Gauche : Info commande */}
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div
-                      className={cn(
-                        "h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center text-xs font-bold",
-                        config.iconBoxClass
-                      )}
-                    >
-                      #{String(o.id).slice(-4)}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Gauche : Numéro + Nom du client */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={cn(
+                          "h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center text-xs font-bold",
+                          config.iconBoxClass
+                        )}
+                      >
+                        #{String(o.id).slice(-4)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-sm text-slate-900 truncate">
+                            {o.customer_name || "Client WhatsApp"}
+                          </p>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5 truncate">
+                          {new Date(o.created_at).toLocaleDateString("fr-FR", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                          <span className="mx-1.5">·</span>
+                          {itemCount} article{itemCount > 1 ? "s" : ""}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-slate-900 truncate">
-                        {o.customer_name || "Client WhatsApp"}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {new Date(o.created_at).toLocaleDateString("fr-FR", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                        <span className="mx-1.5">·</span>
-                        {itemCount} article{itemCount > 1 ? "s" : ""}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Droite : Statut + Total + Flèche */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-semibold", config.badgeClass)}>
-                      {config.label}
-                    </span>
-                    <span className="font-extrabold text-sm text-slate-900 tabular-nums">
-                      {totalStr}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
+                    {/* Droite : Badge Statut + Montant + Flèche */}
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+                      <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap", config.badgeClass)}>
+                        {config.label}
+                      </span>
+                      <span className="font-extrabold text-sm sm:text-base text-slate-900 tabular-nums">
+                        {totalStr}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
+                    </div>
                   </div>
                 </Link>
               );

@@ -13,6 +13,7 @@ import {
   Clock,
   Sparkles,
   Store,
+  ImagePlus,
 } from "lucide-react";
 import { supabase } from "@/lib/imported-database";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ function Onboarding() {
   const [draft, setDraft] = useState<ShopDraft>(emptyDraft);
   const [busy, setBusy] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [launching, setLaunching] = useState(false);
   const [creationStepIndex, setCreationStepIndex] = useState(0);
   const [creationProgress, setCreationProgress] = useState(0);
@@ -77,6 +79,7 @@ function Onboarding() {
   const [autoSlug, setAutoSlug] = useState(true);
   const checkId = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -158,6 +161,21 @@ function Onboarding() {
       toast.error((err as Error).message || "Erreur lors de l'import du logo");
     } finally {
       setUploadingLogo(false);
+    }
+  }
+
+  // Upload de la photo de couverture / bannière
+  async function handleBannerUpload(file?: File) {
+    if (!file) return;
+    setUploadingBanner(true);
+    try {
+      const url = await compressAndUpload(file, "storefront", signUpload, 1600);
+      set({ banner_url: url });
+      toast.success("Bannière importée avec succès");
+    } catch (err) {
+      toast.error((err as Error).message || "Erreur lors de l'import de la bannière");
+    } finally {
+      setUploadingBanner(false);
     }
   }
 
@@ -405,7 +423,7 @@ function Onboarding() {
       <main className="flex-1 flex flex-col items-center px-5 py-6 sm:py-8">
         <div className="onboarding-layout">
           <aside className="onboarding-sidebar" aria-label="Configuration de la boutique">
-            <ol>{['Bienvenue', 'Nom et lien', 'Secteur d’activité', 'Description', 'Contact et horaires', 'Logo', 'Vérification'].map((label, index) => <li key={label} data-current={index === step} aria-current={index === step ? 'step' : undefined}><span>{index < step ? <Check /> : index === 0 ? <Sparkles /> : index}</span>{label}</li>)}</ol>
+            <ol>{['Bienvenue', 'Nom et lien', 'Secteur d’activité', 'Description', 'Contact et horaires', 'Logo & Bannière', 'Vérification'].map((label, index) => <li key={label} data-current={index === step} aria-current={index === step ? 'step' : undefined}><span>{index < step ? <Check /> : index === 0 ? <Sparkles /> : index}</span>{label}</li>)}</ol>
             <p className="onboarding-sidebar-note">Votre boutique prend forme.<br />Vos informations restent modifiables.</p>
           </aside>
         <div className="onboarding-content space-y-8">
@@ -727,79 +745,149 @@ function Onboarding() {
             </div>
           )}
 
-          {/* ── ÉTAPE 5 : LOGO & IMAGE DE MARQUE (NON-BLOQUANT) ── */}
+          {/* ── ÉTAPE 5 : LOGO & PHOTO DE COUVERTURE / BANNIÈRE ── */}
           {step === 5 && (
             <div className="space-y-6">
               <div className="space-y-2">
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-normal text-foreground">
-                  Ajoutez le logo de votre boutique
+                  Personnalisez les visuels de votre boutique
                 </h1>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Votre logo renforce la confiance de vos acheteurs. Si vous n'en avez pas sous la main, vous pouvez passer cette étape en un clic.
+                  Ajoutez votre logo et une photo de couverture (bannière) pour donner une identité forte à votre vitrine. Facultatif, vous pouvez modifier ces images à tout moment.
                 </p>
               </div>
 
-              {/* Zone d'import sobre et centrée */}
-              <div className="border border-border/80 rounded-2xl p-6 bg-card text-center space-y-5">
-                <div className="flex justify-center">
-                  {draft.logo_url ? (
-                    <div className="relative group">
-                      <img
-                        src={mediaUrl(draft.logo_url) || draft.logo_url}
-                        alt="Logo de la boutique"
-                        className="h-28 w-28 rounded-2xl object-cover border border-border shadow-xs"
-                      />
-                      <Button variant="ghost"
-                        type="button"
-                        onClick={() => set({ logo_url: null })}
-                        className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-sm hover:opacity-90 transition-opacity"
-                        title="Retirer le logo"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="h-24 w-24 rounded-2xl bg-muted/60 border border-border flex flex-col items-center justify-center text-muted-foreground">
-                      <span className="text-2xl font-black text-foreground/80 tracking-normal">
-                        {getInitials(draft.name)}
-                      </span>
-                      <span className="text-[10px] mt-1 text-muted-foreground">Initiales auto</span>
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* ── 1. LOGO DE LA BOUTIQUE (CARRÉ) ── */}
+                <div className="border border-border/80 rounded-2xl p-5 bg-card text-center space-y-4 flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-sm text-foreground">Logo officiel</h3>
+                    <p className="text-xs text-muted-foreground">Format carré, visible dans la barre de navigation et l'en-tête</p>
+                  </div>
+
+                  <div className="flex justify-center my-2">
+                    {draft.logo_url ? (
+                      <div className="relative group">
+                        <img
+                          src={mediaUrl(draft.logo_url) || draft.logo_url}
+                          alt="Logo de la boutique"
+                          className="h-28 w-28 rounded-2xl object-cover border border-border shadow-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => set({ logo_url: null })}
+                          className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+                          title="Retirer le logo"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-24 w-24 rounded-2xl bg-muted/60 border border-border flex flex-col items-center justify-center text-muted-foreground">
+                        <span className="text-2xl font-black text-foreground/80 tracking-normal">
+                          {getInitials(draft.name)}
+                        </span>
+                        <span className="text-[10px] mt-1 text-muted-foreground">Initiales auto</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => handleLogoUpload(e.target.files?.[0])}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="w-full h-10 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer gap-2 border-border/80"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Téléversement…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4" />
+                          <span>{draft.logo_url ? "Remplacer le logo" : "Choisir un logo"}</span>
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground">Recommandé : PNG ou JPG carré</p>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={(e) => handleLogoUpload(e.target.files?.[0])}
-                  />
+                {/* ── 2. PHOTO DE COUVERTURE / BANNIÈRE ── */}
+                <div className="border border-border/80 rounded-2xl p-5 bg-card text-center space-y-4 flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-sm text-foreground">Photo de couverture (Bannière)</h3>
+                    <p className="text-xs text-muted-foreground">Grande image panoramique en arrière-plan de votre vitrine</p>
+                  </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingLogo}
-                    className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer gap-2 border-border/80"
-                  >
-                    {uploadingLogo ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Téléversement en cours…</span>
-                      </>
+                  <div className="flex justify-center my-2 w-full">
+                    {draft.banner_url ? (
+                      <div className="relative group w-full">
+                        <div className="aspect-[16/9] w-full max-h-28 rounded-2xl overflow-hidden border border-border shadow-xs">
+                          <img
+                            src={mediaUrl(draft.banner_url) || draft.banner_url}
+                            alt="Bannière de la boutique"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => set({ banner_url: null })}
+                          className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
+                          title="Retirer la bannière"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     ) : (
-                      <>
-                        <Upload className="h-4 w-4" />
-                        <span>{draft.logo_url ? "Remplacer le logo" : "Choisir une image"}</span>
-                      </>
+                      <div className="aspect-[16/9] w-full max-h-28 rounded-2xl bg-muted/60 border border-border flex flex-col items-center justify-center text-muted-foreground px-4">
+                        <ImagePlus className="h-7 w-7 text-muted-foreground/60 mb-1" />
+                        <span className="text-[11px] text-muted-foreground">Aperçu bannière vitrine</span>
+                      </div>
                     )}
-                  </Button>
+                  </div>
 
-                  <p className="text-xs text-muted-foreground">
-                    Format recommandé : PNG ou JPG carré (max 15 Mo).
-                  </p>
+                  <div className="space-y-2">
+                    <input
+                      ref={bannerFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => handleBannerUpload(e.target.files?.[0])}
+                    />
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => bannerFileInputRef.current?.click()}
+                      disabled={uploadingBanner}
+                      className="w-full h-10 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer gap-2 border-border/80"
+                    >
+                      {uploadingBanner ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Téléversement…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4" />
+                          <span>{draft.banner_url ? "Remplacer la bannière" : "Choisir une bannière"}</span>
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground">Recommandé : format paysage (1200x500px)</p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { Store, ShieldAlert, MessageCircle, MapPin, Clock, Instagram, Facebook } from "lucide-react";
+import { Store, ShieldAlert, MessageCircle, MapPin, Clock, Instagram, Facebook, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface StoreOfflineViewProps {
@@ -25,25 +25,25 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
   const hasSocials = !!(shop.facebook || shop.instagram || shop.tiktok);
 
   return (
-    <div className={cn("mx-auto w-full max-w-2xl px-4", compact ? "py-6" : "py-10 sm:py-14")}>
-      <div className="relative overflow-hidden rounded-3xl border border-current/10 bg-shop-card p-6 sm:p-8 shadow-sm text-center">
-        {/* Décoration d'arrière-plan douce */}
+    <div className={cn("mx-auto w-full max-w-2xl px-4", compact ? "py-4" : "py-10 sm:py-16")}>
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-10 shadow-xs text-center">
+        {/* Halo décoratif très doux */}
         <div
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full blur-3xl opacity-30",
-            isSuspended ? "bg-destructive" : "bg-warning"
+            "pointer-events-none absolute -top-24 left-1/2 h-52 w-52 -translate-x-1/2 rounded-full blur-3xl opacity-20",
+            isSuspended ? "bg-rose-500" : "bg-[#4F46E5]"
           )}
         />
 
-        {/* Badge & Icône de statut */}
+        {/* ── ICÔNE & BADGE DE STATUT ÉLÉGANTS ── */}
         <div className="relative mx-auto mb-4 flex flex-col items-center">
           <div
             className={cn(
-              "flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl shadow-sm ring-8 transition-transform",
+              "flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl shadow-xs transition-transform",
               isSuspended
-                ? "bg-destructive/10 text-destructive ring-destructive/5 dark:text-destructive"
-                : "bg-warning/10 text-warning ring-warning/5 dark:text-warning"
+                ? "bg-rose-50 text-rose-600 ring-8 ring-rose-50/60"
+                : "bg-[#EEF2FF] text-[#4F46E5] ring-8 ring-[#EEF2FF]/60"
             )}
           >
             {isSuspended ? (
@@ -55,71 +55,97 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
 
           <span
             className={cn(
-              "mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-normal uppercase shadow-xs",
+              "mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-wide shadow-2xs",
               isSuspended
-                ? "bg-destructive/15 text-destructive dark:text-destructive"
-                : "bg-warning/15 text-warning dark:text-warning"
+                ? "bg-rose-50 text-rose-700 border border-rose-200/80"
+                : "bg-amber-50 text-amber-700 border border-amber-200/80"
             )}
           >
             <span
               className={cn(
                 "h-2 w-2 rounded-full",
-                isSuspended ? "bg-destructive" : "bg-warning animate-pulse"
+                isSuspended ? "bg-rose-500" : "bg-amber-500 animate-pulse"
               )}
             />
-            {isSuspended ? "Boutique suspendue" : "Boutique hors ligne (Mode privé)"}
+            {isSuspended ? "Vitrine temporairement suspendue" : "Boutique en pause"}
           </span>
         </div>
 
-        {/* Titre et Explications réalistes */}
-        <h2 className="font-shop-heading text-lg sm:text-2xl font-black tracking-normal text-shop-fg">
+        {/* ── TITRE ET MESSAGE COMPRÉHENSIBLE & CHALEUREUX ── */}
+        <h2 className="font-shop-heading text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
           {isSuspended
-            ? "Vitrine momentanément indisponible"
-            : "Cette boutique est actuellement fermée"}
+            ? "Cette vitrine est momentanément indisponible"
+            : `La vitrine de ${shop.name} prépare ses nouveautés`}
         </h2>
 
-        <p className="mx-auto mt-2 max-w-md text-xs sm:text-sm leading-relaxed text-shop-muted">
+        <p className="mx-auto mt-2 max-w-md text-xs sm:text-sm leading-relaxed text-slate-500 font-medium">
           {isSuspended
-            ? "Cette vitrine a été suspendue par l'administration MarketNet. L'accès aux produits et la prise de commande sont temporairement désactivés."
-            : "Le commerçant prépare actuellement ses nouveautés ou procède à une mise à jour. Les articles et commandes en ligne ne sont pas accessibles pour le moment."}
+            ? "Cette boutique est temporairement mise en veille par l'administration MarketNet. L'accès au catalogue et aux commandes est suspendu."
+            : "Le commerçant met actuellement à jour ses stocks et collections. Vous pouvez toutefois le joindre en direct pour toute question ou commande personnalisée."}
         </p>
 
-        {/* Bloc Contact Direct Marchand (Présent même si la boutique est fermée) */}
+        {/* ── BLOC CONTACT DIRECT CLIENT (SUR WHATSAPP) ── */}
         {!isSuspended && (
-          <div className="mt-6 rounded-2xl border border-current/8 bg-shop-bg/60 p-4 sm:p-5 text-left">
-            <p className="text-xs font-bold uppercase tracking-normal text-shop-muted">
-              Contacter le commerçant
-            </p>
-            <p className="mt-0.5 text-xs text-shop-fg">
-              Besoin d'un renseignement ou d'une commande directe ?
-            </p>
+          <div className="mt-7 rounded-2xl border border-slate-200/70 bg-slate-50/70 p-4 sm:p-6 text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/60">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Besoin d'un article ou renseignement ?
+                </p>
+                <p className="text-xs sm:text-sm font-bold text-slate-800 mt-0.5">
+                  Écrivez directement au commerçant
+                </p>
+              </div>
 
-            <div className="mt-3 flex flex-wrap gap-2.5">
               {hasWhatsapp && (
                 <a
                   href={`https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-                    `Bonjour ${shop.name}, je vous contacte au sujet de votre boutique.`
+                    `Bonjour ${shop.name}, j'ai vu que votre boutique est en pause, avez-vous des disponibilités actuellement ?`
                   )}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-whatsapp hover:bg-whatsapp/90 px-4 text-xs font-bold text-primary-foreground shadow-sm transition  "
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] px-4 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer shrink-0"
                 >
-                  <MessageCircle className="h-4 w-4" />
+                  <MessageCircle className="h-4 w-4 fill-white" />
                   <span>Écrire sur WhatsApp</span>
                 </a>
               )}
+            </div>
+
+            {/* Réseaux sociaux & Coordonnées */}
+            <div className="pt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500">
+              {(hasLocation || hasHours) && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  {hasLocation && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-[#4F46E5] shrink-0" />
+                      <span>
+                        {shop.address ? `${shop.address}, ` : ""}
+                        {shop.city}
+                      </span>
+                    </span>
+                  )}
+                  {hasHours && (
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 text-[#4F46E5] shrink-0" />
+                      <span>{shop.hours}</span>
+                    </span>
+                  )}
+                </div>
+              )}
 
               {hasSocials && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400 font-semibold">Suivre :</span>
                   {shop.instagram && (
                     <a
                       href={shop.instagram}
                       target="_blank"
                       rel="noreferrer"
                       aria-label="Instagram"
-                      className="grid h-10 w-10 place-items-center rounded-xl border border-current/10 bg-shop-card text-shop-fg shadow-xs hover:border-[#E1306C]/50 hover:text-[#E1306C] transition"
+                      className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-2xs hover:border-[#E1306C]/50 hover:text-[#E1306C] transition-colors"
                     >
-                      <Instagram className="h-4 w-4" />
+                      <Instagram className="h-3.5 w-3.5" />
                     </a>
                   )}
                   {shop.facebook && (
@@ -128,43 +154,22 @@ export function StoreOfflineView({ shop, isSuspended = false, compact = false }:
                       target="_blank"
                       rel="noreferrer"
                       aria-label="Facebook"
-                      className="grid h-10 w-10 place-items-center rounded-xl border border-current/10 bg-shop-card text-shop-fg shadow-xs hover:border-[#1877F2]/50 hover:text-[#1877F2] transition"
+                      className="grid h-8 w-8 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-2xs hover:border-[#1877F2]/50 hover:text-[#1877F2] transition-colors"
                     >
-                      <Facebook className="h-4 w-4" />
+                      <Facebook className="h-3.5 w-3.5" />
                     </a>
                   )}
                 </div>
               )}
             </div>
-
-            {/* Localisation & Horaires */}
-            {(hasLocation || hasHours) && (
-              <div className="mt-3.5 pt-3 border-t border-current/8 space-y-1.5 text-xs text-shop-muted">
-                {hasLocation && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3.5 w-3.5 text-shop shrink-0" />
-                    <span>
-                      {shop.address ? `${shop.address}, ` : ""}
-                      {shop.city}
-                    </span>
-                  </div>
-                )}
-                {hasHours && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5 text-shop shrink-0" />
-                    <span>{shop.hours}</span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
-        {/* Message de réassurance */}
-        <p className="mt-5 text-[11px] text-shop-muted">
+        {/* ── NOTE DE PIED DE PAGE DISCRÈTE ── */}
+        <p className="mt-6 text-[11px] text-slate-400">
           {isSuspended
-            ? "Pour toute assistance, contactez le support MarketNet."
-            : "Revenez très bientôt pour découvrir la nouvelle collection !"}
+            ? "Pour toute question, veuillez contacter le support officiel MarketNet."
+            : "Revenez très bientôt pour découvrir nos prochains articles !"}
         </p>
       </div>
     </div>

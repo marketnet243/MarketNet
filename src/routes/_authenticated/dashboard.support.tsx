@@ -51,10 +51,10 @@ const STATUT_LABELS: Record<SupportTicketStatut, string> = {
 };
 
 const STATUT_COLOR: Record<SupportTicketStatut, string> = {
-  ouvert: "bg-warning text-warning border-warning",
-  en_cours: "bg-info text-info border-info",
-  résolu: "bg-success text-success border-success",
-  fermé: "bg-muted text-foreground border-border",
+  ouvert: "bg-amber-50 text-amber-700 border-amber-200/80",
+  en_cours: "bg-[#EEF2FF] text-[#4F46E5] border-[#E0E7FF]",
+  résolu: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
+  fermé: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 const STATUT_ICON: Record<SupportTicketStatut, React.FC<{ className?: string }>> = {
@@ -283,25 +283,67 @@ function SupportPage() {
   const unreadBroadcastsCount = (broadcasts ?? []).filter((b: any) => !b.lu_le).length;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 min-w-0 max-w-full overflow-hidden">
+    <div className="mx-auto max-w-4xl space-y-6 pb-12">
       {/* En-tête */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-normal flex items-center gap-2">
-            <LifeBuoy className="h-6 w-6 text-primary" />
-            Support
+          <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+            <LifeBuoy className="h-5 w-5 text-[#4F46E5]" />
+            Centre d'assistance & Support
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Posez vos questions, nous vous répondrons au plus vite.
+          <p className="mt-0.5 text-xs text-slate-400">
+            Une question ou un problème ? Notre équipe vous répond rapidement.
           </p>
         </div>
         <Button
           id="btn-nouveau-ticket"
           onClick={() => setModalOpen(true)}
-          className="rounded-xl gap-2 shadow-xs"
+          className="rounded-xl gap-2 font-bold bg-[#4F46E5] hover:bg-[#4338CA] text-white shadow-xs self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" /> Nouveau ticket
         </Button>
+      </div>
+
+      {/* Cartes d'information rapide */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tickets ouverts</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+              <Clock className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-slate-900 tabular-nums">
+            {(tickets ?? []).filter((t: any) => t.statut === "ouvert" || t.statut === "en_cours").length}
+          </p>
+          <p className="text-[11px] text-slate-400">En cours de traitement</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Annonces officielles</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46E5]">
+              <Megaphone className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-slate-900 tabular-nums">
+            {broadcasts?.length ?? 0}
+          </p>
+          <p className="text-[11px] text-slate-400">
+            {unreadBroadcastsCount > 0 ? `${unreadBroadcastsCount} non lue(s)` : "Toutes consultées"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Délai moyen</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-extrabold text-slate-900">&lt; 2 heures</p>
+          <p className="text-[11px] text-emerald-600 font-semibold">Service disponible 7j/7</p>
+        </div>
       </div>
 
       {/* Compteur d'éléments non lus */}
