@@ -65,7 +65,8 @@ function getInitials(name: string): string {
 }
 
 function Onboarding() {
-  const [step, setStep] = useState(0); // 0 = Bienvenue
+  const [step, setStep] = useState(0); // 0 = Bienvenue — sera restauré depuis Supabase
+  const [stepRestored, setStepRestored] = useState(false);
   const [draft, setDraft] = useState<ShopDraft>(emptyDraft);
   const [busy, setBusy] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -89,6 +90,22 @@ function Onboarding() {
     stageRef.current?.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [step]);
+
+  // ── Restauration de l'étape depuis Supabase (cross-device) ──
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const saved = data?.user?.user_metadata?.onboarding_step;
+      if (typeof saved === 'number' && saved > 0) {
+        setStep(saved);
+      }
+      setStepRestored(true);
+    });
+  }, []);
+
+  // ── Sauvegarde automatique de l'étape dans Supabase ──
+  const persistStep = async (s: number) => {
+    await supabase.auth.updateUser({ data: { onboarding_step: s } });
+  };
 
   // Redirection automatique si le commerçant a déjà une boutique
   useEffect(() => {
@@ -155,7 +172,11 @@ function Onboarding() {
         return toast.error("Numéro WhatsApp invalide (format : +243XXXXXXXXX)");
       }
     }
-    setStep((s) => s + 1);
+    setStep((s) => {
+      const next = s + 1;
+      persistStep(next);
+      return next;
+    });
   }
 
   // Durée « intelligente » : chaque étape prend un temps proportionnel à ce qu'elle configure.
@@ -249,6 +270,8 @@ function Onboarding() {
 
       setCreationStepIndex(5);
       setCreationProgress(100);
+      // Effacer l'étape sauvegardée — l'onboarding est terminé
+      await supabase.auth.updateUser({ data: { onboarding_step: null } });
       setLaunchDone(true);
     } catch (e) {
       setBusy(false);
@@ -336,7 +359,7 @@ function Onboarding() {
   }
 
   return (
-    <div className="onboarding-page flex flex-col">
+    <div className="onboarding-page">
       {/* Header minimaliste avec barre de progression */}
       <header className="border-b border-border/60 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="mx-auto max-w-5xl px-5 py-4 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
@@ -359,7 +382,7 @@ function Onboarding() {
       </header>
 
       {/* Contenu centré épuré */}
-      <main className="flex-1 flex flex-col items-center px-5 py-8 sm:py-12">
+      <main className="flex-1 flex flex-col items-center px-5 py-6 sm:py-8">
         <div className="onboarding-layout">
           <aside className="onboarding-sidebar" aria-label="Configuration de la boutique">
             <ol>{['Bienvenue', 'Nom et lien', 'Secteur d’activité', 'Description', 'Contact et horaires', 'Logo', 'Vérification'].map((label, index) => <li key={label} data-current={index === step} aria-current={index === step ? 'step' : undefined}><span>{index < step ? <Check /> : index === 0 ? <Sparkles /> : index}</span>{label}</li>)}</ol>
@@ -418,7 +441,7 @@ function Onboarding() {
                 <Button
                   type="button"
                   size="lg"
-                  onClick={() => setStep(1)}
+                  onClick={() => { setStep(1); persistStep(1); }}
                   className="w-full h-12 rounded-xl text-sm font-semibold cursor-pointer gap-2 transition-transform "
                 >
                   <span>Commencer la configuration</span>
@@ -843,7 +866,7 @@ function Onboarding() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => setStep((s) => s - 1)}
+                onClick={() => setStep((s) => { const prev = s - 1; persistStep(prev); return prev; })}
                 className="h-11 px-4 text-sm text-muted-foreground hover:text-foreground font-medium cursor-pointer"
               >
                 <ArrowLeft className="h-4 w-4 mr-1.5" />

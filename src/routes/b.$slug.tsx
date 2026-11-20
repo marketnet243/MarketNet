@@ -194,7 +194,16 @@ function VytriniFloatingNavbar({
 
   return (
     <header className="fixed top-9 sm:top-10 inset-x-0 z-50 flex justify-center px-3 sm:px-4 pt-2 pointer-events-none">
-      <div className="relative w-full max-w-5xl rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-md px-3.5 sm:px-6 h-13 sm:h-14 flex items-center justify-between gap-2 sm:gap-3 pointer-events-auto transition-all">
+      {/* BACKDROP FLUIDE HORS DE LA PILULE (FERMETURE AU CLIC SANS FLOU SUR LE HEADER) */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/25 md:hidden pointer-events-auto"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className="relative z-50 w-full max-w-5xl rounded-full bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-md px-3.5 sm:px-6 h-13 sm:h-14 flex items-center justify-between gap-2 sm:gap-3 pointer-events-auto transition-all">
         
         {/* GAUCHE : IDENTITÉ DE LA BOUTIQUE */}
         <Link
@@ -279,42 +288,36 @@ function VytriniFloatingNavbar({
           </button>
         </div>
 
-        {/* BACKDROP FLUIDE & TIROIR DU MENU MOBILE (FERMETURE AU CLIC HORS SECTION) */}
+        {/* TIROIR DU MENU MOBILE */}
         {menuOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-[2px] md:hidden pointer-events-auto transition-opacity"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="md:hidden absolute top-15 right-2 z-50 w-60 rounded-3xl bg-white border border-slate-200/90 shadow-2xl p-3 space-y-1 animate-in zoom-in-95 duration-150 pointer-events-auto">
-              <div className="px-3 py-1 border-b border-slate-100 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Navigation</span>
-              </div>
-              <Link
-                to="/b/$slug"
-                params={{ slug }}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
-              >
-                <span>Accueil</span>
-              </Link>
-              <Link
-                to="/b/$slug/produits"
-                params={{ slug }}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
-              >
-                <span>Tous les produits</span>
-              </Link>
-              <a
-                href="#contact"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
-              >
-                <span>Contact & Infos</span>
-              </a>
+          <div className="md:hidden absolute top-15 right-2 z-50 w-60 rounded-3xl bg-white border border-slate-200/90 shadow-2xl p-3 space-y-1 animate-in zoom-in-95 duration-150 pointer-events-auto">
+            <div className="px-3 py-1 border-b border-slate-100 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Navigation</span>
             </div>
-          </>
+            <Link
+              to="/b/$slug"
+              params={{ slug }}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
+            >
+              <span>Accueil</span>
+            </Link>
+            <Link
+              to="/b/$slug/produits"
+              params={{ slug }}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
+            >
+              <span>Tous les produits</span>
+            </Link>
+            <a
+              href="#contact"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold text-slate-800 hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors"
+            >
+              <span>Contact & Infos</span>
+            </a>
+          </div>
         )}
       </div>
     </header>

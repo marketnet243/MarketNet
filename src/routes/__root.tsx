@@ -130,9 +130,12 @@ function RootComponent() {
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange(event => {
       if (event === "SIGNED_OUT") queryClient.clear();
-      if (event === "SIGNED_IN" && window.location.pathname === "/" && sessionStorage.getItem("marketnet-auth-return") === "/dashboard") {
-        sessionStorage.removeItem("marketnet-auth-return");
-        window.location.assign("/dashboard");
+      if (event === "SIGNED_IN") {
+        const authReturn = sessionStorage.getItem("marketnet-auth-return");
+        if (window.location.pathname === "/" && authReturn) {
+          sessionStorage.removeItem("marketnet-auth-return");
+          window.location.assign(authReturn);
+        }
       }
     });
     return () => data.subscription.unsubscribe();

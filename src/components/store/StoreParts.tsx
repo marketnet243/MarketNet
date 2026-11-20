@@ -43,7 +43,19 @@ type ShopLike = Pick<
   | "whatsapp"
   | "facebook"
   | "instagram"
->;
+> & {
+  tiktok?: string | null;
+};
+
+function formatSocialUrl(handleOrUrl: string, platform: "facebook" | "instagram" | "tiktok") {
+  const clean = handleOrUrl.trim();
+  if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
+  const username = clean.replace(/^@/, "");
+  if (platform === "facebook") return `https://facebook.com/${username}`;
+  if (platform === "instagram") return `https://instagram.com/${username}`;
+  if (platform === "tiktok") return `https://tiktok.com/@${username}`;
+  return clean;
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
    1. HERO SECTION HAUT DE GAMME AVEC BANNIÈRE EN BACKGROUND & OMBRE NETTE
@@ -171,6 +183,51 @@ export function StoreHeader({
               <Share2 className="h-4 w-4" />
             </button>
           </div>
+
+          {/* Réseaux sociaux du commerçant configurés depuis son espace */}
+          {(shop.facebook || shop.instagram || shop.tiktok) && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <span className="text-[11px] text-slate-300 font-medium mr-1 hidden sm:inline">Suivez-nous :</span>
+              {shop.instagram && (
+                <a
+                  href={formatSocialUrl(shop.instagram, "instagram")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Instagram"
+                  aria-label="Instagram"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white shadow-xs backdrop-blur-md transition-all hover:scale-105"
+                >
+                  <Instagram className="h-4 w-4" />
+                </a>
+              )}
+              {shop.facebook && (
+                <a
+                  href={formatSocialUrl(shop.facebook, "facebook")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Facebook"
+                  aria-label="Facebook"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white shadow-xs backdrop-blur-md transition-all hover:scale-105"
+                >
+                  <Facebook className="h-4 w-4" />
+                </a>
+              )}
+              {shop.tiktok && (
+                <a
+                  href={formatSocialUrl(shop.tiktok, "tiktok")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="TikTok"
+                  aria-label="TikTok"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white shadow-xs backdrop-blur-md transition-all hover:scale-105"
+                >
+                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
+                  </svg>
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

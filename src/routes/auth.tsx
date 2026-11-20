@@ -63,23 +63,30 @@ function AuthPage() {
   }, [initialMode]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/dashboard" });
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        const { data: s } = await supabase.from("shops").select("id").eq("owner_id", data.user.id).maybeSingle();
+        navigate({ to: s ? "/dashboard" : "/onboarding" });
+      }
     });
   }, [navigate]);
 
   async function handleGoogleSignIn() {
     setGoogleBusy(true);
     try {
-      sessionStorage.setItem("marketnet-auth-return", "/dashboard");
+      const target = isSignUp ? "/onboarding" : "/dashboard";
+      sessionStorage.setItem("marketnet-auth-return", target);
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${target}`,
         extraParams: { prompt: "select_account" },
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
       const { data } = await supabase.auth.getSession();
-      if (data.session) navigate({ to: "/dashboard" });
+      if (data.session) {
+        const { data: s } = await supabase.from("shops").select("id").eq("owner_id", data.session.user.id).maybeSingle();
+        navigate({ to: s ? "/dashboard" : "/onboarding" });
+      }
     } catch (err) {
       toast.error((err as Error).message || "Erreur lors de la connexion Google");
       setGoogleBusy(false);
@@ -124,7 +131,7 @@ function AuthPage() {
         email: emailRes.data,
         password: pwRes.data,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/onboarding`,
           data: { full_name: nameRes.data },
         },
       });
@@ -146,7 +153,7 @@ function AuthPage() {
 
       if (data.session) {
         toast.success("Bienvenue sur MarketNet !");
-        navigate({ to: "/dashboard" });
+        navigate({ to: "/onboarding" });
         return;
       }
 
@@ -158,7 +165,7 @@ function AuthPage() {
 
       if (loginData?.session) {
         toast.success("Bienvenue sur MarketNet !");
-        navigate({ to: "/dashboard" });
+        navigate({ to: "/onboarding" });
         return;
       }
 
@@ -191,7 +198,13 @@ function AuthPage() {
         );
       }
       toast.success("Connexion réussie");
-      navigate({ to: "/dashboard" });
+      const { data: u } = await supabase.auth.getUser();
+      if (u.user) {
+        const { data: s } = await supabase.from("shops").select("id").eq("owner_id", u.user.id).maybeSingle();
+        navigate({ to: s ? "/dashboard" : "/onboarding" });
+      } else {
+        navigate({ to: "/dashboard" });
+      }
     } catch (err) {
       toast.error((err as Error).message);
     } finally {

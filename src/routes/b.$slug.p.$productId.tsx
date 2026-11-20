@@ -527,46 +527,46 @@ function ProductPage() {
                     <button
                       type="button"
                       onClick={() => setQty((q) => Math.max(1, q - 1))}
-                      className="h-8 w-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 grid place-items-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 grid place-items-center transition-colors cursor-pointer"
                       aria-label="Moins"
                     >
-                      <Minus className="h-3.5 w-3.5" />
+                      <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-10 text-center text-sm font-extrabold text-slate-900">{qty}</span>
+                    <span className="w-10 text-center text-base font-extrabold text-slate-900">{qty}</span>
                     <button
                       type="button"
                       onClick={() => setQty((q) => Math.min(99, q + 1))}
-                      className="h-8 w-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 grid place-items-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 grid place-items-center transition-colors cursor-pointer"
                       aria-label="Plus"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
                   {qty > 1 && (
                     <span className="text-xs text-slate-500">
-                      Total : <strong className="text-[#4F46E5]">{formatPrice(effectivePrice * qty, product.currency)}</strong>
+                      Total : <strong className="text-[#4F46E5] text-sm">{formatPrice(effectivePrice * qty, product.currency)}</strong>
                     </span>
                   )}
                 </div>
 
-                {/* Boutons d'Action Harmonieux aux Couleurs MarketNet */}
-                <div className="flex flex-col sm:flex-row gap-3">
+                {/* Boutons d'Action Harmonieux aux Couleurs MarketNet (Agrandis & Confortables) */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
                   <button
                     type="button"
                     onClick={addToCart}
                     className={cn(
-                      "flex-1 h-13 px-6 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.99] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-indigo-500/20 transition-all cursor-pointer",
+                      "flex-1 h-14 sm:h-15 px-6 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.99] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-3 shadow-lg shadow-indigo-500/25 transition-all cursor-pointer",
                       addedAnim && "scale-95 bg-emerald-600"
                     )}
                   >
                     {addedAnim ? (
                       <>
-                        <CheckCircle2 className="h-5 w-5" />
+                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
                         <span>Ajouté avec succès !</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="h-5 w-5" />
+                        <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
                         <span>Ajouter au panier</span>
                       </>
                     )}
@@ -577,9 +577,9 @@ function ProductPage() {
                       href={buildWhatsAppUrl(shop.whatsapp, product.name, priceStr, shop.name)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 h-13 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.99] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-500/20 transition-all"
+                      className="flex-1 h-14 sm:h-15 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.99] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/25 transition-all"
                     >
-                      <MessageCircle className="h-5 w-5 fill-current" />
+                      <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 fill-current" />
                       <span>Commander sur WhatsApp</span>
                     </a>
                   )}
@@ -702,18 +702,18 @@ function ProductPage() {
               type="button"
               onClick={addToCart}
               className={cn(
-                "flex-1 h-11 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.98] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 transition-all cursor-pointer",
+                "flex-1 h-13 px-5 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.98] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-indigo-500/25 transition-all cursor-pointer",
                 addedAnim && "bg-emerald-600"
               )}
             >
               {addedAnim ? (
                 <>
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-5 w-5" />
                   <span>Ajouté !</span>
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="h-4 w-4" />
+                  <ShoppingBag className="h-5 w-5" />
                   <span>Ajouter au panier</span>
                 </>
               )}
