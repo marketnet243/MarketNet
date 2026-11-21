@@ -54,7 +54,7 @@ import {
   getPlanPrices,
   createCheckoutSession,
 } from "@/lib/subscriptions.functions";
-import { formatCDF, formatUSD, type SubscriptionPeriod } from "@/lib/subscriptions";
+import { formatCDF, formatUSD, type SubscriptionPeriod, type PlanPrice } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/lib/imported-database";
@@ -184,6 +184,44 @@ function isPaymentAttributed(p: any): boolean {
   return isPaid && isManual;
 }
 
+const FALLBACK_PLANS = [
+  {
+    id: "free",
+    name: "Gratuit",
+    price_usd: 0,
+    price_cdf: 0,
+    max_products: 10,
+    max_photos: 3,
+    max_active_promotions: 1,
+    promo_templates: ["fullscreen", "split", "minimal"],
+    advanced_themes: true,
+    advanced_stats: true,
+    active: true,
+    position: 0,
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price_usd: 3,
+    price_cdf: 0,
+    max_products: null,
+    max_photos: 6,
+    max_active_promotions: null,
+    promo_templates: ["fullscreen", "split", "badge", "minimal", "countdown"],
+    advanced_themes: true,
+    advanced_stats: true,
+    active: true,
+    position: 1,
+  },
+];
+
+const FALLBACK_PRICES: PlanPrice[] = [
+  { id: "free-m", plan_id: "free", period: "mensuel", price_usd: 0, price_cdf: 0, currency: "USD", is_active: true, created_at: "", updated_at: "" },
+  { id: "free-a", plan_id: "free", period: "annuel", price_usd: 0, price_cdf: 0, currency: "USD", is_active: true, created_at: "", updated_at: "" },
+  { id: "pro-m", plan_id: "pro", period: "mensuel", price_usd: 3, price_cdf: 0, currency: "USD", is_active: true, created_at: "", updated_at: "" },
+  { id: "pro-a", plan_id: "pro", period: "annuel", price_usd: 30, price_cdf: 0, currency: "USD", is_active: true, created_at: "", updated_at: "" },
+];
+
 function DashboardAbonnementPage() {
   const { data: shop } = useMyShop();
   const navigate = useNavigate();
@@ -223,13 +261,14 @@ function DashboardAbonnementPage() {
     queryFn: () => getPaymentsFn({ data: { shopId: shop!.id } }),
   });
 
-  // Tarifs depuis la base de données
+  // Tarifs depuis la base de données (avec fallback immédiat 3$ / 30$)
   const { data: planPrices, isLoading: pricesLoading } = useQuery({
     queryKey: ["plan-prices"],
     queryFn: () => getPricesFn(),
+    placeholderData: FALLBACK_PRICES,
   });
 
-  // Plans actifs depuis la base de données
+  // Plans actifs depuis la base de données (avec fallback immédiat pour 0 CLS)
   const { data: dbPlans, isLoading: plansLoading } = useQuery({
     queryKey: ["plans-active"],
     queryFn: async () => {
@@ -239,8 +278,9 @@ function DashboardAbonnementPage() {
         .eq("active", true)
         .order("position", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      return (data && data.length > 0) ? data : FALLBACK_PLANS;
     },
+    placeholderData: FALLBACK_PLANS,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -278,6 +318,7 @@ function DashboardAbonnementPage() {
   const currentPlanId = subLimits?.plan_id || shop?.plan_id || "free";
   const isGrace = subLimits?.is_grace_period;
   const isExpired = subLimits?.status === "expiré";
+  const isCurrentPro = currentPlanId === "pro" && !isExpired;
 
   // Résolution précise et robuste du statut (priorité à l'attribution manuelle par admin)
   function resolvePaymentStatus(pay: any): "payé" | "attribué" | "en_attente" | "échoué" | "annulé" {
@@ -396,270 +437,182 @@ function DashboardAbonnementPage() {
         </div>
       )}
 
-      {/* ── Carte de la Formule Active ────────────────────────────────────── */}
-      <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-sm space-y-5">
-        {limitsLoading ? (
-          <div className="animate-pulse space-y-4">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="space-y-2">
-                <div className="h-3 w-28 rounded bg-muted" />
-                <div className="h-7 w-36 rounded-lg bg-muted" />
-              </div>
-              <div className="h-6 w-14 rounded-full bg-muted" />
-            </div>
-            <div>
-              <div className="h-3 w-40 rounded bg-muted mb-3" />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="rounded-2xl border bg-muted/30 p-3 space-y-2">
-                    <div className="h-3 w-16 rounded bg-muted" />
-                    <div className="h-5 w-20 rounded bg-muted" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* ── Statut compact & discret de la boutique (Remplace l'ancienne section lourde) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border bg-card/60 backdrop-blur-xs text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className={cn(
+            "h-2.5 w-2.5 rounded-full shrink-0",
+            currentPlanId === "pro" && !isExpired && !isGrace ? "bg-emerald-500 shadow-xs shadow-emerald-500/50" :
+            isGrace ? "bg-amber-500 animate-pulse" :
+            isExpired ? "bg-destructive" :
+            "bg-muted-foreground/40"
+          )} />
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-muted-foreground">Formule active :</span>
+            <span className="font-bold text-foreground">
+              Plan {subLimits?.plan_name || (currentPlanId === "pro" ? "Pro" : "Gratuit")}
+            </span>
+            <span className={cn(
+              "px-2 py-0.5 rounded-full text-[10px] font-bold border",
+              isGrace ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" :
+              isExpired ? "bg-destructive/10 text-destructive border-destructive/20" :
+              currentPlanId === "pro" ? "bg-primary/10 text-primary border-primary/20" :
+              "bg-muted text-muted-foreground border-border"
+            )}>
+              {isGrace ? "Période de grâce" : isExpired ? "Expiré" : currentPlanId === "pro" ? "Actif" : "Gratuit (10 produits max)"}
+            </span>
           </div>
-        ) : (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
-              <div className="space-y-1">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-normal">Votre formule active</span>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl sm:text-2xl font-black capitalize">
-                    Plan {subLimits?.plan_name || shop?.plan_id || "Gratuit"}
-                  </h2>
-                  <span
-                    className={cn(
-                      "rounded-full px-3 py-1 text-xs font-extrabold border",
-                      isGrace
-                        ? "bg-warning/15 text-warning dark:text-warning border-warning/30"
-                        : isExpired
-                          ? "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30"
-                          : subLimits?.is_attributed
-                            ? "bg-info/15 text-info dark:text-info border-info/30"
-                            : "bg-[#EEF2FF] text-[#4F46E5] border-[#E0E7FF]"
-                    )}
-                  >
-                    {isGrace
-                      ? "Période de grâce"
-                      : isExpired
-                        ? "Expiré"
-                        : subLimits?.is_attributed
-                          ? "Attribué par l'administrateur"
-                          : "Actif"}
-                  </span>
-                </div>
-              </div>
+        </div>
 
-              {subLimits?.ends_at && currentPlanId !== "free" && (
-                <div className="text-left sm:text-right bg-muted/30 px-3.5 py-2 rounded-2xl border">
-                  <p className="text-[11px] text-muted-foreground">Date d'échéance :</p>
-                  <p className="text-xs sm:text-sm font-bold text-foreground">
-                    {new Date(subLimits.ends_at).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Quotas & fonctionnalités de la formule */}
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground mb-3">Limites incluses dans votre formule :</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="rounded-2xl border bg-muted/20 hover:bg-muted/30 transition-colors p-3.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Package className="h-3.5 w-3.5 text-primary" />
-                    <span>Catalogue</span>
-                  </div>
-                  <p className="font-extrabold text-sm sm:text-base text-foreground">
-                    {subLimits?.max_products != null ? `${subLimits.max_products} max` : "Illimité"}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border bg-muted/20 hover:bg-muted/30 transition-colors p-3.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Camera className="h-3.5 w-3.5 text-primary" />
-                    <span>Photos / produit</span>
-                  </div>
-                  <p className="font-extrabold text-sm sm:text-base text-foreground">
-                    {subLimits?.max_photos}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border bg-muted/20 hover:bg-muted/30 transition-colors p-3.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Tag className="h-3.5 w-3.5 text-primary" />
-                    <span>Promotions</span>
-                  </div>
-                  <p className="font-extrabold text-sm sm:text-base text-foreground">
-                    {subLimits?.max_active_promotions != null
-                      ? `${subLimits.max_active_promotions} active(s)`
-                      : "Illimitées"}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border bg-muted/20 hover:bg-muted/30 transition-colors p-3.5 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                    <span>Statistiques</span>
-                  </div>
-                  <p className="font-extrabold text-sm sm:text-base text-foreground">
-                    {subLimits?.advanced_stats ? "Avancées" : "Standard"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </>
+        {subLimits?.ends_at && currentPlanId !== "free" && (
+          <div className="text-muted-foreground text-[11px] sm:text-right">
+            Échéance : <strong className="text-foreground">{new Date(subLimits.ends_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</strong>
+          </div>
         )}
-      </section>
+      </div>
 
-      {/* ── Grille des Formules Disponibles ───────────────────────────────── */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold tracking-normal">Changer ou Renouveler</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Paiement instantané par Mobile Money (M-Pesa, Orange Money, Airtel Money) ou Carte bancaire.
-            </p>
+      {/* ── SECTION D'OFFRE PRINCIPALE (INSPIRÉE DU MODÈLE VYTRINI) ── */}
+      <section className="rounded-3xl border border-border/80 bg-gradient-to-b from-card via-card to-muted/20 p-5 sm:p-8 shadow-sm space-y-6">
+        {/* Titre & Sous-titre inspiré de la maquette */}
+        <div className="text-center max-w-lg mx-auto space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold shadow-2xs">
+            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+            <span>Offre de lancement Pro</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+            Lance-toi, {shop?.name || "Commerçant"}
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            Active ta vitrine Pro : ton catalogue est prêt à partager et tes clients commandent directement sur WhatsApp avec 0% de commission.
+          </p>
+        </div>
+
+        {/* ── Sélecteur de Durée Visuel (Mensuel / Annuel Meilleure Valeur) ── */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-md mx-auto pt-2">
+          {/* Option Mensuel */}
+          <button
+            type="button"
+            onClick={() => setSelectedPeriod("mensuel")}
+            className={cn(
+              "rounded-2xl border p-4 sm:p-5 text-center flex flex-col items-center justify-between transition-all cursor-pointer relative",
+              selectedPeriod === "mensuel"
+                ? "border-2 border-primary bg-primary/[0.04] shadow-md shadow-primary/10"
+                : "border-border/80 bg-card hover:border-muted-foreground/30 hover:bg-muted/10"
+            )}
+          >
+            <span className="text-xs sm:text-sm font-bold text-foreground">Mensuel</span>
+            <div className="my-2">
+              <span className="text-2xl sm:text-3xl font-black text-foreground">3 $</span>
+              <span className="text-[11px] text-muted-foreground block">/ mois</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-medium">Sans engagement</span>
+          </button>
+
+          {/* Option Annuel — Meilleure Valeur */}
+          <button
+            type="button"
+            onClick={() => setSelectedPeriod("annuel")}
+            className={cn(
+              "rounded-2xl border p-4 sm:p-5 text-center flex flex-col items-center justify-between transition-all cursor-pointer relative",
+              selectedPeriod === "annuel"
+                ? "border-2 border-primary bg-primary/[0.04] shadow-md shadow-primary/10"
+                : "border-border/80 bg-card hover:border-muted-foreground/30 hover:bg-muted/10"
+            )}
+          >
+            {/* Badge surélevé "Meilleure valeur" */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs whitespace-nowrap">
+              Meilleure valeur
+            </div>
+
+            <span className="text-xs sm:text-sm font-bold text-foreground">Annuel</span>
+            <div className="my-2">
+              <span className="text-xs text-muted-foreground line-through block">36 $</span>
+              <span className="text-2xl sm:text-3xl font-black text-primary">30 $</span>
+              <span className="text-[11px] text-muted-foreground block">/ an (~2,50 $/mois)</span>
+            </div>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Économisez 17%</span>
+          </button>
+        </div>
+
+        {/* ── Bloc Récapitulatif avec Coches Vertes (comme dans l'image Vytrini) ── */}
+        <div className="max-w-lg mx-auto rounded-2xl border border-border/80 bg-muted/20 p-4 sm:p-5 space-y-3">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+            <span className="font-extrabold text-xs sm:text-sm text-foreground">
+              {selectedPeriod === "mensuel" ? "Formule Pro Mensuelle • 3 $/mois" : "Formule Pro Annuelle • 30 $/an"}
+            </span>
+            <span className="text-[11px] font-bold text-primary">Tout inclus</span>
           </div>
 
-          {/* Toggle Période */}
-          <div className="inline-flex rounded-2xl border bg-muted/40 p-1 gap-1 self-start sm:self-auto">
-            {(["mensuel", "annuel"] as SubscriptionPeriod[]).map((p) => (
-              <button
-                key={p}
-                onClick={() => setSelectedPeriod(p)}
-                className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold transition-all",
-                  selectedPeriod === p
-                    ? "bg-primary text-primary-foreground shadow"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {p === "mensuel" ? "Mensuel" : "Annuel (Économisez ~17%)"}
-              </button>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-foreground/90 pt-1">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>Produits illimités</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>6 photos HD par produit</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>Commandes WhatsApp</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>Promotions illimitées</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>Thèmes & personnalisation</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>Statistiques de ventes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>0% de commission</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+              <span>Assistance directe</span>
+            </div>
           </div>
         </div>
 
-        {/* Cartes de plans — dynamiques depuis DB */}
-        <div className="grid md:grid-cols-2 max-w-3xl mx-auto gap-4 sm:gap-6">
-          {(plansLoading || pricesLoading) ? (
-            <>
-              <PlanCardSkeleton />
-              <PlanCardSkeleton />
-            </>
-          ) : (
-            (dbPlans ?? []).map((plan) => {
-              const price = planPrices?.find(
-                (pp) => pp.plan_id === plan.id && pp.period === selectedPeriod
-              );
-              const isFree = plan.id === "free";
-              const isCurrent = currentPlanId === plan.id && !isExpired;
-              const isPaying = payingPlanId === plan.id;
-              const isPro = plan.id === "pro";
-              const features = buildPlanFeatures(plan);
+        {/* ── Bouton d'Action Principal ── */}
+        <div className="max-w-md mx-auto space-y-3 pt-2">
+          <Button
+            size="lg"
+            className="w-full h-12 sm:h-13 rounded-2xl font-black text-sm sm:text-base gap-2 shadow-lg shadow-primary/25 cursor-pointer transition-all active:scale-[0.99]"
+            disabled={payingPlanId === "pro"}
+            onClick={() => handlePay("pro")}
+          >
+            {payingPlanId === "pro" ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Connexion sécurisée SasPay…</span>
+              </>
+            ) : isCurrentPro ? (
+              <>
+                <ArrowRight className="h-5 w-5" />
+                <span>Renouveler mon Plan Pro ({selectedPeriod === "mensuel" ? "3 $" : "30 $"})</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-5 w-5" />
+                <span>Activer mon Plan Pro ({selectedPeriod === "mensuel" ? "3 $" : "30 $"})</span>
+              </>
+            )}
+          </Button>
 
-              return (
-                <div
-                  key={plan.id}
-                  className={cn(
-                    "rounded-3xl border bg-card p-5 sm:p-6 space-y-4 flex flex-col justify-between transition-all",
-                    isPro
-                      ? "border-2 border-primary/50 shadow-md relative overflow-hidden"
-                      : ""
-                  )}
-                >
-                  {isPro && (
-                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-extrabold px-3 py-1 rounded-bl-xl uppercase tracking-normal">
-                      Recommandé
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      {isPro ? (
-                        <Star className="h-4 w-4 text-warning fill-warning" />
-                      ) : null}
-                      <span className="font-extrabold text-lg">{plan.name}</span>
-                    </div>
-
-                    {/* Prix — strictement en Dollars ($ USD) */}
-                    <div>
-                      {isFree ? (
-                        <>
-                          <span className="text-3xl font-black">Gratuit</span>
-                          <span className="text-xs text-muted-foreground ml-1">/toujours</span>
-                        </>
-                      ) : (price?.price_usd != null || (plan as any).price_usd != null) ? (
-                        <>
-                          <span className="text-3xl font-black">
-                            {formatUSD(
-                              price?.price_usd ??
-                              (selectedPeriod === "mensuel"
-                                ? ((plan as any).price_usd ?? 3)
-                                : ((plan as any).price_usd ? (plan as any).price_usd * 10 : 30))
-                            )}
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-1">
-                            /{selectedPeriod === "mensuel" ? "mois" : "an"}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-muted-foreground italic">Tarif non disponible</span>
-                      )}
-                    </div>
-
-                    {/* Features dynamiques */}
-                    <ul className="space-y-2 pt-2 border-t text-xs text-muted-foreground">
-                      {features.map((f) => (
-                        <li key={f.text} className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-[#4F46E5] shrink-0" />
-                          {f.strong ? <strong>{f.text}</strong> : f.text}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {isFree ? (
-                    <Button variant="outline" disabled className="w-full rounded-xl text-xs font-bold h-10">
-                      {currentPlanId === "free" ? "Plan actuel" : "Inclus"}
-                    </Button>
-                  ) : (
-                    <Button
-                      className={cn("w-full rounded-xl font-bold h-11 gap-2", isPro && "shadow-md")}
-                      disabled={!price || isPaying || !!payingPlanId}
-                      onClick={() => handlePay(plan.id)}
-                      variant={isCurrent ? "outline" : "default"}
-                    >
-                      {isPaying ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> Préparation…</>
-                      ) : isCurrent ? (
-                        <><ArrowRight className="h-4 w-4" /> Renouveler {plan.name}</>
-                      ) : (
-                        <><ArrowRight className="h-4 w-4" /> Passer à {plan.name}</>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Note de réassurance */}
-        <div className="rounded-2xl border bg-muted/20 p-4 text-xs text-muted-foreground flex items-start gap-2.5">
-          <Shield className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
-          <p className="leading-relaxed">
-            Les paiements sont sécurisés par notre passerelle agréée <strong>SasPay</strong>. Des frais de réseau Mobile Money (M-Pesa, Orange Money, Airtel Money) s'appliquent lors de la confirmation sur la page de paiement.
+          <p className="text-center text-[11px] text-muted-foreground flex items-center justify-center gap-1.5">
+            <Shield className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span>Paiement sécurisé via <strong>SasPay</strong> • M-Pesa, Orange Money, Airtel Money, Carte bancaire</span>
           </p>
         </div>
       </section>
 
-      {/* ── Historique des Paiements ────────────────────────────────────── */}
+{/* ── Historique des Paiements ────────────────────────────────────── */}
       <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-sm space-y-4">
         {/* En-tête sobre */}
         <div className="flex items-center justify-between border-b pb-4">
@@ -866,25 +819,25 @@ function DashboardAbonnementPage() {
         )}
       </section>
 
-      {/* ── FAQ Déroulante & Claire ──────────────────────────────────────── */}
+            {/* ── FAQ DÉROULANTE ÉPURÉE & UTILE ── */}
       <section className="rounded-3xl border bg-card p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-3 border-b pb-4">
           <div className="w-9 h-9 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold">
-            <HelpCircle className="h-5 w-5" />
+            <HelpCircle className="h-4 w-4 text-primary" />
           </div>
           <div>
             <h3 className="font-bold text-base text-foreground">Questions fréquentes</h3>
-            <p className="text-xs text-muted-foreground">Tout comprendre facilement sur votre formule et vos paiements</p>
+            <p className="text-xs text-muted-foreground">Tout ce que vous devez savoir sur le fonctionnement de votre abonnement</p>
           </div>
         </div>
 
         <Accordion type="single" collapsible defaultValue="item-1" className="w-full divide-y divide-border/60">
           <AccordionItem value="item-1" className="border-b-0 py-1">
             <AccordionTrigger className="text-left font-semibold text-xs sm:text-sm hover:no-underline py-3 text-foreground">
-              Comment payer mon abonnement ?
+              Comment payer mon abonnement par Mobile Money ?
             </AccordionTrigger>
             <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-3">
-              C'est très simple ! Choisissez votre formule ci-dessus (Pro), puis validez avec votre compte Mobile Money habituel (<strong>M-Pesa, Orange Money, Airtel Money</strong>) ou par <strong>carte bancaire</strong>. Vous recevrez directement un message sur votre téléphone pour taper votre code secret et confirmer.
+              C'est très simple ! Choisissez votre durée (Mensuel à 3 $ ou Annuel à 30 $), cliquez sur le bouton et validez avec votre compte Mobile Money habituel (<strong>M-Pesa, Orange Money, Airtel Money</strong>) ou par <strong>carte bancaire</strong>. Vous recevrez directement un message sur votre téléphone pour taper votre code secret et valider.
             </AccordionContent>
           </AccordionItem>
 
@@ -893,7 +846,7 @@ function DashboardAbonnementPage() {
               Est-ce que ma boutique est activée tout de suite ?
             </AccordionTrigger>
             <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-3">
-              <strong>Oui, immédiatement !</strong> Dès que vous tapez votre code secret sur votre téléphone, votre paiement est validé et votre boutique s'active automatiquement avec toutes ses options débloquées. Vous n'avez pas besoin d'attendre.
+              <strong>Oui, immédiatement !</strong> Dès que vous tapez votre code secret sur votre téléphone, votre paiement est validé automatiquement par SasPay et votre boutique s'active sur-le-champ avec toutes ses options débloquées.
             </AccordionContent>
           </AccordionItem>
 
@@ -908,19 +861,19 @@ function DashboardAbonnementPage() {
 
           <AccordionItem value="item-4" className="border-b-0 py-1">
             <AccordionTrigger className="text-left font-semibold text-xs sm:text-sm hover:no-underline py-3 text-foreground">
-              Que se passe-t-il si mon abonnement arrive à la fin ?
+              Que se passe-t-il si mon abonnement arrive à échéance ?
             </AccordionTrigger>
             <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-3">
-              Votre boutique ne ferme jamais. Vous basculez simplement sur la <strong>formule Gratuite</strong> (avec un maximum de 10 produits visibles). Tous vos autres articles restent bien enregistrés et réapparaissent dès votre réabonnement.
+              Votre boutique ne ferme jamais. Vous basculez simplement sur la <strong>formule Gratuite</strong> (avec un maximum de 10 produits visibles). Tous vos autres articles restent enregistrés et réapparaissent dès que vous réactivez votre Plan Pro.
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-5" className="border-b-0 py-1">
             <AccordionTrigger className="text-left font-semibold text-xs sm:text-sm hover:no-underline py-3 text-foreground">
-              Besoin d'aide ou un souci pour payer ?
+              Y a-t-il des commissions sur les ventes que je réalise ?
             </AccordionTrigger>
             <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-3">
-              Notre équipe d'assistance est là pour vous accompagner ! Si un paiement ne passe pas ou si vous avez la moindre question, contactez-nous directement sur <strong>WhatsApp</strong> et nous vous aiderons pas à pas.
+              <strong>0% de commission.</strong> Vous gardez 100% de vos ventes. Les clients commandent directement auprès de vous sur WhatsApp et vous payent selon vos propres modalités.
             </AccordionContent>
           </AccordionItem>
         </Accordion>
