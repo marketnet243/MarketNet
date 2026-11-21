@@ -529,7 +529,14 @@ function ProductPage() {
                       <button
                         key={label}
                         type="button"
-                        onClick={() => setChoice((c) => ({ ...c, [v.name]: label }))}
+                        onClick={() => setChoice((c) => {
+                          if (c[v.name] === label) {
+                            const next = { ...c };
+                            delete next[v.name];
+                            return next;
+                          }
+                          return { ...c, [v.name]: label };
+                        })}
                         className={cn(
                           "h-10 px-3.5 rounded-xl text-xs font-bold border transition-all cursor-pointer inline-flex items-center gap-2",
                           isSelected
@@ -590,23 +597,23 @@ function ProductPage() {
                 </div>
 
                 {/* Boutons d'Action Harmonieux aux Couleurs MarketNet (Agrandis & Confortables) */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                <div className="grid w-full grid-cols-1 gap-2.5 pt-1 sm:flex sm:flex-row sm:gap-3">
                   <button
                     type="button"
                     onClick={addToCart}
                     className={cn(
-                      "flex-1 h-14 sm:h-15 px-6 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.99] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-3 shadow-lg shadow-indigo-500/25 transition-all cursor-pointer",
+                      "flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.99] text-white font-extrabold text-[13px] sm:h-14 sm:flex-1 sm:rounded-2xl sm:px-6 sm:text-base sm:gap-3 shadow-lg shadow-indigo-500/25 transition-all cursor-pointer",
                       addedAnim && "scale-95 bg-emerald-600"
                     )}
                   >
                     {addedAnim ? (
                       <>
-                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
+                        <CheckCircle2 className="h-5 w-5 shrink-0 sm:h-6 sm:w-6" />
                         <span>Ajouté avec succès !</span>
                       </>
                     ) : (
                       <>
-                        <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
+                        <ShoppingBag className="h-5 w-5 shrink-0 sm:h-6 sm:w-6" />
                         <span>Ajouter au panier</span>
                       </>
                     )}
@@ -617,10 +624,10 @@ function ProductPage() {
                       href={buildWhatsAppUrl(shop.whatsapp, product.name, priceStr, shop.name)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 h-14 sm:h-15 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.99] text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/25 transition-all"
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-3 bg-[#25D366] hover:bg-[#20ba59] active:scale-[0.99] text-white font-extrabold text-[13px] sm:h-14 sm:flex-1 sm:rounded-2xl sm:px-6 sm:text-base sm:gap-3 shadow-lg shadow-emerald-500/25 transition-all"
                     >
-                      <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 fill-current" />
-                      <span>Commander sur WhatsApp</span>
+                      <MessageCircle className="h-5 w-5 shrink-0 fill-current sm:h-6 sm:w-6" />
+                      <span className="whitespace-nowrap">Commander sur WhatsApp</span>
                     </a>
                   )}
                 </div>
@@ -727,40 +734,6 @@ function ProductPage() {
           </section>
         )}
       </div>
-
-      {/* ── BARRE STICKY BOTTOM SUR MOBILE ── */}
-      {!out && (
-        <div className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200 bg-white/95 px-3 py-2.5 backdrop-blur-md md:hidden shadow-lg">
-          <div className="mx-auto flex max-w-sm items-center gap-2.5">
-            <div className="flex flex-col justify-center min-w-0">
-              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wide">Prix</span>
-              <span className={cn("text-sm font-black truncate", isDiscounted ? "text-rose-600" : "text-[#4F46E5]")}>
-                {priceStr}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={addToCart}
-              className={cn(
-                "flex-1 h-11 px-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] active:scale-[0.98] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 transition-all cursor-pointer",
-                addedAnim && "bg-emerald-600"
-              )}
-            >
-              {addedAnim ? (
-                <>
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Ajouté !</span>
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>Ajouter au panier</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

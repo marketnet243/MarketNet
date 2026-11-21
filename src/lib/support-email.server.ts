@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { buildOfficialEmailHtml } from "@/lib/email-template.server";
 import { supabaseAdmin } from "@/lib/imported-database.server";
 
 /**
@@ -37,133 +38,23 @@ async function getSupportAdminEmail(): Promise<string> {
 
 function buildEmailShell(params: {
   badgeText: string;
-  badgeColor: string;
+  badgeColor?: string;
   title: string;
   body: string;
   ctaLabel?: string;
   ctaUrl?: string;
 }): string {
-  const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
-  const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-  return `<!DOCTYPE html>
-<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${params.title} — ${fromName}</title>
-  <style>
-    /* Reset et responsive mobile */
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      min-width: 100% !important;
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-    }
-    table, td {
-      border-collapse: collapse !important;
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-    }
-    img {
-      border: 0;
-      height: auto;
-      line-height: 100%;
-      outline: none;
-      text-decoration: none;
-      -ms-interpolation-mode: bicubic;
-    }
-    @media only screen and (max-width: 600px) {
-      .email-outer-td {
-        padding: 4px 2px !important;
-      }
-      .email-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 10px !important;
-      }
-      .email-header-cell {
-        padding: 16px 14px 12px !important;
-      }
-      .email-body-cell {
-        padding: 18px 14px 16px !important;
-      }
-      .email-footer-cell {
-        padding: 14px 10px !important;
-      }
-      .email-inner-box {
-        padding: 14px 12px !important;
-        border-radius: 10px !important;
-      }
-      .email-brand-title {
-        font-size: 20px !important;
-      }
-      .email-brand-sub {
-        font-size: 11px !important;
-      }
-      .email-badge {
-        font-size: 10px !important;
-        padding: 4px 8px !important;
-      }
-      .email-h2 {
-        font-size: 17px !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
-    <tr>
-      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-          <!-- En-tête -->
-          <tr>
-            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td valign="middle">
-                    <div class="email-brand-title" style="font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                      Market<span style="color: #f97316;">Net</span>
-                    </div>
-                    <div class="email-brand-sub" style="font-size: 12px; color: #64748b; margin-top: 2px;">La plateforme e-commerce des commerçants de RDC</div>
-                  </td>
-                  <td align="right" valign="middle">
-                    <span class="email-badge" style="display: inline-block; padding: 6px 12px; background-color: ${params.badgeColor}; font-size: 11px; font-weight: 700; border-radius: 9999px; border: 1px solid #e2e8f0; white-space: nowrap;">
-                      ${params.badgeText}
-                    </span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Corps -->
-          <tr>
-            <td class="email-body-cell" style="padding: 24px 28px;">
-              ${params.body}
-              ${params.ctaLabel && params.ctaUrl ? `
-              <div style="text-align: center; margin: 24px 0 8px;">
-                <a href="${params.ctaUrl}" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);">
-                  ${params.ctaLabel} →
-                </a>
-              </div>` : ""}
-            </td>
-          </tr>
-          <!-- Pied de page -->
-          <tr>
-            <td class="email-footer-cell" style="padding: 18px 24px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8;">
-              <p style="margin: 2px 0;">© ${new Date().getFullYear()} MarketNet Africa — La plateforme e-commerce tout-en-un.</p>
-              <p style="margin: 2px 0;">Ceci est une notification automatique. Ne répondez pas directement à cet e-mail.</p>
-              <p style="margin: 4px 0;"><a href="${siteUrl}" style="color: #f97316; text-decoration: none;">${siteUrl}</a></p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  return buildOfficialEmailHtml({
+    badgeText: params.badgeText,
+    badgeVariant: "primary",
+    title: params.title,
+    contentHtml: params.body,
+    cta: params.ctaUrl && params.ctaLabel ? {
+      label: params.ctaLabel,
+      url: params.ctaUrl,
+    } : undefined,
+    secondaryText: "Support & Assistance officielle MarketNet",
+  });
 }
 
 // ─── Modèle : Notification admin → nouveau ticket ───────────────────────────
@@ -185,7 +76,7 @@ export function buildNewTicketAdminHtml(params: {
     autre: "Autre",
   };
   const body = `
-    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px; color: #0f172a;">🎫 Nouveau ticket de support</h2>
+    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px; color: #0f172a;">Nouveau ticket de support</h2>
     <p style="font-size: 14px; color: #475569; margin: 0 0 20px;">Un commerçant vient d'ouvrir un ticket.</p>
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
       <tr><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #64748b; font-weight: 600; width: 140px;">Numéro</td><td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 14px; font-weight: 700; color: #f97316;">${params.numero}</td></tr>
@@ -219,7 +110,7 @@ export function buildAdminReplyHtml(params: {
   ticketUrl: string;
 }): string {
   const body = `
-    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px; color: #0f172a;">💬 Nouvelle réponse à votre ticket</h2>
+    <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 8px; color: #0f172a;">Nouvelle réponse à votre ticket</h2>
     <p style="font-size: 14px; color: #475569; margin: 0 0 4px;">Bonjour <strong>${params.merchantName}</strong>,</p>
     <p style="font-size: 14px; color: #475569; margin: 0 0 20px;">Notre équipe vient de répondre à votre ticket <strong style="color: #f97316;">${params.numero}</strong> — « ${params.titre} ».</p>
     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px;">

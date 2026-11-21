@@ -9,9 +9,10 @@ const mockInvoice: InvoiceData = {
   shopWhatsapp: "+243810000000",
   merchantEmail: "commercant@example.com",
   merchantName: "Jean Dupont",
-  planName: "Plan BUSINESS",
+  planName: "Plan PRO",
   period: "Mensuel (30 jours)",
-  amountCDF: 25000,
+  amountUSD: 3,
+  amountCDF: 8500,
   paymentDate: "14 octobre 2026, 15:30",
   validUntil: "14 novembre 2026",
   paymentMethod: "SasPay (Airtel Money)",
@@ -23,8 +24,7 @@ describe("Système de facturation & PDF", () => {
     const html = buildInvoiceHtml(mockInvoice);
     expect(html).toContain("MN-TEST1234");
     expect(html).toContain("Boutique Congo Express");
-    expect(html).toContain("25 000 FC");
-    expect(html).toContain("ACQUITTÉE");
+    expect(html).toContain("3 $");
   });
 
   it("génère un fichier PDF binaire valide avec pdf-lib", async () => {

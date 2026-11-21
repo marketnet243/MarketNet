@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { logAction } from "@/hooks/useIsAdmin";
-import { formatCDF } from "@/lib/subscriptions";
+import { formatCDF, formatUSD } from "@/lib/subscriptions";
 import {
   Package, Palette, BarChart3, CheckCircle2, Box,
   Image as ImageIcon, Save, Plus, Zap, Edit2, X, Trash2, Tag,
@@ -68,8 +68,8 @@ function PlansPage() {
     return {
       total: list.length,
       active: list.filter((p) => p.active).length,
-      free: list.filter((p) => ((p as any).price_cdf ?? p.price_usd ?? 0) === 0).length,
-      paid: list.filter((p) => ((p as any).price_cdf ?? p.price_usd ?? 0) > 0).length,
+      free: list.filter((p) => (p.price_usd ?? 0) === 0).length,
+      paid: list.filter((p) => (p.price_usd ?? 0) > 0).length,
     };
   }, [plans]);
 
@@ -84,8 +84,8 @@ function PlansPage() {
       const { error } = await supabase.from("plans").insert({
         id: generatedId,
         name: newPlanName.trim(),
-        price_cdf: priceNum,
-        price_usd: 0,
+        price_usd: priceNum,
+        price_cdf: 0,
         max_products: 20,
         max_photos: 5,
         active: true,
@@ -280,7 +280,7 @@ function PlanCard({ plan }: { plan: Plan }) {
   const [confirmDelete, setConfirmDelete] = useState("");
   const queryClient = useQueryClient();
 
-  const isFree = ((p as any).price_cdf ?? p.price_usd ?? 0) === 0;
+  const isFree = (p.price_usd ?? 0) === 0;
 
   // Détermination de la couleur d'accent selon l'ID ou le prix
   const accentScheme = useMemo(() => {
@@ -312,8 +312,8 @@ function PlanCard({ plan }: { plan: Plan }) {
         .from("plans")
         .update({
           name: p.name,
-          price_cdf: (p as any).price_cdf,
-          price_usd: 0,
+          price_usd: p.price_usd,
+          price_cdf: 0,
           max_products: p.max_products,
           max_photos: p.max_photos,
           max_active_promotions: (p as any).max_active_promotions,
@@ -326,7 +326,7 @@ function PlanCard({ plan }: { plan: Plan }) {
 
       if (error) throw error;
 
-      await logAction("plan.update", p.id, { price_cdf: (p as any).price_cdf, max_products: p.max_products });
+      await logAction("plan.update", p.id, { price_usd: p.price_usd, max_products: p.max_products });
       toast.success(`Plan "${p.name}" mis à jour avec succès !`);
       queryClient.invalidateQueries({ queryKey: ["plans"] });
       queryClient.invalidateQueries({ queryKey: ["plans-active"] });
@@ -409,16 +409,16 @@ function PlanCard({ plan }: { plan: Plan }) {
           <div className="mt-2 flex items-baseline gap-1.5">
             {isEditing ? (
               <div className="w-full space-y-1 mt-2">
-                <Label className="text-[11px] font-semibold text-muted-foreground uppercase">Prix mensuel (FC / CDF)</Label>
+                <Label className="text-[11px] font-semibold text-muted-foreground uppercase">Prix mensuel ($ USD)</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">FC</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">$</span>
                   <Input
                     type="number"
-                    step="1000"
+                    step="1"
                     min="0"
-                    value={(p as any).price_cdf ?? 0}
-                    onChange={(e) => setP({ ...p, price_cdf: Number(e.target.value) || 0 } as any)}
-                    className="font-mono font-bold text-base h-10 rounded-xl pl-10"
+                    value={p.price_usd ?? 0}
+                    onChange={(e) => setP({ ...p, price_usd: Number(e.target.value) || 0 })}
+                    className="font-mono font-bold text-base h-10 rounded-xl pl-7"
                   />
                 </div>
               </div>
@@ -430,7 +430,7 @@ function PlanCard({ plan }: { plan: Plan }) {
             ) : (
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-foreground tracking-normal">
-                  {formatCDF((p as any).price_cdf ?? 0)}
+                  {formatUSD(p.price_usd ?? 0)}
                 </span>
                 <span className="text-xs text-muted-foreground font-medium">/ mois</span>
               </div>

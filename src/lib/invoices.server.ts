@@ -1,7 +1,8 @@
 import nodemailer from "nodemailer";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { supabaseAdmin } from "@/lib/imported-database.server";
-import { formatCDF } from "@/lib/subscriptions";
+import { formatUSD } from "@/lib/subscriptions";
+import { buildOfficialEmailHtml } from "@/lib/email-template.server";
 
 export interface InvoiceData {
   invoiceNumber: string;
@@ -13,6 +14,7 @@ export interface InvoiceData {
   merchantName: string;
   planName: string;
   period: string;
+  amountUSD: number;
   amountCDF: number;
   paymentDate: string;
   validUntil: string;
@@ -82,6 +84,11 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
   }
 
   const invoiceNumber = `MN-${payment.id.slice(0, 8).toUpperCase()}`;
+  const amountUSD = Number(
+    (payment as any).montant_usd ??
+      (payment.currency === "USD" ? payment.amount : null) ??
+      (payment.plan_id === "pro" ? (payment.period === "annuel" ? 30 : 3) : 0)
+  );
   const amountCDF = Number((payment as any).montant_cdf ?? payment.amount ?? 0);
   const paymentDate = new Date(payment.paye_le || payment.cree_le).toLocaleString("fr-FR", {
     day: "numeric",
@@ -111,6 +118,7 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
     merchantName,
     planName: `Plan ${(payment.plan_id || "Pro").toUpperCase()}`,
     period: payment.period === "annuel" ? "Annuel (1 an)" : "Mensuel (30 jours)",
+    amountUSD,
     amountCDF,
     paymentDate,
     validUntil: validUntilFormatted,
@@ -142,183 +150,65 @@ function createSmtpTransporter() {
 }
 
 /**
- * Génère le modèle HTML épuré et lisible pour l'e-mail de facture
+ * Génère le modèle HTML officiel et épuré pour l'e-mail de facture
+ * Conforme au master email template unique de MarketNet.
  */
 export function buildInvoiceHtml(inv: InvoiceData): string {
-  return `<!DOCTYPE html>
-<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Facture ${inv.invoiceNumber} — MarketNet</title>
-  <style>
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      min-width: 100% !important;
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-    }
-    table, td {
-      border-collapse: collapse !important;
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-    }
-    @media only screen and (max-width: 600px) {
-      .email-outer-td {
-        padding: 4px 2px !important;
-      }
-      .email-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 10px !important;
-      }
-      .email-header-cell {
-        padding: 18px 16px 14px !important;
-      }
-      .email-body-cell {
-        padding: 18px 16px !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
-    <tr>
-      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-          
-          <!-- En-tête -->
-          <tr>
-            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                      Market<span style="color: #f97316;">Net</span>
-                    </div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
-                La plateforme e-commerce des commerçants de RDC
-              </div>
-            </td>
-            <td align="right">
-              <span style="display: inline-block; padding: 6px 12px; background-color: #ecfdf5; color: #059669; font-size: 12px; font-weight: 700; border-radius: 9999px; border: 1px solid #a7f3d0;">
-                ✓ ACQUITTÉE
-              </span>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+  const contentHtml = `
+    <p style="margin: 0 0 16px; font-size: 15px; color: #334155; line-height: 1.6;">
+      Bonjour <strong>${inv.merchantName}</strong>,
+    </p>
+    <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+      Votre règlement pour la formule <strong>${inv.planName}</strong> de votre boutique <strong>${inv.shopName}</strong> a été validé avec succès. Retrouvez ci-dessous le reçu officiel de votre paiement.
+    </p>
 
-    <!-- Message de confirmation -->
-    <tr>
-      <td style="padding: 24px 32px 16px;">
-        <h2 style="font-size: 18px; font-weight: 700; margin: 0 0 8px; color: #0f172a;">
-          Merci pour votre règlement !
-        </h2>
-        <p style="font-size: 14px; line-height: 1.5; color: #475569; margin: 0;">
-          Votre souscription pour la boutique <strong>${inv.shopName}</strong> a été validée avec succès. Retrouvez ci-dessous le reçu officiel de votre paiement.
-        </p>
-      </td>
-    </tr>
+    <!-- Carte de reçu officiel -->
+    <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">N° Facture :</td>
+          <td align="right" style="padding: 6px 0; font-weight: 700; color: #0F172A; font-family: monospace;">${inv.invoiceNumber}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Formule :</td>
+          <td align="right" style="padding: 6px 0; font-weight: 700; color: #0F172A;">${inv.planName} (${inv.period})</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Date de paiement :</td>
+          <td align="right" style="padding: 6px 0; color: #0F172A;">${inv.paymentDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Moyen de règlement :</td>
+          <td align="right" style="padding: 6px 0; color: #0F172A;">${inv.paymentMethod}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Validité de la formule :</td>
+          <td align="right" style="padding: 6px 0; font-weight: 700; color: #059669;">Jusqu'au ${inv.validUntil}</td>
+        </tr>
+        <tr style="border-top: 1px solid #E2E8F0;">
+          <td style="padding: 12px 0 0; font-size: 14px; font-weight: 700; color: #0F172A;">Total réglé :</td>
+          <td align="right" style="padding: 12px 0 0; font-size: 20px; font-weight: 900; color: #4F46E5;">${formatUSD(inv.amountUSD)}</td>
+        </tr>
+      </table>
+    </div>
 
-    <!-- Récapitulatif Facture -->
-    <tr>
-      <td style="padding: 0 32px;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin: 12px 0 24px;">
-          <tr>
-            <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">N° de Facture</span>
-              <strong style="font-size: 14px; color: #0f172a; font-family: monospace;">${inv.invoiceNumber}</strong>
-            </td>
-            <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Date de paiement</span>
-              <span style="font-size: 13px; color: #0f172a;">${inv.paymentDate}</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 16px;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Moyen de règlement</span>
-              <span style="font-size: 13px; color: #0f172a;">${inv.paymentMethod}</span>
-            </td>
-            <td style="padding: 16px;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Validité de la formule</span>
-              <span style="font-size: 13px; color: #059669; font-weight: 600;">Jusqu'au ${inv.validUntil}</span>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+    <p style="margin: 0; font-size: 12px; color: #94A3B8; text-align: center;">
+      Votre facture officielle au format PDF est jointe à cet e-mail pour vos archives comptables.
+    </p>
+  `;
 
-    <!-- Tableau de prestation -->
-    <tr>
-      <td style="padding: 0 32px;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse;">
-          <thead>
-            <tr style="border-bottom: 2px solid #e2e8f0;">
-              <th align="left" style="padding: 10px 0; font-size: 12px; text-transform: uppercase; color: #64748b;">Description</th>
-              <th align="center" style="padding: 10px 0; font-size: 12px; text-transform: uppercase; color: #64748b;">Durée</th>
-              <th align="right" style="padding: 10px 0; font-size: 12px; text-transform: uppercase; color: #64748b;">Montant</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 14px 0; font-size: 14px; font-weight: 600; color: #0f172a;">
-                Abonnement ${inv.planName}
-                <div style="font-size: 12px; font-weight: normal; color: #64748b; margin-top: 2px;">
-                  Boutique : ${inv.shopName}
-                </div>
-              </td>
-              <td align="center" style="padding: 14px 0; font-size: 13px; color: #475569;">
-                ${inv.period}
-              </td>
-              <td align="right" style="padding: 14px 0; font-size: 15px; font-weight: 700; color: #0f172a;">
-                ${formatCDF(inv.amountCDF)}
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" align="right" style="padding: 16px 0 8px; font-size: 14px; font-weight: 600; color: #475569;">
-                Total Réglé (FC) :
-              </td>
-              <td align="right" style="padding: 16px 0 8px; font-size: 20px; font-weight: 900; color: #0f172a;">
-                ${formatCDF(inv.amountCDF)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-    </tr>
-
-    <!-- Bouton d'action -->
-    <tr>
-      <td align="center" style="padding: 28px 32px 32px;">
-        <a href="${inv.dashboardUrl}" style="display: inline-block; padding: 12px 28px; background-color: #0f172a; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          Gérer mon abonnement sur MarketNet →
-        </a>
-      </td>
-    </tr>
-
-    <!-- Pied de page -->
-    <tr>
-      <td style="padding: 20px 32px; background-color: #f1f5f9; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; text-align: center; line-height: 1.5;">
-        <p style="margin: 0 0 4px;">
-          Réf. transaction SasPay : <span style="font-family: monospace;">${inv.transactionId}</span>
-        </p>
-        <p style="margin: 0;">
-          Une question ou besoin d'assistance ? Contactez-nous à tout moment sur WhatsApp au support MarketNet.
-        </p>
-      </td>
-    </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  return buildOfficialEmailHtml({
+    badgeText: "Facture acquittée",
+    badgeVariant: "success",
+    title: `Facture ${inv.invoiceNumber}`,
+    preheader: `Reçu officiel de paiement pour votre boutique ${inv.shopName} (${formatUSD(inv.amountUSD)})`,
+    contentHtml,
+    cta: {
+      label: "Accéder à mon espace commerçant",
+      url: inv.dashboardUrl,
+    },
+    secondaryText: `Réf. transaction SasPay : ${inv.transactionId} · Service client et assistance directe disponible sur WhatsApp.`,
+  });
 }
 
 /**
@@ -458,7 +348,7 @@ export async function generateInvoicePdf(inv: InvoiceData): Promise<Buffer> {
   page.drawText("DESCRIPTION", { x: 55, y: 535, size: 9, font: fontBold, color: slate });
   page.drawText("PERIODE", { x: 260, y: 535, size: 9, font: fontBold, color: slate });
   page.drawText("VALIDITE", { x: 360, y: 535, size: 9, font: fontBold, color: slate });
-  page.drawText("MONTANT (FC)", { x: 460, y: 535, size: 9, font: fontBold, color: slate });
+  page.drawText("MONTANT ($ USD)", { x: 440, y: 535, size: 9, font: fontBold, color: slate });
 
   // Ligne prestation
   page.drawRectangle({
@@ -473,7 +363,7 @@ export async function generateInvoicePdf(inv: InvoiceData): Promise<Buffer> {
   page.drawText(cleanPdfText(`Abonnement ${inv.planName}`), { x: 55, y: 505, size: 11, font: fontBold, color: darkNavy });
   page.drawText(cleanPdfText(`Boutique en ligne : ${inv.shopName}`), { x: 55, y: 488, size: 8, font: fontRegular, color: slate });
   page.drawText(cleanPdfText(inv.period), { x: 260, y: 498, size: 9, font: fontRegular, color: darkNavy });
-  page.drawText(cleanPdfText(formatCDF(inv.amountCDF)), { x: 440, y: 498, size: 10, font: fontBold, color: darkNavy });
+  page.drawText(cleanPdfText(formatUSD(inv.amountUSD)), { x: 440, y: 498, size: 10, font: fontBold, color: darkNavy });
 
   // Ligne Total
   page.drawRectangle({
@@ -485,8 +375,8 @@ export async function generateInvoicePdf(inv: InvoiceData): Promise<Buffer> {
     borderColor: borderCol,
     borderWidth: 1,
   });
-  page.drawText("TOTAL REGLE (FC) :", { x: 280, y: 442, size: 10, font: fontBold, color: slate });
-  page.drawText(cleanPdfText(formatCDF(inv.amountCDF)), { x: 420, y: 440, size: 14, font: fontBold, color: darkNavy });
+  page.drawText("TOTAL REGLE (USD) :", { x: 280, y: 442, size: 10, font: fontBold, color: slate });
+  page.drawText(cleanPdfText(formatUSD(inv.amountUSD)), { x: 420, y: 440, size: 14, font: fontBold, color: darkNavy });
 
   // Encadré de confirmation d'activation
   page.drawRectangle({
@@ -646,181 +536,61 @@ export async function getAssignmentLetterData(paymentId: string): Promise<Assign
 }
 
 /**
- * Génère le HTML de la lettre d'attribution de plan
+ * Génère le HTML de la lettre d'attribution de plan conforme au master email template unique.
  */
 export function buildAssignmentLetterHtml(data: AssignmentLetterData): string {
-  return `<!DOCTYPE html>
-<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Lettre d'Attribution — ${data.planName} — MarketNet</title>
-  <style>
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      min-width: 100% !important;
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-    }
-    table, td {
-      border-collapse: collapse !important;
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-    }
-    @media only screen and (max-width: 600px) {
-      .email-outer-td {
-        padding: 4px 2px !important;
-      }
-      .email-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 10px !important;
-      }
-      .email-header-cell {
-        padding: 18px 16px 14px !important;
-      }
-      .email-body-cell {
-        padding: 18px 16px !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
-    <tr>
-      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-
-          <!-- En-tête -->
-          <tr>
-            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                      Market<span style="color: #f97316;">Net</span>
-                    </div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
-                La plateforme e-commerce des commerçants de RDC
-              </div>
-            </td>
-            <td align="right">
-              <span style="display: inline-block; padding: 6px 12px; background-color: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 700; border-radius: 9999px; border: 1px solid #bfdbfe;">
-                ✦ ATTRIBUTION OFFICIELLE
-              </span>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-
-    <!-- Message principal -->
-    <tr>
-      <td style="padding: 28px 32px 16px;">
-        <h2 style="font-size: 19px; font-weight: 700; margin: 0 0 10px; color: #0f172a;">
-          Votre abonnement ${data.planName} a été activé !
-        </h2>
-        <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0;">
-          Bonjour <strong>${data.merchantName}</strong>, nous avons le plaisir de vous informer que l'équipe MarketNet a attribué et activé un abonnement <strong>${data.planName}</strong> pour votre boutique <strong>${data.shopName}</strong>. Toutes les fonctionnalités de votre formule sont désormais disponibles.
-        </p>
-      </td>
-    </tr>
+  const contentHtml = `
+    <p style="margin: 0 0 16px; font-size: 15px; color: #334155; line-height: 1.6;">
+      Bonjour <strong>${data.merchantName}</strong>,
+    </p>
+    <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
+      L'équipe MarketNet a le plaisir de vous confirmer l'attribution et l'activation officielle de votre formule <strong>${data.planName}</strong> pour votre boutique <strong>${data.shopName}</strong>. Toutes les fonctionnalités de votre formule sont immédiatement actives.
+    </p>
 
     <!-- Bloc récapitulatif -->
-    <tr>
-      <td style="padding: 0 32px;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin: 12px 0 24px;">
-          <tr>
-            <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">N° de Référence</span>
-              <strong style="font-size: 14px; color: #0f172a; font-family: monospace;">${data.letterNumber}</strong>
-            </td>
-            <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Date d'attribution</span>
-              <span style="font-size: 13px; color: #0f172a;">${data.assignmentDate}</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 16px;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Formule attribuée</span>
-              <span style="font-size: 14px; font-weight: 700; color: #1d4ed8;">${data.planName}</span>
-              <span style="font-size: 12px; color: #64748b; margin-left: 6px;">(${data.period})</span>
-            </td>
-            <td style="padding: 16px;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; display: block; margin-bottom: 2px;">Valide jusqu'au</span>
-              <span style="font-size: 13px; color: #059669; font-weight: 600;">${data.validUntil}</span>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+    <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">N° d'Attribution :</td>
+          <td align="right" style="padding: 6px 0; font-weight: 700; color: #0F172A; font-family: monospace;">${data.letterNumber}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Formule :</td>
+          <td align="right" style="padding: 6px 0; font-weight: 700; color: #0F172A;">${data.planName} (${data.period})</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Date d'activation :</td>
+          <td align="right" style="padding: 6px 0; color: #0F172A;">${data.assignmentDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748B;">Validité de l'offre :</td>
+          <td align="right" style="padding: 6px 0; font-weight: 700; color: #059669;">Jusqu'au ${data.validUntil}</td>
+        </tr>
+        ${data.adminNote ? `
+        <tr style="border-top: 1px solid #E2E8F0;">
+          <td style="padding: 10px 0 0; color: #64748B;">Motif :</td>
+          <td align="right" style="padding: 10px 0 0; color: #334155; font-style: italic;">${data.adminNote}</td>
+        </tr>` : ""}
+      </table>
+    </div>
 
-    <!-- Tableau prestation -->
-    <tr>
-      <td style="padding: 0 32px;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse;">
-          <thead>
-            <tr style="border-bottom: 2px solid #e2e8f0;">
-              <th align="left" style="padding: 10px 0; font-size: 12px; text-transform: uppercase; color: #64748b;">Prestation</th>
-              <th align="center" style="padding: 10px 0; font-size: 12px; text-transform: uppercase; color: #64748b;">Boutique</th>
-              <th align="right" style="padding: 10px 0; font-size: 12px; text-transform: uppercase; color: #64748b;">Durée</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 14px 0; font-size: 14px; font-weight: 600; color: #0f172a;">
-                Abonnement ${data.planName}
-                <div style="font-size: 12px; font-weight: normal; color: #64748b; margin-top: 3px;">Attribution administrative — sans frais</div>
-              </td>
-              <td align="center" style="padding: 14px 0; font-size: 13px; color: #475569;">${data.shopName}</td>
-              <td align="right" style="padding: 14px 0; font-size: 13px; color: #475569;">${data.period}</td>
-            </tr>
-          </tbody>
-        </table>
-      </td>
-    </tr>
+    <p style="margin: 0; font-size: 12px; color: #94A3B8; text-align: center;">
+      Votre lettre officielle d'attribution au format PDF est jointe à ce message.
+    </p>
+  `;
 
-    <!-- Note de l'administrateur -->
-    ${data.adminNote ? `
-    <tr>
-      <td style="padding: 20px 32px 0;">
-        <div style="background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 14px 16px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #92400e;">Message de l'équipe MarketNet</p>
-          <p style="margin: 0; font-size: 13px; color: #78350f; line-height: 1.5;">${data.adminNote}</p>
-        </div>
-      </td>
-    </tr>` : ""}
-
-    <!-- Bouton d'action -->
-    <tr>
-      <td align="center" style="padding: 28px 32px 32px;">
-        <a href="${data.dashboardUrl}" style="display: inline-block; padding: 12px 28px; background-color: #1d4ed8; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          Accéder à mon espace MarketNet →
-        </a>
-      </td>
-    </tr>
-
-    <!-- Pied de page -->
-    <tr>
-      <td style="padding: 20px 32px; background-color: #f1f5f9; border-top: 1px solid #e2e8f0; font-size: 11px; color: #64748b; text-align: center; line-height: 1.5;">
-        <p style="margin: 0 0 4px;">
-          Réf. attribution : <span style="font-family: monospace;">${data.letterNumber}</span> · Émise par l'administrateur MarketNet
-        </p>
-        <p style="margin: 0;">
-          Une question ? Contactez-nous à tout moment. Ce document vaut lettre officielle d'activation.
-        </p>
-      </td>
-    </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  return buildOfficialEmailHtml({
+    badgeText: "Attribution officielle",
+    badgeVariant: "primary",
+    title: `Attribution ${data.letterNumber}`,
+    preheader: `Confirmation d'activation de la formule ${data.planName} pour votre boutique ${data.shopName}`,
+    contentHtml,
+    cta: {
+      label: "Accéder à mon espace commerçant",
+      url: data.dashboardUrl,
+    },
+    secondaryText: `Attribution administrative émise par MarketNet. Service client disponible sur WhatsApp.`,
+  });
 }
 
 /**
@@ -1030,7 +800,7 @@ export async function sendSubscriptionInvoiceEmail(params: {
     const mailOptions: Parameters<typeof transporter.sendMail>[0] = {
       from: `"${fromName}" <${fromEmail}>`,
       to: recipient,
-      subject: `[MarketNet] Votre facture de paiement — ${inv.planName} (${formatCDF(inv.amountCDF)})`,
+      subject: `[MarketNet] Votre facture de paiement — ${inv.planName} (${formatUSD(inv.amountUSD)})`,
       html: buildInvoiceHtml(inv),
       attachments: pdfBuffer
         ? [
@@ -1068,73 +838,56 @@ export function buildDeletionEmailHtml(params: {
 }): string {
   const { fullName, deletedAt, supportEmail, siteUrl, shopName, isSelfDeleted } = params;
 
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirmation de clôture de votre compte — MarketNet</title>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155;">
-  <div style="width: 100%; background-color: #f8fafc; padding: 36px 16px;">
-    <div style="max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
-      
-      <!-- En-tête dégradé orange -->
-      <div style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); padding: 32px 28px; text-align: center;">
-        <h1 style="color: #ffffff; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin: 0;">Market<span style="color: #fed7aa;">Net</span></h1>
-        <div style="color: rgba(255, 255, 255, 0.95); font-size: 13px; margin-top: 6px; font-weight: 500;">Notification officielle de clôture de compte</div>
-      </div>
+  const contentHtml = `
+    <p style="margin: 0 0 16px; font-size: 15px; color: #0F172A; font-weight: 600;">
+      Bonjour ${fullName},
+    </p>
+    <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.6; color: #475569;">
+      ${isSelfDeleted
+        ? "Nous vous confirmons par cet e-mail que votre compte commerçant MarketNet ainsi que l'ensemble de vos données associées ont été <strong>définitivement supprimés</strong> conformément à votre demande."
+        : "Votre compte commerçant MarketNet a été clôturé et supprimé de notre plateforme."}
+    </p>
 
-      <!-- Contenu principal -->
-      <div style="padding: 32px 28px;">
-        <p style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 12px;">Bonjour ${fullName},</p>
-        
-        <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px;">
-          ${isSelfDeleted
-            ? "Nous vous confirmons par cet e-mail que votre compte commerçant MarketNet ainsi que l'ensemble de vos données associées ont été <strong>définitivement supprimés</strong> conformément à votre demande."
-            : "Votre compte commerçant MarketNet a été clôturé et supprimé de notre plateforme."}
-        </p>
-
-        <!-- Badge date et heure -->
-        <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 12px; padding: 14px 18px; margin: 20px 0; text-align: center;">
-          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: #e11d48; margin-bottom: 3px;">Date effective de suppression</div>
-          <div style="font-size: 15px; font-weight: 800; color: #9f1239;">${deletedAt}</div>
-          ${shopName ? `<div style="font-size: 12px; color: #64748b; margin-top: 4px;">Boutique concernée : <strong>${shopName}</strong></div>` : ""}
-        </div>
-
-        <!-- Liste des éléments effacés -->
-        <div style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px;">Données effacées définitivement de nos serveurs :</div>
-        <ul style="background-color: #f8fafc; border-radius: 12px; padding: 14px 18px 14px 34px; margin: 0 0 20px; font-size: 13px; color: #475569; line-height: 1.6;">
-          <li style="margin-bottom: 6px;">Votre boutique en ligne, vitrine et lien public</li>
-          <li style="margin-bottom: 6px;">L'ensemble de vos produits, images et tarifs</li>
-          <li style="margin-bottom: 6px;">L'historique de vos commandes et clients</li>
-          <li style="margin-bottom: 6px;">Vos campagnes promotionnelles et remises</li>
-          <li>Vos accès commerçant et données de profil</li>
-        </ul>
-
-        <!-- Bloc opportunité future -->
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;">
-          <p style="margin: 0; font-size: 13px; color: #166534; line-height: 1.5;">
-            <strong>Besoin de relancer une boutique ?</strong><br/>
-            Si vous souhaitez reprendre une activité commerciale dans le futur, la porte reste ouverte. Vous pourrez créer un nouveau compte gratuitement sur <a href="${siteUrl}" style="color: #166534; font-weight: 700; text-decoration: underline;">MarketNet</a>.
-          </p>
-        </div>
-
-        <p style="font-size: 12px; line-height: 1.6; color: #64748b; margin-top: 20px; border-top: 1px dashed #e2e8f0; padding-top: 14px;">
-          ⚠️ <strong>Vous n'êtes pas à l'origine de cette suppression ?</strong><br/>
-          Si vous n'avez pas sollicité cette action, veuillez contacter d'urgence notre assistance à <a href="mailto:${supportEmail}" style="color: #ea580c; text-decoration: none; font-weight: 600;">${supportEmail}</a>.
-        </p>
-      </div>
-
-      <!-- Footer -->
-      <div style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 28px; text-align: center;">
-        <p style="margin: 2px 0; font-size: 11px; color: #94a3b8;">© ${new Date().getFullYear()} MarketNet Africa — La plateforme e-commerce tout-en-un.</p>
-        <p style="margin: 2px 0; font-size: 11px; color: #94a3b8;">Ceci est une notification automatique de confirmation de clôture.</p>
-      </div>
+    <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 14px 18px; margin: 20px 0; text-align: center;">
+      <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: #DC2626; margin-bottom: 3px;">Date effective de suppression</div>
+      <div style="font-size: 15px; font-weight: 800; color: #991B1B;">${deletedAt}</div>
+      ${shopName ? `<div style="font-size: 12px; color: #64748B; margin-top: 4px;">Boutique concernée : <strong>${shopName}</strong></div>` : ""}
     </div>
-  </div>
-</body>
-</html>`;
+
+    <div style="font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 8px;">Données effacées définitivement de nos serveurs :</div>
+    <ul style="background-color: #F8FAFC; border-radius: 12px; padding: 14px 18px 14px 32px; margin: 0 0 20px; font-size: 13px; color: #475569; line-height: 1.6;">
+      <li style="margin-bottom: 6px;">Votre boutique en ligne, vitrine et lien public</li>
+      <li style="margin-bottom: 6px;">L'ensemble de vos produits, images et tarifs</li>
+      <li style="margin-bottom: 6px;">L'historique de vos commandes et clients</li>
+      <li style="margin-bottom: 6px;">Vos campagnes promotionnelles et remises</li>
+      <li>Vos accès commerçant et données de profil</li>
+    </ul>
+
+    <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;">
+      <p style="margin: 0; font-size: 13px; color: #166534; line-height: 1.5;">
+        <strong>Besoin de relancer une boutique ?</strong><br/>
+        Si vous souhaitez reprendre une activité commerciale dans le futur, la porte reste ouverte. Vous pourrez créer un nouveau compte gratuitement sur MarketNet.
+      </p>
+    </div>
+
+    <p style="font-size: 12px; line-height: 1.6; color: #64748B; margin-top: 20px; border-top: 1px dashed #E2E8F0; padding-top: 14px;">
+      <strong>Vous n'êtes pas à l'origine de cette suppression ?</strong><br/>
+      Si vous n'avez pas sollicité cette action, veuillez contacter d'urgence notre assistance à <a href="mailto:${supportEmail}" style="color: #4F46E5; text-decoration: none; font-weight: 600;">${supportEmail}</a>.
+    </p>
+  `;
+
+  return buildOfficialEmailHtml({
+    badgeText: "Compte Clôturé",
+    badgeVariant: "danger",
+    title: "Confirmation de clôture de votre compte",
+    preheader: `Clôture définitive du compte MarketNet de ${fullName}`,
+    contentHtml,
+    cta: {
+      label: "Créer une nouvelle boutique",
+      url: siteUrl,
+    },
+    secondaryText: "Notification officielle de suppression de compte MarketNet",
+  });
 }
 
 /**
@@ -1240,121 +993,39 @@ export function buildNewUserAdminAlertHtml(params: {
   registeredAt: string;
   adminUrl: string;
 }): string {
-  return `<!DOCTYPE html>
-<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Nouvelle inscription MarketNet</title>
-  <style>
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      min-width: 100% !important;
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-    }
-    table, td {
-      border-collapse: collapse !important;
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-    }
-    @media only screen and (max-width: 600px) {
-      .email-outer-td {
-        padding: 4px 2px !important;
-      }
-      .email-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 10px !important;
-      }
-      .email-header-cell {
-        padding: 18px 16px 14px !important;
-      }
-      .email-body-cell {
-        padding: 18px 16px !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
-    <tr>
-      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-          
-          <!-- En-tête -->
-          <tr>
-            <td class="email-header-cell" style="padding: 24px 28px 18px; background-color: #ffffff; border-bottom: 2px solid #f1f5f9;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  <td>
-                    <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">
-                      Market<span style="color: #f97316;">Net</span>
-                    </div>
-              <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
-                Plateforme d'Administration
-              </div>
-            </td>
-            <td align="right">
-              <span style="display: inline-block; padding: 6px 12px; background-color: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; border-radius: 9999px; border: 1px solid #bfdbfe;">
-                NOUVEAU MEMBRE
-              </span>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
+  const contentHtml = `
+    <p style="margin: 0 0 16px; font-size: 14px; color: #334155; line-height: 1.6;">
+      Un nouvel utilisateur vient de créer son compte sur la plateforme <strong>MarketNet</strong>.
+    </p>
 
-    <!-- Corps de l'email -->
-    <tr>
-      <td style="padding: 28px 32px 20px;">
-        <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 10px; color: #0f172a;">
-          👤 Un nouvel utilisateur vient de s'inscrire !
-        </h2>
-        <p style="font-size: 14px; line-height: 1.6; color: #475569; margin: 0 0 20px;">
-          Un nouveau compte utilisateur vient d'être créé sur la plateforme MarketNet. Voici le récapitulatif des détails fournis lors de l'inscription :
-        </p>
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; margin: 16px 0 20px; font-size: 13px;">
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #64748B; width: 140px; font-weight: 600;">Nom complet</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #0F172A; font-weight: 700;">${params.fullName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #64748B; font-weight: 600;">Adresse e-mail</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #0F172A; font-weight: 700;">${params.email}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; color: #64748B; font-weight: 600;">Date d'inscription</td>
+        <td style="padding: 12px 16px; color: #0F172A; font-weight: 600;">${params.registeredAt}</td>
+      </tr>
+    </table>
+  `;
 
-        <!-- Tableau récapitulatif -->
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
-          <tr>
-            <td style="padding: 14px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b; width: 140px; font-weight: 600;">Nom complet</td>
-            <td style="padding: 14px 18px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #0f172a; font-weight: 700;">${params.fullName}</td>
-          </tr>
-          <tr>
-            <td style="padding: 14px 18px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-weight: 600;">Adresse Email</td>
-            <td style="padding: 14px 18px; border-bottom: 1px solid #e2e8f0; font-size: 14px; color: #2563eb; font-weight: 600;">${params.email}</td>
-          </tr>
-          <tr>
-            <td style="padding: 14px 18px; font-size: 13px; color: #64748b; font-weight: 600;">Date & Heure</td>
-            <td style="padding: 14px 18px; font-size: 13px; color: #0f172a;">${params.registeredAt}</td>
-          </tr>
-        </table>
-
-        <!-- Bouton CTA vers l'admin -->
-        <div style="text-align: center; margin: 24px 0 12px;">
-          <a href="${params.adminUrl}" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 28px; border-radius: 10px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);">
-            Accéder à l'espace Commerçants →
-          </a>
-        </div>
-      </td>
-    </tr>
-
-    <!-- Pied de page -->
-    <tr>
-      <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #94a3b8;">
-        Notification automatique générée par MarketNet • Système d'alerte administrateur
-      </td>
-    </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  return buildOfficialEmailHtml({
+    badgeText: "Nouvel Utilisateur",
+    badgeVariant: "primary",
+    title: "Nouvelle inscription sur MarketNet",
+    preheader: `Nouvel utilisateur inscrit : ${params.fullName} (${params.email})`,
+    contentHtml,
+    cta: {
+      label: "Accéder à l'espace Commerçants",
+      url: params.adminUrl,
+    },
+    secondaryText: "Notification automatique générée pour l'administration de MarketNet",
+  });
 }
 
 export async function sendNewUserAdminNotification(params: NewUserRegistrationParams): Promise<{ success: boolean; messageId?: string; error?: string }> {
@@ -1426,194 +1097,56 @@ export function buildMerchantWelcomeHtml(params: {
   dashboardUrl: string;
   supportEmail: string;
 }): string {
-  return `<!DOCTYPE html>
-<html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Bienvenue sur MarketNet !</title>
-  <style>
-    html, body {
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      min-width: 100% !important;
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-    }
-    table, td {
-      border-collapse: collapse !important;
-      mso-table-lspace: 0pt;
-      mso-table-rspace: 0pt;
-    }
-    @media only screen and (max-width: 600px) {
-      .email-outer-td {
-        padding: 4px 2px !important;
-      }
-      .email-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 10px !important;
-      }
-      .email-header-cell {
-        padding: 24px 16px 20px !important;
-      }
-      .email-body-cell {
-        padding: 20px 16px !important;
-      }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; width: 100% !important; -webkit-text-size-adjust: 100%;">
-  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="width: 100%; margin: 0; padding: 0; background-color: #f1f5f9;">
-    <tr>
-      <td align="center" class="email-outer-td" style="padding: 20px 8px;">
-        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" class="email-container" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-          
-          <!-- En-tête avec Bannière dégradée -->
-          <tr>
-            <td class="email-header-cell" style="padding: 36px 32px 28px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); text-align: center;">
-              <div style="font-size: 28px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff;">
-                Market<span style="color: #f97316;">Net</span>
-              </div>
-        <p style="font-size: 13px; color: #94a3b8; margin: 6px 0 0;">
-          La plateforme e-commerce tout-en-un pour les commerçants de RDC
-        </p>
-      </td>
-    </tr>
+  const contentHtml = `
+    <p style="margin: 0 0 16px; font-size: 15px; font-weight: 600; color: #0F172A;">
+      Bonjour ${params.merchantName},
+    </p>
+    <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #475569;">
+      Félicitations ! Votre boutique en ligne <strong>${params.shopName}</strong> est désormais active et configurée avec le <strong>${params.planName}</strong>.
+    </p>
 
-    <!-- Corps principal -->
-    <tr>
-      <td style="padding: 32px 32px 24px;">
-        <div style="display: inline-block; padding: 6px 14px; background-color: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 800; border-radius: 9999px; border: 1px solid #ffedd5; margin-bottom: 12px;">
-          🎉 FÉLICITATIONS
-        </div>
-        <h1 style="font-size: 22px; font-weight: 900; color: #0f172a; margin: 0 0 12px; line-height: 1.3;">
-          Bienvenue dans la communauté, ${params.merchantName} !
-        </h1>
-        <p style="font-size: 15px; line-height: 1.6; color: #475569; margin: 0 0 24px;">
-          Votre boutique en ligne <strong style="color: #0f172a;">${params.shopName}</strong> est officiellement créée et active sur MarketNet. Vous avez franchi la première étape essentielle pour digitaliser votre commerce et multiplier vos ventes !
-        </p>
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; margin: 18px 0 22px; font-size: 13px;">
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #64748B; width: 140px; font-weight: 600;">Boutique</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #0F172A; font-weight: 700;">${params.shopName}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #64748B; font-weight: 600;">Formule</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #4F46E5; font-weight: 700;">${params.planName}</td>
+      </tr>
+      ${params.whatsapp ? `
+      <tr>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #64748B; font-weight: 600;">WhatsApp Pro</td>
+        <td style="padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #0F172A; font-weight: 600;">${params.whatsapp}</td>
+      </tr>` : ""}
+      <tr>
+        <td style="padding: 12px 16px; color: #64748B; font-weight: 600;">Lien public</td>
+        <td style="padding: 12px 16px; color: #4F46E5; font-weight: 600;"><a href="${params.shopUrl}" style="color: #4F46E5; text-decoration: none;">${params.shopUrl}</a></td>
+      </tr>
+    </table>
 
-        <!-- Carte récapitulative de la boutique -->
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 28px;">
-          <tr>
-            <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 4px;">Nom de votre boutique</span>
-              <strong style="font-size: 16px; color: #0f172a;">${params.shopName}</strong>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 4px;">Lien public pour vos clients</span>
-              <a href="${params.shopUrl}" style="font-size: 14px; color: #f97316; font-weight: 700; text-decoration: none; word-break: break-all;">
-                ${params.shopUrl} ↗
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 16px 20px;">
-              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                <tr>
-                  ${params.whatsapp ? `
-                  <td style="width: 50%;">
-                    <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 2px;">WhatsApp de vente</span>
-                    <span style="font-size: 13px; color: #0f172a; font-weight: 600;">${params.whatsapp}</span>
-                  </td>` : ""}
-                  <td>
-                    <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; margin-bottom: 2px;">Formule active</span>
-                    <span style="display: inline-block; padding: 2px 8px; background-color: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; border-radius: 6px;">${params.planName}</span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
+    <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;">
+      <p style="margin: 0; font-size: 13px; color: #166534; line-height: 1.5;">
+        <strong>Prochaines étapes conseillées :</strong><br/>
+        1. Ajoutez vos premiers articles et photos dans votre catalogue.<br/>
+        2. Partagez votre lien boutique à vos clients sur WhatsApp et sur vos réseaux sociaux.<br/>
+        3. Recevez directement vos commandes avec 0% de commission.
+      </p>
+    </div>
+  `;
 
-        <!-- Guide de démarrage rapide en 4 étapes -->
-        <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0 0 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-          🚀 Vos 4 prochaines étapes pour réussir :
-        </h3>
-        
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 28px;">
-          <tr>
-            <td style="padding: 10px 0; vertical-align: top; width: 32px;">
-              <div style="height: 24px; width: 24px; border-radius: 50%; background-color: #f97316; color: #ffffff; font-size: 12px; font-weight: 800; text-align: center; line-height: 24px;">1</div>
-            </td>
-            <td style="padding: 10px 0 10px 8px; vertical-align: top;">
-              <strong style="font-size: 14px; color: #0f172a; display: block;">Ajoutez vos premiers produits</strong>
-              <span style="font-size: 13px; color: #64748b; line-height: 1.4;">Téléchargez de belles photos, indiquez vos prix en USD ou Franc Congolais et rédigez une description claire.</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 10px 0; vertical-align: top; width: 32px;">
-              <div style="height: 24px; width: 24px; border-radius: 50%; background-color: #f97316; color: #ffffff; font-size: 12px; font-weight: 800; text-align: center; line-height: 24px;">2</div>
-            </td>
-            <td style="padding: 10px 0 10px 8px; vertical-align: top;">
-              <strong style="font-size: 14px; color: #0f172a; display: block;">Personnalisez votre vitrine</strong>
-              <span style="font-size: 13px; color: #64748b; line-height: 1.4;">Ajoutez votre logo, choisissez vos couleurs préférées et insérez une bannière engageante.</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 10px 0; vertical-align: top; width: 32px;">
-              <div style="height: 24px; width: 24px; border-radius: 50%; background-color: #f97316; color: #ffffff; font-size: 12px; font-weight: 800; text-align: center; line-height: 24px;">3</div>
-            </td>
-            <td style="padding: 10px 0 10px 8px; vertical-align: top;">
-              <strong style="font-size: 14px; color: #0f172a; display: block;">Partagez votre lien boutique</strong>
-              <span style="font-size: 13px; color: #64748b; line-height: 1.4;">Mettez votre lien dans votre statut WhatsApp, bio Instagram, page Facebook et vidéos TikTok.</span>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 10px 0; vertical-align: top; width: 32px;">
-              <div style="height: 24px; width: 24px; border-radius: 50%; background-color: #f97316; color: #ffffff; font-size: 12px; font-weight: 800; text-align: center; line-height: 24px;">4</div>
-            </td>
-            <td style="padding: 10px 0 10px 8px; vertical-align: top;">
-              <strong style="font-size: 14px; color: #0f172a; display: block;">Gérez vos commandes sans commission</strong>
-              <span style="font-size: 13px; color: #64748b; line-height: 1.4;">Recevez directement les alertes commandes de vos clients avec paiement direct par Mobile Money ou cash.</span>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Boutons d'action -->
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 10px 0 20px;">
-          <tr>
-            <td align="center">
-              <a href="${params.dashboardUrl}" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 800; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);">
-                Accéder à mon tableau de bord →
-              </a>
-              <div style="margin-top: 12px;">
-                <a href="${params.shopUrl}" style="font-size: 13px; color: #64748b; text-decoration: underline;">
-                  Aperçu de ma boutique en ligne
-                </a>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-
-    <!-- Assistance et contact -->
-    <tr>
-      <td style="padding: 20px 32px; background-color: #f1f5f9; border-top: 1px solid #e2e8f0;">
-        <p style="font-size: 13px; color: #475569; margin: 0; line-height: 1.5; text-align: center;">
-          Une question ou besoin d'aide pour lancer vos ventes ? Notre équipe se tient à votre entière disposition à l'adresse <a href="mailto:${params.supportEmail}" style="color: #f97316; font-weight: 700; text-decoration: none;">${params.supportEmail}</a>.
-        </p>
-      </td>
-    </tr>
-
-    <!-- Pied de page -->
-    <tr>
-      <td style="padding: 20px 32px; background-color: #ffffff; text-align: center; font-size: 12px; color: #94a3b8;">
-        © ${new Date().getFullYear()} MarketNet Inc. RDC • Conçu avec passion pour propulser l'e-commerce africain.
-      </td>
-    </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+  return buildOfficialEmailHtml({
+    badgeText: "Boutique Active",
+    badgeVariant: "success",
+    title: `Bienvenue sur MarketNet — ${params.shopName}`,
+    preheader: `Votre boutique ${params.shopName} est prête sur MarketNet`,
+    contentHtml,
+    cta: {
+      label: "Accéder à mon tableau de bord",
+      url: params.dashboardUrl,
+    },
+    secondaryText: `Besoin d'assistance ? Notre équipe vous répond à ${params.supportEmail}`,
+  });
 }
 
 export async function sendMerchantWelcomeEmail(params: MerchantWelcomeParams): Promise<{ success: boolean; messageId?: string; error?: string }> {

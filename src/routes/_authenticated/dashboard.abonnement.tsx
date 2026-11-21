@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Star,
-  Rocket,
   CheckCircle2,
   Shield,
   Receipt,
@@ -55,7 +54,7 @@ import {
   getPlanPrices,
   createCheckoutSession,
 } from "@/lib/subscriptions.functions";
-import { formatCDF, type SubscriptionPeriod } from "@/lib/subscriptions";
+import { formatCDF, formatUSD, type SubscriptionPeriod } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/lib/imported-database";
@@ -159,11 +158,11 @@ export const Route = createFileRoute("/_authenticated/dashboard/abonnement")({
   head: () => ({
     meta: [
       { property: "og:title", content: "Mon Abonnement & Paiements — MarketNet" },
-      { property: "og:description", content: "Gérez votre formule d'abonnement MarketNet et payez en Francs Congolais (FC) via SasPay." },
+      { property: "og:description", content: "Gérez votre formule d'abonnement MarketNet et payez en Dollars ($ USD) via SasPay." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Mon Abonnement & Paiements — MarketNet" },
-      { name: "description", content: "Gérez votre formule d'abonnement MarketNet et payez en Francs Congolais (FC) via SasPay." },
+      { name: "description", content: "Gérez votre formule d'abonnement MarketNet et payez en Dollars ($ USD) via SasPay." },
     ],
   }),
   errorComponent: SubscriptionErrorComponent,
@@ -347,7 +346,7 @@ function DashboardAbonnementPage() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-normal">Mon Abonnement</h1>
           <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-            Choisissez la formule adaptée à la croissance de votre boutique et réglez en Francs Congolais (FC).
+            Choisissez la formule adaptée à la croissance de votre boutique. Paiement sécurisé via SasPay.
           </p>
         </div>
       </div>
@@ -547,10 +546,9 @@ function DashboardAbonnementPage() {
         </div>
 
         {/* Cartes de plans — dynamiques depuis DB */}
-        <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid md:grid-cols-2 max-w-3xl mx-auto gap-4 sm:gap-6">
           {(plansLoading || pricesLoading) ? (
             <>
-              <PlanCardSkeleton />
               <PlanCardSkeleton />
               <PlanCardSkeleton />
             </>
@@ -572,9 +570,7 @@ function DashboardAbonnementPage() {
                     "rounded-3xl border bg-card p-5 sm:p-6 space-y-4 flex flex-col justify-between transition-all",
                     isPro
                       ? "border-2 border-primary/50 shadow-md relative overflow-hidden"
-                      : plan.id === "business"
-                        ? "bg-gradient-to-b from-primary/5 via-card to-card shadow-sm"
-                        : ""
+                      : ""
                   )}
                 >
                   {isPro && (
@@ -587,27 +583,25 @@ function DashboardAbonnementPage() {
                     <div className="flex items-center gap-2">
                       {isPro ? (
                         <Star className="h-4 w-4 text-warning fill-warning" />
-                      ) : plan.id === "business" ? (
-                        <Rocket className="h-4 w-4 text-primary" />
                       ) : null}
                       <span className="font-extrabold text-lg">{plan.name}</span>
                     </div>
 
-                    {/* Prix — strictement en Franc Congolais (FC) */}
+                    {/* Prix — strictement en Dollars ($ USD) */}
                     <div>
                       {isFree ? (
                         <>
                           <span className="text-3xl font-black">Gratuit</span>
                           <span className="text-xs text-muted-foreground ml-1">/toujours</span>
                         </>
-                      ) : (price?.price_cdf != null || (plan as any).price_cdf != null) ? (
+                      ) : (price?.price_usd != null || (plan as any).price_usd != null) ? (
                         <>
                           <span className="text-3xl font-black">
-                            {formatCDF(
-                              price?.price_cdf ??
+                            {formatUSD(
+                              price?.price_usd ??
                               (selectedPeriod === "mensuel"
-                                ? ((plan as any).price_cdf ?? 0)
-                                : ((plan as any).price_cdf ?? 0) * 10)
+                                ? ((plan as any).price_usd ?? 3)
+                                : ((plan as any).price_usd ? (plan as any).price_usd * 10 : 30))
                             )}
                           </span>
                           <span className="text-xs text-muted-foreground ml-1">
@@ -754,7 +748,10 @@ function DashboardAbonnementPage() {
             <div className="divide-y divide-border/60 rounded-2xl border bg-card overflow-hidden">
               {paginatedHistory.map((pay) => {
                 const status = resolvePaymentStatus(pay);
-                const amountCDF = Number(pay.montant_cdf ?? (pay as any).amount ?? 0);
+                const isUSD = (pay as any).currency === "USD" || pay.montant_usd != null;
+                const formattedAmount = isUSD
+                  ? formatUSD(Number(pay.montant_usd ?? (pay as any).amount ?? 0))
+                  : formatCDF(Number(pay.montant_cdf ?? (pay as any).amount ?? 0));
 
                 const statusDot = {
                   payé: "bg-success",
@@ -822,7 +819,7 @@ function DashboardAbonnementPage() {
                           </>
                         ) : (
                           <>
-                            <p className="font-black text-sm text-foreground">{formatCDF(amountCDF)}</p>
+                            <p className="font-black text-sm text-foreground">{formattedAmount}</p>
                             <p className={cn("text-[11px]", statusColor)}>{statusLabel}</p>
                           </>
                         )}
@@ -887,7 +884,7 @@ function DashboardAbonnementPage() {
               Comment payer mon abonnement ?
             </AccordionTrigger>
             <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-3">
-              C'est très simple ! Choisissez votre formule ci-dessus (Pro ou Business), puis validez avec votre compte Mobile Money habituel (<strong>M-Pesa, Orange Money, Airtel Money</strong>) ou par <strong>carte bancaire</strong>. Vous recevrez directement un message sur votre téléphone pour taper votre code secret et confirmer.
+              C'est très simple ! Choisissez votre formule ci-dessus (Pro), puis validez avec votre compte Mobile Money habituel (<strong>M-Pesa, Orange Money, Airtel Money</strong>) ou par <strong>carte bancaire</strong>. Vous recevrez directement un message sur votre téléphone pour taper votre code secret et confirmer.
             </AccordionContent>
           </AccordionItem>
 
@@ -935,9 +932,10 @@ function DashboardAbonnementPage() {
           {selectedReceipt && (() => {
             const status = resolvePaymentStatus(selectedReceipt);
             const isAttributed = status === "attribué";
-            const amountCDF = Number(
-              selectedReceipt.montant_cdf ?? selectedReceipt.amount ?? 0
-            );
+            const isUSD = (selectedReceipt as any).currency === "USD" || selectedReceipt.montant_usd != null;
+            const formattedReceiptAmount = isUSD
+              ? formatUSD(Number(selectedReceipt.montant_usd ?? selectedReceipt.amount ?? 0))
+              : formatCDF(Number(selectedReceipt.montant_cdf ?? selectedReceipt.amount ?? 0));
 
             const statusConfig = {
               payé: {
@@ -991,7 +989,7 @@ function DashboardAbonnementPage() {
                       : "bg-muted/30 border-border/50"
                   )}>
                     <p className="text-2xl sm:text-3xl font-black text-foreground tracking-normal capitalize">
-                      {isAttributed ? `Plan ${selectedReceipt.plan_id}` : formatCDF(amountCDF)}
+                      {isAttributed ? `Plan ${selectedReceipt.plan_id}` : formattedReceiptAmount}
                     </p>
                     <div className="flex items-center justify-center">
                       <span className={cn("inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold border", statusConfig.badgeClass)}>

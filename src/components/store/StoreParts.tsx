@@ -31,7 +31,7 @@ import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";
 import { cn } from "@/lib/utils";
 import React, { useState, useRef, useEffect } from "react";
 
-/** Hook : anime simultanément les compteurs quand le conteneur entre dans le viewport */
+/** Hook : anime simultanément les compteurs dès l'ouverture de la page et lors du scroll */
 function useMetricsCounter() {
   const [sold, setSold] = useState(0);
   const [clients, setClients] = useState(0);
@@ -39,28 +39,41 @@ function useMetricsCounter() {
   const started = useRef(false);
 
   useEffect(() => {
+    function startAnimation() {
+      if (started.current) return;
+      started.current = true;
+      const start = performance.now();
+      const duration = 1400;
+      const tick = (now: number) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        setSold(Math.round(eased * 200));
+        setClients(Math.round(eased * 150));
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    // Démarrage immédiat dès que le composant est monté
+    const autoTimer = setTimeout(startAnimation, 100);
+
     const el = ref.current;
-    if (!el) return;
+    if (!el) return () => clearTimeout(autoTimer);
+
     const obs = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          const start = performance.now();
-          const duration = 1200;
-          const tick = (now: number) => {
-            const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-            setSold(Math.round(eased * 200));
-            setClients(Math.round(eased * 150));
-            if (progress < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
+        if (entry.isIntersecting) {
+          startAnimation();
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.05 }
     );
     obs.observe(el);
-    return () => obs.disconnect();
+
+    return () => {
+      clearTimeout(autoTimer);
+      obs.disconnect();
+    };
   }, []);
 
   return { sold, clients, ref };

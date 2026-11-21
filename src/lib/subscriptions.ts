@@ -20,7 +20,7 @@ export interface PlanPrice {
   plan_id: string;
   period: SubscriptionPeriod;
   price_usd?: number | null;
-  price_cdf: number;
+  price_cdf?: number | null;
   currency?: string;
   is_active: boolean;
   created_at: string;
@@ -278,8 +278,12 @@ export function formatCDF(amount: number): string {
   return `${formatted} FC`;
 }
 
-/** Alias rétro-compatible redirigeant vers formatCDF (Franc Congolais) */
+/** Formatage standard des montants en Dollars ($ USD) pour les abonnements et factures */
 export function formatUSD(amount: number): string {
-  return formatCDF(amount);
+  const formatted = new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: amount % 1 !== 0 ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(amount).replace(/[\u202F\u00A0]/g, " ");
+  return `${formatted} $`;
 }
 
