@@ -3,6 +3,7 @@ import { useState, useMemo, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import {
   Tag,
   Plus,
@@ -447,10 +448,12 @@ function PromotionsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
+                    onClick={async () => {
                       const link = `${window.location.origin}/b/${shop.slug}/promo/${p.id}?src=share`;
-                      navigator.clipboard.writeText(link);
-                      toast.success("Lien de la promotion copié !");
+                      const ok = await copyToClipboard(link);
+                      if (ok) {
+                        toast.success("Lien de la promotion copié !");
+                      }
                     }}
                     className="rounded-xl h-8 px-2.5 text-xs gap-1"
                     title="Copier le lien de la promotion"

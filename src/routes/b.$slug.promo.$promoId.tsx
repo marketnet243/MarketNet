@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArrowLeft, AlertCircle, Share2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { StoreHeader, ProductCard } from "@/components/store/StoreParts";
 import { StoreOfflineView } from "@/components/store/StoreOfflineView";
@@ -158,8 +159,9 @@ function DedicatedPromoPage() {
                   if (navigator.share) {
                     navigator.share({ title: promo.title, text: promo.description || promo.title, url }).catch(() => {});
                   } else {
-                    navigator.clipboard.writeText(url);
-                    toast.success("Lien de la promotion copié !");
+                    copyToClipboard(url).then((ok) => {
+                      if (ok) toast.success("Lien de la promotion copié !");
+                    });
                   }
                 }}
                 className="rounded-xl h-8 px-3 text-xs gap-1.5"

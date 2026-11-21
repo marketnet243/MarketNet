@@ -29,7 +29,7 @@ async function getSupportAdminEmail(): Promise<string> {
     .select("value")
     .eq("key", "support_email")
     .maybeSingle();
-  const fromEnv = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
+  const fromEnv = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "marketnet243@gmail.com";
   if (!data?.value) return fromEnv;
   const v = typeof data.value === "string" ? data.value : JSON.stringify(data.value);
   const cleaned = v.replace(/^"|"$/g, "").trim();
@@ -197,7 +197,7 @@ async function sendWithRetry(params: {
   const transporter = createSmtpTransporter();
   if (!transporter) return { success: false, error: "SMTP non configuré" };
   const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-  const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+  const fromEmail = process.env["SMTP_USER"]?.trim() || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
 
   let lastError = "";
   for (let attempt = 1; attempt <= 3; attempt++) {

@@ -202,7 +202,7 @@ export async function sendMarketNetEmail(options: MarketNetEmailOptions) {
   }
 
   const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-  const fromUser = process.env["SMTP_USER"] || "notifications@marketnet.cd";
+  const fromUser = process.env["SMTP_USER"] || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
   const from = `"${fromName}" <${fromUser}>`;
 
   const html = buildOfficialEmailHtml({

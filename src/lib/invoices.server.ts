@@ -53,7 +53,7 @@ export async function getInvoiceData(paymentId: string): Promise<InvoiceData | n
   const merchantId = payment.merchant_id || shop?.owner_id;
 
   // Récupérer l'email et le nom du commerçant
-  let merchantEmail = "client@marketnet.cd";
+  let merchantEmail = "";
   let merchantName = shop?.name || "Commerçant";
 
   if (merchantId) {
@@ -424,7 +424,8 @@ export async function generateInvoicePdf(inv: InvoiceData): Promise<Buffer> {
     font: fontBold,
     color: slate,
   });
-  page.drawText(cleanPdfText("Assistance technique & Support : support@marketnet.cd -- WhatsApp MarketNet"), {
+  const supportContact = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "marketnet243@gmail.com";
+  page.drawText(cleanPdfText(`Assistance technique & Support : ${supportContact}`), {
     x: 45,
     y: 92,
     size: 8,
@@ -483,7 +484,7 @@ export async function getAssignmentLetterData(paymentId: string): Promise<Assign
 
   const shop = payment.shops as any;
   const merchantId = payment.merchant_id || shop?.owner_id;
-  let merchantEmail = "client@marketnet.cd";
+  let merchantEmail = "";
   let merchantName = shop?.name || "Commerçant";
 
   if (merchantId) {
@@ -518,7 +519,7 @@ export async function getAssignmentLetterData(paymentId: string): Promise<Assign
     }
   }
 
-  const adminEmail = process.env["MARKETNET_ADMIN_EMAIL"] || "admin@marketnet.cd";
+  const adminEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "marketnet243@gmail.com";
 
   return {
     letterNumber,
@@ -743,7 +744,7 @@ export async function sendAssignmentLetterEmail(params: {
     }
 
     const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
 
     const info = await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,
@@ -787,7 +788,7 @@ export async function sendSubscriptionInvoiceEmail(params: {
     }
 
     const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
 
     // Génération du PDF de facture en pièce jointe
     let pdfBuffer: Buffer | null = null;
@@ -911,7 +912,7 @@ export async function sendDeletionConfirmationEmail(params: {
     }
 
     const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
     const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || fromEmail;
     const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 
@@ -1037,7 +1038,7 @@ export async function sendNewUserAdminNotification(params: NewUserRegistrationPa
     }
 
     const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
     const adminEmail = process.env["MARKETNET_ADMIN_EMAIL"] || fromEmail;
     const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 
@@ -1158,7 +1159,7 @@ export async function sendMerchantWelcomeEmail(params: MerchantWelcomeParams): P
     }
 
     const fromName = process.env["SMTP_FROM_NAME"] || "MarketNet";
-    const fromEmail = process.env["SMTP_USER"]?.trim() || "contact@marketnet.cd";
+    const fromEmail = process.env["SMTP_USER"]?.trim() || process.env["MARKETNET_ADMIN_EMAIL"] || "marketnet243@gmail.com";
     const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || fromEmail;
     const siteUrl = process.env["MARKETNET_SITE_URL"] || "https://appmarketnet.vercel.app";
 

@@ -9,20 +9,36 @@ import cataloguePhoto from '@/assets/marketnet-catalogue.jpg';
 import boutiquePhoto from '@/assets/marketnet-boutique.jpg';
 
 export const Route = createFileRoute('/')({
-  head: () => ({
-    meta: [
-      { title: 'MarketNet — Créez votre boutique en ligne et vendez sur WhatsApp' },
-      { name: 'description', content: 'Créez gratuitement votre boutique en ligne en 5 minutes. Catalogue, prix en $ et en FC, commandes reçues sur WhatsApp. 0 % de commission, pensé pour les commerçants de RDC.' },
-      { property: 'og:title', content: 'MarketNet — Votre boutique en ligne, vos commandes sur WhatsApp' },
-      { property: 'og:description', content: 'Un catalogue à votre image, un lien à partager, des commandes claires sur WhatsApp. Gratuit pour commencer, sans commission.' },
-      { property: 'og:type', content: 'website' },
-      { property: 'og:url', content: '/' },
-      { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: 'MarketNet — Vendez en ligne, simplement' },
-      { name: 'twitter:description', content: 'Créez votre boutique, partagez votre lien, recevez vos commandes sur WhatsApp.' },
-    ],
-    links: [{ rel: 'canonical', href: '/' }],
-  }),
+  head: () => {
+    const origin =
+      typeof window !== 'undefined' && window.location.origin
+        ? window.location.origin
+        : (typeof process !== 'undefined' && process.env?.MARKETNET_SITE_URL) || 'https://appmarketnet.vercel.app';
+    const ogImage = `${origin}/og-image.png`;
+
+    return {
+      meta: [
+        { title: 'MarketNet — Créez votre boutique en ligne et vendez sur WhatsApp' },
+        { name: 'description', content: 'Créez gratuitement votre boutique en ligne en 5 minutes. Catalogue, prix en $ et en FC, commandes reçues sur WhatsApp. 0 % de commission, pensé pour les commerçants de RDC.' },
+        { property: 'og:site_name', content: 'MarketNet' },
+        { property: 'og:title', content: 'MarketNet — Votre boutique en ligne, vos commandes sur WhatsApp' },
+        { property: 'og:description', content: 'Un catalogue à votre image, un lien à partager, des commandes claires sur WhatsApp. Gratuit pour commencer, sans commission.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: origin },
+        { property: 'og:image', content: ogImage },
+        { property: 'og:image:secure_url', content: ogImage },
+        { property: 'og:image:type', content: 'image/png' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:alt', content: 'MarketNet' },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'MarketNet — Vendez en ligne, simplement' },
+        { name: 'twitter:description', content: 'Créez votre boutique, partagez votre lien, recevez vos commandes sur WhatsApp.' },
+        { name: 'twitter:image', content: ogImage },
+      ],
+      links: [{ rel: 'canonical', href: '/' }],
+    };
+  },
   component: Index,
 });
 const features = [

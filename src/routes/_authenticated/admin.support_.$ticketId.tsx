@@ -88,7 +88,7 @@ function MessageBubble({ msg }: { msg: SupportMessage }) {
         <div className={cn(
           "rounded-2xl px-4 py-3 text-sm leading-relaxed",
           msg.note_interne
-            ? "bg-warning border border-warning text-warning rounded-tl-sm"
+            ? "bg-amber-500/10 border border-amber-500/30 text-foreground rounded-tl-sm"
             : isAdmin
             ? "bg-muted text-foreground rounded-tl-sm"
             : "bg-primary text-primary-foreground rounded-tr-sm"

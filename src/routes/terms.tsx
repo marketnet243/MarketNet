@@ -1,10 +1,18 @@
 import { PublicHeader } from "@/components/site/PublicHeader";
 import { PublicFooter } from "@/components/site/PublicFooter";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/imported-database";
-import { Scale, CheckCircle2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import {
+  Scale,
+  CheckCircle2,
+  CreditCard,
+  ShoppingBag,
+  ShieldCheck,
+  AlertTriangle,
+  Clock,
+  HelpCircle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -15,13 +23,13 @@ export const Route = createFileRoute("/terms")({
       {
         name: "description",
         content:
-          "Conditions Générales d'Utilisation du service MarketNet pour les commerçants et créateurs de boutiques en ligne.",
+          "Conditions Générales d'Utilisation du service MarketNet pour les commerçants, marchands et créateurs de boutiques.",
       },
       { property: "og:title", content: "Conditions Générales d'Utilisation — MarketNet" },
       {
         property: "og:description",
         content:
-          "Consultez les règles, modalités d'abonnement et responsabilités sur la plateforme MarketNet.",
+          "Consultez les règles d'utilisation, formules d'abonnement et responsabilités sur la plateforme MarketNet.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -38,125 +46,150 @@ function TermsPage() {
         .select("value")
         .eq("key", "contact_email")
         .maybeSingle();
-      return data?.value ? String(data.value) : "support@marketnet.cd";
+      return data?.value ? String(data.value) : "marketnet243@gmail.com";
     },
   });
 
   return (
-    <div className="legal-layout">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-between">
       <PublicHeader solid />
-      <div className="legal-inner">
 
-        <div className="legal-body">
-          <div className="legal-title">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5">
-              <Scale className="h-8 w-8" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-normal text-foreground">Conditions Générales d'Utilisation</h1>
-            <p className="mt-3 text-muted-foreground text-lg">Règles et modalités d'utilisation de nos services.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 19 octobre 2026</p>
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10">
+        {/* ── En-tête de page ── */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
+            <Scale className="h-8 w-8" />
           </div>
-
-          <div className="space-y-12">
-            
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">Bienvenue sur MarketNet</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet est une plateforme technologique SaaS permettant aux commerçants et entrepreneurs de créer et gérer facilement leur boutique en ligne, de publier leurs catalogues et d'acheminer les commandes de leurs clients directement sur WhatsApp. En utilisant nos services, vous acceptez sans réserve les présentes conditions.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">1. Votre boutique, vos règles</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Vous êtes l'unique responsable de votre boutique, de vos stocks, de la conformité de vos prix et de la relation avec vos clients. Vous vous engagez formellement à ne vendre aucun produit illégal, contrefait, dangereux ou soumis à restriction légale en République Démocratique du Congo, et à toujours honorer de bonne foi les commandes passées par vos clients.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">2. Abonnements et Paiements</h2>
-              <div className="text-muted-foreground leading-relaxed text-base sm:text-lg space-y-3">
-                <p>
-                  L'accès aux options avancées (nombre élargi de produits, bannières promotionnelles, thèmes personnalisés, statistiques détaillées) dépend du forfait souscrit. Les règlements s'effectuent en Francs Congolais (CDF) par Mobile Money (M-Pesa, Airtel Money, Orange Money) ou Carte Bancaire via SasPay.
-                </p>
-                <p>
-                  <strong>En cas de non-renouvellement d'un forfait payant (ex: forfait Pro) :</strong>
-                </p>
-                <ul className="list-disc pl-6 space-y-2 text-base">
-                  <li>Une période de grâce de <strong>7 jours</strong> vous est accordée pour renouveler votre forfait sans aucune interruption.</li>
-                  <li>Passé ce délai de grâce, votre compte repasse automatiquement sur le <strong>forfait Gratuit</strong> : les fonctionnalités avancées sont temporairement bloquées pour ne laisser actives que celles du forfait gratuit.</li>
-                  <li>Les produits dépassant le quota autorisé par le forfait gratuit sont <strong>temporairement désactivés de la vitrine publique</strong> (ils ne sont jamais supprimés de votre compte).</li>
-                  <li>Dès que vous renouvelez votre abonnement, <strong>tout se réactive automatiquement</strong> : vos produits masqués réapparaissent instantanément et vos fonctionnalités avancées sont débloquées sans aucune perte.</li>
-                </ul>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">3. Commandes et Rôle de MarketNet</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet fournit une vitrine technique et redirige l'acheteur vers le WhatsApp du commerçant pour finaliser la commande. MarketNet n'intervient pas dans la livraison des marchandises, n'encaisse pas les montants des ventes de produits et ne prélève aucune commission sur vos transactions directes avec vos clients.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">4. Sécurité et Modération</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
-                Afin de garantir un écosystème sain et de protéger les consommateurs, l'équipe MarketNet se réserve le droit d'intervenir :
-              </p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Suspension temporaire d'une boutique :</strong> en cas de signalements répétés, d'usurpation d'identité ou de suspicion avérée d'escroquerie.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Suppression immédiate et définitive :</strong> si des produits interdits, contrefaçons manifestes ou contenus illicites sont publiés sur la vitrine.</span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">5. Données et Confidentialité</h2>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span><strong>Vos données marchandes :</strong> Vos informations de contact et configurations sont strictement protégées et ne sont jamais vendues ni cédées à des tiers.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span><strong>Données de vos acheteurs :</strong> Vous vous engagez à respecter la vie privée de vos clients et à ne pas divulguer ni exploiter leurs numéros WhatsApp à des fins de spam.</span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">6. Résiliation et Suppression de compte</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Vous êtes libre de cesser d'utiliser MarketNet à tout moment. Vous pouvez introduire une demande de suppression de compte depuis l'onglet Réglages de votre tableau de bord ou par e-mail. Afin de prévenir toute perte involontaire, un délai de grâce pouvant aller jusqu'à <strong>30 jours</strong> s'applique avant la purge irréversible de vos catalogues et images. Consultez la page{" "}
-                <Link to="/data-deletion" className="font-semibold text-primary underline underline-offset-4 hover:opacity-80">
-                  Suppression des données
-                </Link>{" "}
-                pour le détail de la procédure.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">7. Propriété intellectuelle</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet demeure titulaire exclusif des droits sur le logiciel, l'interface et le code source. Cependant, vous restez l'unique propriétaire de l'ensemble des contenus, marques, logos et photographies que vous publiez sur votre boutique.
-              </p>
-            </section>
-
-            <div className="mt-8 p-6 bg-muted/50 rounded-2xl border border-muted">
-              <h3 className="font-bold text-foreground mb-2">Nous contacter</h3>
-              <p className="text-muted-foreground">
-                Pour toute question relative aux présentes conditions ou pour signaler un litige, veuillez nous écrire à :{" "}
-                <a href={`mailto:${contactEmail}`} className="font-bold text-primary hover:underline">{contactEmail}</a>
-              </p>
-            </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+            Conditions Générales d'Utilisation
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed">
+            Règles d'exploitation, engagements mutuels et modalités d'abonnement au service MarketNet.
+          </p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/60 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <Clock className="h-3.5 w-3.5 text-primary" />
+            <span>Version en vigueur : Novembre 2026</span>
           </div>
         </div>
-      </div>
+
+        {/* ── Cartes de contenu ── */}
+        <div className="space-y-6">
+          {/* 1. Objet et acceptation */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              <span>1. Objet du service &amp; Rôle de MarketNet</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              MarketNet fournit une suite d'outils logiciels SaaS permettant aux professionnels, marchands et artisans de
+              créer et héberger une vitrine de catalogue numérique, de partager leur lien public et de recevoir des bons de
+              commandes directement via l'application de messagerie WhatsApp. MarketNet n'est ni grossiste ni revendeur,
+              n'intervient pas dans les livraisons physiques et ne prélève aucune commission sur les transactions directes
+              entre acheteurs et commerçants.
+            </p>
+          </div>
+
+          {/* 2. Responsabilité du commerçant */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <ShieldCheck className="h-5 w-5 text-emerald-600" />
+              <span>2. Responsabilité et conformité des produits</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Le commerçant est seul et entièrement responsable de l'exactitude de ses descriptifs de produits, de ses prix, de
+              la détention des stocks et de la qualité des marchandises livrées. Sont formellement prohibés sur MarketNet tous
+              produits illégaux, contrefaçons, substances contrôlées ou stupéfiants, armes, ainsi que tout contenu attentatoire
+              aux lois en vigueur en République Démocratique du Congo.
+            </p>
+          </div>
+
+          {/* 3. Abonnements, Forfait Gratuit & Plan Pro */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <CreditCard className="h-5 w-5 text-indigo-600" />
+              <span>3. Modalités d'Abonnement et Paiement (SasPay)</span>
+            </h2>
+            <div className="text-sm text-slate-600 dark:text-slate-400 space-y-3 leading-relaxed">
+              <p>
+                MarketNet propose une formule <strong>Gratuite</strong> (incluant jusqu'à 10 produits) et un{" "}
+                <strong>Plan Pro</strong> facturé à <strong>3 $ USD par mois</strong> (ou 30 $ USD par an), payable en Dollars
+                Américains ou leur équivalent en Francs Congolais (CDF) par Mobile Money (M-Pesa, Airtel Money, Orange Money) ou
+                Carte Bancaire via SasPay.
+              </p>
+
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-850 p-4 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                <p className="font-bold text-xs text-slate-900 dark:text-slate-100">
+                  Règles de transition et Période de grâce (7 jours) :
+                </p>
+                <ul className="list-disc pl-5 space-y-1.5 text-xs">
+                  <li>
+                    À l'échéance du Plan Pro, une <strong>période de grâce de 7 jours</strong> s'active automatiquement, durant
+                    laquelle l'ensemble de vos avantages illimités reste pleinement accessible sans interruption.
+                  </li>
+                  <li>
+                    Si aucun renouvellement n'intervient à l'issue de ces 7 jours, le compte bascule automatiquement vers le
+                    forfait Gratuit : vos produits excédant le quota de 10 sont <strong>mis en pause</strong> de la vitrine
+                    publique, sans jamais être supprimés.
+                  </li>
+                  <li>
+                    Dès renouvellement de l'abonnement, l'intégralité de vos articles et promotions est réactivée instantanément.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Résiliation & Suppression de compte */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <span>4. Résiliation et Droit de retrait</span>
+              </h2>
+              <Link to="/data-deletion" className="text-xs font-bold text-primary hover:underline shrink-0">
+                Procédure de suppression &rarr;
+              </Link>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Le commerçant peut résilier son engagement ou solliciter la clôture de sa boutique à tout moment. Les demandes
+              effectuées via la plateforme bénéficient d'un délai de rétractation de 30 jours, durant lequel la vitrine est
+              masquée du public tout en autorisant une réactivation immédiate en cas de changement d'avis.
+            </p>
+          </div>
+
+          {/* Assistance */}
+          <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 shadow-xs space-y-3">
+            <h3 className="font-bold text-base">Besoin d'informations contractuelles ?</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Notre équipe d'assistance se tient à votre disposition pour toute question :
+            </p>
+            <a
+              href={`mailto:${contactEmail}`}
+              className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+            >
+              {contactEmail}
+            </a>
+          </div>
+        </div>
+
+        {/* ── Pied de page ── */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-slate-100/70 dark:bg-slate-850 text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            <span>Documents juridiques associés</span>
+          </div>
+          <div className="flex items-center gap-4 font-semibold">
+            <Link to="/privacy" className="text-primary hover:underline">
+              Politique de Confidentialité
+            </Link>
+            <span>·</span>
+            <Link to="/data-deletion" className="text-primary hover:underline">
+              Suppression des données
+            </Link>
+          </div>
+        </div>
+      </main>
+
       <PublicFooter />
     </div>
   );

@@ -49,26 +49,26 @@ export const Route = createFileRoute("/_authenticated/admin/demandes-suppression
 });
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  pending:   { label: "En attente",  color: "bg-warning/15 text-warning dark:text-warning border-warning/30" },
-  processed: { label: "Traitee",     color: "bg-destructive/15 text-destructive dark:text-destructive border-destructive/30" },
-  restored:  { label: "Restauree",   color: "bg-success/15 text-success dark:text-success border-success/30" },
-  cancelled: { label: "Annulee",     color: "bg-muted/15 text-foreground dark:text-foreground border-border/30" },
-  completed: { label: "Supprimee",   color: "bg-muted/15 text-foreground dark:text-foreground border-border/30" },
+  pending:   { label: "En attente",  color: "bg-warning/15 text-warning border-warning/30" },
+  processed: { label: "Traitée",     color: "bg-destructive/15 text-destructive border-destructive/30" },
+  restored:  { label: "Restaurée",   color: "bg-success/15 text-success border-success/30" },
+  cancelled: { label: "Annulée",     color: "bg-muted/60 text-foreground border-border/30" },
+  completed: { label: "Supprimée",   color: "bg-muted/60 text-foreground border-border/30" },
 };
 
 const REASON_LABELS: Record<string, string> = {
   trop_cher:           "Trop cher",
   plus_besoin:         "Plus besoin",
   autre_outil:         "Autre outil",
-  probleme_technique:  "Probleme technique",
+  probleme_technique:  "Problème technique",
   autre:               "Autre",
 };
 
 const FILTER_TABS = [
   { key: "all",      label: "Toutes" },
   { key: "pending",  label: "En attente" },
-  { key: "processed",label: "Traitees" },
-  { key: "terminal", label: "Terminees" },
+  { key: "processed",label: "Traitées" },
+  { key: "terminal", label: "Terminées" },
 ] as const;
 
 function AdminDeletionRequestsPage() {
@@ -195,7 +195,7 @@ function AdminDeletionRequestsPage() {
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold tracking-normal">Demandes de suppression de compte</h1>
         <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-          Gerez les demandes soumises par les commercants. Traitez ou restaurez les comptes.
+          Gérez les demandes soumises par les commerçants. Traitez ou restaurez les comptes.
         </p>
       </div>
 
@@ -268,7 +268,7 @@ function AdminDeletionRequestsPage() {
                   <p className="text-xs font-medium mt-0.5">{REASON_LABELS[req.reason] || req.reason}{req.reason_other ? ` — ${req.reason_other}` : ""}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal">Suppression prevue</p>
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-normal">Suppression prévue</p>
                   <p className="text-xs font-medium mt-0.5">{fmtDate(req.scheduled_deletion_at)}</p>
                 </div>
               </div>
@@ -335,15 +335,15 @@ function AdminDeletionRequestsPage() {
               <AlertTriangle className="h-5 w-5" /> Traiter la demande
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Le compte de <strong>{processModal?.merchantName}</strong> (boutique : <strong>{processModal?.shopName}</strong>) sera suspendu immediatement.
-              Definissez la date de suppression definitive.
+              Le compte de <strong>{processModal?.merchantName}</strong> (boutique : <strong>{processModal?.shopName}</strong>) sera suspendu immédiatement.
+              Définissez la date de suppression définitive.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-1">
             <div className="space-y-1.5">
               <Label htmlFor="scheduled-date" className="text-xs font-semibold">
-                Date et heure de suppression definitive <span className="text-destructive">*</span>
+                Date et heure de suppression définitive <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="scheduled-date"
@@ -389,7 +389,7 @@ function AdminDeletionRequestsPage() {
               <RotateCcw className="h-5 w-5" /> Restaurer le compte
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Le compte de <strong>{restoreModal?.merchantName}</strong> sera reactive. La boutique redevient visible en ligne.
+              Le compte de <strong>{restoreModal?.merchantName}</strong> sera réactivé. La boutique redevient visible en ligne.
             </DialogDescription>
           </DialogHeader>
 
@@ -412,7 +412,7 @@ function AdminDeletionRequestsPage() {
             <Button variant="outline" onClick={() => setRestoreModal(null)} disabled={processing} className="rounded-xl">Annuler</Button>
             <Button onClick={handleRestore} disabled={processing} className="bg-success hover:bg-success text-primary-foreground rounded-xl">
               {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RotateCcw className="h-4 w-4 mr-2" />}
-              Restaurer
+              Restaurer le compte
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -426,7 +426,7 @@ function AdminDeletionRequestsPage() {
               <CalendarDays className="h-5 w-5" /> Modifier la date de suppression
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Modifier la date de suppression definitive pour <strong>{dateModal?.merchantName}</strong>.
+              Modifier la date de suppression définitive pour <strong>{dateModal?.merchantName}</strong>.
             </DialogDescription>
           </DialogHeader>
 

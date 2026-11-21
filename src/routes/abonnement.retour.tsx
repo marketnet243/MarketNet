@@ -390,10 +390,10 @@ function PageShell({ children }: { children: React.ReactNode }) {
         <p className="text-center text-xs text-muted-foreground mt-6">
           Des questions ? Contactez{" "}
           <a
-            href="mailto:support@marketnet.cd"
+            href="mailto:marketnet243@gmail.com"
             className="underline underline-offset-2 hover:text-foreground"
           >
-            support@marketnet.cd
+            marketnet243@gmail.com
           </a>
         </p>
       </div>

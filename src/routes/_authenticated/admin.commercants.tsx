@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo, type ReactNode } from "react";
 import { toast } from "sonner";
+import { copyToClipboard as universalCopy } from "@/lib/clipboard";
 import {
   Users, ShieldCheck, Clock3, Store, Search, X, RefreshCw, AlertTriangle,
   Trash2, Mail, ExternalLink, MoreVertical, Eye, Copy, Check, Phone,
@@ -192,11 +193,13 @@ function Merchants() {
     });
   }, [merchants, query, filter]);
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    toast.success("Copié dans le presse-papier");
-    setTimeout(() => setCopiedId(null), 2000);
+  const copyToClipboard = async (text: string, id: string) => {
+    const ok = await universalCopy(text);
+    if (ok) {
+      setCopiedId(id);
+      toast.success("Copié dans le presse-papier");
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   };
 
   const handleUpdateStatus = async (merchant: ProfileData, newStatus: "active" | "suspended") => {
@@ -438,20 +441,10 @@ function Merchants() {
                 >
                   {/* Left: Avatar & Profile Info */}
                   <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-                    <div className="relative shrink-0">
+                    <div className="shrink-0">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary text-sm font-bold border border-primary/20 shadow-2xs">
                         {initials(m.full_name, m.email)}
                       </div>
-                      <span
-                        className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card ${
-                          m.status === "active"
-                            ? "bg-success"
-                            : m.status === "pending"
-                            ? "bg-warning"
-                            : "bg-destructive"
-                        }`}
-                        title={m.status ?? "inconnu"}
-                      />
                     </div>
 
                     <div className="min-w-0 space-y-0.5">
@@ -460,7 +453,7 @@ function Merchants() {
                           {m.full_name || "Commerçant sans nom"}
                         </span>
                         {m.role === "admin" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-info text-info dark:bg-info/60 dark:text-info border border-info dark:border-info">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-info/15 text-info border border-info/30">
                             <ShieldCheck className="h-3 w-3" /> Admin
                           </span>
                         )}
@@ -515,17 +508,17 @@ function Merchants() {
                     {/* Status Pill */}
                     <div className="shrink-0">
                       {m.status === "active" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success text-success border border-success dark:bg-success/40 dark:text-success dark:border-success">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/30">
                           <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                           Actif
                         </span>
                       ) : m.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-warning text-warning border border-warning dark:bg-warning/40 dark:text-warning dark:border-warning">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-warning/15 text-warning border border-warning/30">
                           <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                           En attente
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive text-destructive border border-destructive dark:bg-destructive/40 dark:text-destructive dark:border-destructive">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive/15 text-destructive border border-destructive/30">
                           <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
                           Suspendu
                         </span>
@@ -566,7 +559,7 @@ function Merchants() {
 
                           {m.email && (
                             <DropdownMenuItem asChild className="rounded-lg text-xs font-medium cursor-pointer">
-                              <a href={`mailto:${m.email}?subject=Support ShopWave`}>
+                              <a href={`mailto:${m.email}?subject=Support MarketNet`}>
                                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
                                 Envoyer un e-mail
                               </a>
@@ -641,7 +634,7 @@ function Merchants() {
                         {selectedMerchant.full_name || "Commerçant"}
                       </h3>
                       {selectedMerchant.role === "admin" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-info text-info dark:bg-info/60 dark:text-info border border-info">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-info/15 text-info border border-info/30">
                           Administrateur
                         </span>
                       )}
@@ -649,16 +642,16 @@ function Merchants() {
                     <p className="text-xs text-muted-foreground mt-0.5">{selectedMerchant.email}</p>
                     <div className="mt-2 flex items-center gap-2">
                       {selectedMerchant.status === "active" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success text-success dark:bg-success dark:text-success">
-                          <CheckCircle2 className="h-3 w-3 text-success" /> Compte actif
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/30">
+                          <CheckCircle2 className="h-3 w-3" /> Compte actif
                         </span>
                       ) : selectedMerchant.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning text-warning dark:bg-warning dark:text-warning">
-                          <Clock3 className="h-3 w-3 text-warning" /> En attente de validation
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-warning/15 text-warning border border-warning/30">
+                          <Clock3 className="h-3 w-3" /> En attente de validation
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-destructive text-destructive dark:bg-destructive dark:text-destructive">
-                          <Ban className="h-3 w-3 text-destructive" /> Compte suspendu
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-destructive/15 text-destructive border border-destructive/30">
+                          <Ban className="h-3 w-3" /> Compte suspendu
                         </span>
                       )}
                     </div>

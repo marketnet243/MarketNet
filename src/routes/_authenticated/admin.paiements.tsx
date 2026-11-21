@@ -57,7 +57,7 @@ import {
   adminAssignPlan,
   adminGetPaymentEvents,
 } from "@/lib/subscriptions.functions";
-import { formatCDF, type SubscriptionPeriod } from "@/lib/subscriptions";
+import { formatCDF, formatUSD, type SubscriptionPeriod } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/paiements")({
@@ -76,6 +76,29 @@ function isPaymentAttributed(p: any): boolean {
   const isPaid = p.statut === "payé" || p.status === "approved";
   const isManual = p.methode === "manuel" || p.method === "manuel" || p.method === "cash" || p.admin_note?.includes("Attribution");
   return isPaid && isManual;
+}
+
+function getAmountUsd(p: any): number {
+  if (p.currency === "USD" || (p.montant_usd != null && p.montant_usd > 0)) {
+    return Number(p.montant_usd ?? p.amount ?? 0);
+  }
+  const cdf = Number(p.montant_cdf ?? p.amount ?? 0);
+  if (cdf > 1000) {
+    return Math.round((cdf / 2850) * 100) / 100;
+  }
+  return cdf;
+}
+
+function formatPaymentAmount(p: any): string {
+  if (p.currency === "USD" || (p.montant_usd != null && p.montant_usd > 0) || (p.amount != null && p.amount > 0 && p.amount <= 1000)) {
+    const val = Number(p.montant_usd ?? p.amount ?? 0);
+    return formatUSD(val);
+  }
+  const cdf = Number(p.montant_cdf ?? p.amount ?? 0);
+  if (cdf > 0) {
+    return formatCDF(cdf);
+  }
+  return formatUSD(0);
 }
 
 function getNormalizedStatus(p: any): string {
@@ -293,9 +316,9 @@ function AdminPaymentsPage() {
 
   // Compute Metrics (Option 2 : Séparation Encaissé SasPay vs Attributions Admin)
   const metrics = useMemo(() => {
-    let saspayCollectedCDF = 0;
+    let saspayCollectedUSD = 0;
     let saspayPaidCount = 0;
-    let assignedValueCDF = 0;
+    let assignedValueUSD = 0;
     let assignedCount = 0;
     let pendingCount = 0;
     let failedCount = 0;
@@ -304,15 +327,15 @@ function AdminPaymentsPage() {
 
     for (const p of allPayments) {
       const s = getNormalizedStatus(p);
-      const amount = Number(p.montant_cdf ?? p.amount ?? 0);
+      const amount = getAmountUsd(p);
       const attributed = isPaymentAttributed(p);
 
       if (attributed) {
         assignedCount++;
-        assignedValueCDF += amount;
+        assignedValueUSD += amount;
       } else if (s === "payé") {
         saspayPaidCount++;
-        saspayCollectedCDF += amount;
+        saspayCollectedUSD += amount;
       } else if (s === "en_attente") {
         pendingCount++;
       } else if (s === "échoué") {
@@ -325,16 +348,16 @@ function AdminPaymentsPage() {
     }
 
     return {
-      saspayCollectedCDF,
+      saspayCollectedUSD,
       saspayPaidCount,
-      assignedValueCDF,
+      assignedValueUSD,
       assignedCount,
       pendingCount,
       failedCount,
       toReviewCount,
       cancelledCount,
       totalCount: allPayments.length,
-      totalCombinedCDF: saspayCollectedCDF + assignedValueCDF,
+      totalCombinedUSD: saspayCollectedUSD + assignedValueUSD,
     };
   }, [allPayments]);
 
@@ -402,7 +425,7 @@ function AdminPaymentsPage() {
             <CreditCard className="h-6 w-6 text-primary" /> Paiements & Abonnements
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Suivi des transactions, plans actifs et gestion des abonnements en Franc Congolais (FC) via SasPay.
+            Suivi des transactions, formules actives et gestion des abonnements en Dollars ($ USD) via SasPay.
           </p>
         </div>
 
@@ -432,14 +455,14 @@ function AdminPaymentsPage() {
         <MetricCard
           accent="green"
           title="Encaissé SasPay (Réel)"
-          value={formatCDF(metrics.saspayCollectedCDF)}
+          value={formatUSD(metrics.saspayCollectedUSD)}
           subtitle={`${metrics.saspayPaidCount} paiement(s) mobile money`}
           icon={<CreditCard className="h-4 w-4" />}
         />
         <MetricCard
           accent="blue"
           title="Attributions Admin"
-          value={formatCDF(metrics.assignedValueCDF)}
+          value={formatUSD(metrics.assignedValueUSD)}
           subtitle={`${metrics.assignedCount} plan(s) attribué(s)`}
           icon={<Sparkles className="h-4 w-4" />}
         />
@@ -454,7 +477,7 @@ function AdminPaymentsPage() {
           accent="primary"
           title="Total Transactions"
           value={metrics.totalCount}
-          subtitle={`Volume global (${formatCDF(metrics.totalCombinedCDF)})`}
+          subtitle={`Volume global (${formatUSD(metrics.totalCombinedUSD)})`}
           icon={<CreditCard className="h-4 w-4" />}
         />
       </div>
@@ -696,7 +719,7 @@ function AdminPaymentsPage() {
                         {/* Colonne droite : Montant + Statut + Actions manuelles éventuelles + Chevron */}
                         <div className="flex items-center gap-3 shrink-0 text-right">
                           <div>
-                            <p className="font-black text-sm text-foreground">{formatCDF(amountCDF)}</p>
+                            <p className="font-black text-sm text-foreground">{formatPaymentAmount(p)}</p>
                             <p className={cn("text-[11px]", statusColor)}>{statusLabel}</p>
                           </div>
 
@@ -882,7 +905,7 @@ function AdminPaymentsPage() {
                     )}
                   >
                     <p className="text-2xl sm:text-3xl font-black text-foreground tracking-normal capitalize">
-                      {isModalAttributed ? `Plan ${selectedPayment.plan_id}` : formatCDF(amountCDF)}
+                      {isModalAttributed ? `Plan ${selectedPayment.plan_id}` : formatPaymentAmount(selectedPayment)}
                     </p>
                     <div className="flex items-center justify-center gap-2">
                       {isModalAttributed ? (
@@ -906,7 +929,7 @@ function AdminPaymentsPage() {
                       )}
                       {isModalAttributed && (
                         <span className="text-xs text-muted-foreground font-medium">
-                          · {formatCDF(amountCDF)}
+                          · {formatPaymentAmount(selectedPayment)}
                         </span>
                       )}
                     </div>

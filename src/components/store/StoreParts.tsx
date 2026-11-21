@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import { Link } from "@tanstack/react-router";
 import type { Shop, Product } from "@/hooks/useMyShop";
 import { formatPrice, mediaUrl, getShopCategoryLabel } from "@/lib/marketnet";

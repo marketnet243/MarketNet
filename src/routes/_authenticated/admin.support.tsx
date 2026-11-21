@@ -83,10 +83,17 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 const STATUT_COLOR: Record<string, string> = {
-  ouvert: "bg-warning text-warning border-warning",
-  en_cours: "bg-info text-info border-info",
-  résolu: "bg-success text-success border-success",
-  fermé: "bg-muted text-foreground border-border",
+  ouvert: "bg-warning/15 text-warning border-warning/40",
+  en_cours: "bg-info/15 text-info border-info/40",
+  résolu: "bg-success/15 text-success border-success/40",
+  fermé: "bg-muted/60 text-muted-foreground border-border",
+};
+
+const STATUT_LABEL: Record<string, string> = {
+  ouvert: "Nouveau",
+  en_cours: "En cours",
+  résolu: "Résolu",
+  fermé: "Fermé",
 };
 
 function AdminSupportPage() {
@@ -297,7 +304,7 @@ function AdminSupportPage() {
         <div className="space-y-6">
           {/* Bannière alerte messages non lus */}
           {ticketsWithUnread.length > 0 && (
-            <div className="flex items-center gap-2 rounded-2xl bg-info border border-info px-4 py-3 text-sm font-semibold text-info">
+            <div className="flex items-center gap-2 rounded-2xl bg-info/10 border border-info/30 px-4 py-3 text-sm font-semibold text-info">
               <MessageCircle className="h-4 w-4 text-info" />
               <span>
                 {ticketsWithUnread.length} ticket{ticketsWithUnread.length > 1 ? "s ont" : " a"} de nouveaux messages commerçant en attente de lecture.
@@ -403,13 +410,13 @@ function AdminSupportPage() {
                       params={{ ticketId: ticket.id }}
                       className={cn(
                         "flex items-center gap-4 px-5 py-4 hover:bg-muted/30 transition-colors",
-                        hasUnread && "bg-info/40 dark:bg-info/20"
+                        hasUnread && "bg-info/5 border-l-2 border-info dark:bg-info/10"
                       )}
                     >
                       {/* Pastille non lu */}
                       <div className="shrink-0">
                         {hasUnread ? (
-                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-info dark:bg-info/40 text-info dark:text-info">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-info/15 text-info">
                             <MessageCircle className="h-4 w-4" />
                           </span>
                         ) : (
@@ -425,11 +432,11 @@ function AdminSupportPage() {
                           <span className="text-xs font-mono font-bold text-primary">{ticket.numero}</span>
                           <span
                             className={cn(
-                              "rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                              STATUT_COLOR[ticket.statut]
+                              "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
+                              STATUT_COLOR[ticket.statut] ?? "bg-muted/60 text-muted-foreground border-border"
                             )}
                           >
-                            {ticket.statut}
+                            {STATUT_LABEL[ticket.statut] ?? ticket.statut}
                           </span>
                           {hasUnread && (
                             <span className="rounded-full bg-info px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-xs">
@@ -714,7 +721,6 @@ function AdminSupportPage() {
                       <option value="all">Tous les plans</option>
                       <option value="free">Gratuit</option>
                       <option value="pro">Pro</option>
-                      <option value="business">Business</option>
                     </select>
                   </div>
 
@@ -790,8 +796,8 @@ function AdminSupportPage() {
                   <p className="font-bold text-sm text-foreground">
                     {bTitre.trim() || "Titre de l'annonce"}
                   </p>
-                  <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive text-primary-foreground">
-                    Nouveau
+                  <span className="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                    Aperçu
                   </span>
                 </div>
                 <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-wrap">

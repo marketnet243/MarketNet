@@ -165,12 +165,12 @@ function AdminLayout() {
 
       <div className="flex flex-1 flex-col min-w-0">
         {/* Header */}
-        <header className="workspace-header sticky top-0 z-20 h-16 shrink-0 border-b bg-card px-4 shadow-sm lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b bg-card px-4 shadow-xs lg:px-8">
           <div className="flex items-center gap-3 lg:hidden">
             <Logo />
           </div>
           <div className="hidden lg:block">
-            <p className="font-semibold text-muted-foreground">Administration</p>
+            <p className="font-bold text-sm text-muted-foreground uppercase tracking-normal">Administration MarketNet</p>
           </div>
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
@@ -185,8 +185,8 @@ function AdminLayout() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-10">
-          <div className="mx-auto max-w-5xl">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-6xl">
             <Outlet />
           </div>
         </main>

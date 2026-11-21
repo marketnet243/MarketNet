@@ -57,6 +57,7 @@ import {
 import { formatCDF, formatUSD, type SubscriptionPeriod, type PlanPrice } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import { supabase } from "@/lib/imported-database";
 
 /** Génère dynamiquement la liste des features d'un plan depuis ses colonnes DB */
@@ -235,11 +236,13 @@ function DashboardAbonnementPage() {
   const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
   const [copiedRef, setCopiedRef] = useState(false);
 
-  const handleCopyRef = (refText: string) => {
-    navigator.clipboard.writeText(refText);
-    setCopiedRef(true);
-    toast.success("Référence copiée dans le presse-papier");
-    setTimeout(() => setCopiedRef(false), 2000);
+  const handleCopyRef = async (refText: string) => {
+    const ok = await copyToClipboard(refText);
+    if (ok) {
+      setCopiedRef(true);
+      toast.success("Référence copiée dans le presse-papier");
+      setTimeout(() => setCopiedRef(false), 2000);
+    }
   };
 
   const getLimitsFn = useServerFn(getMerchantSubscription);

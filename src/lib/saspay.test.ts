@@ -3,13 +3,14 @@ import { createSasPayCheckout } from "./saspay";
 
 describe("client SasPay", () => {
   const originalKey = process.env["SASPAY_SECRET_KEY"];
+  const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
     process.env["SASPAY_SECRET_KEY"] = "sk_test_vitest_placeholder";
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
+    globalThis.fetch = originalFetch;
     if (originalKey === undefined) {
       delete process.env["SASPAY_SECRET_KEY"];
     } else {
@@ -18,25 +19,21 @@ describe("client SasPay", () => {
   });
 
   it("accepte la réponse SasPay enveloppée dans data", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            success: true,
-            data: {
-              id: "session_test_123",
-              checkout_url: "https://checkout.example.test/session_test_123",
-              status: "created",
-              amount: "7.00",
-              currency: "USD",
-            },
-            code: 201,
-          }),
-          { status: 201, headers: { "Content-Type": "application/json" } },
-        ),
-      ),
-    );
+    globalThis.fetch = (async () =>
+      new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            id: "session_test_123",
+            checkout_url: "https://checkout.example.test/session_test_123",
+            status: "created",
+            amount: "7.00",
+            currency: "USD",
+          },
+          code: 201,
+        }),
+        { status: 201, headers: { "Content-Type": "application/json" } }
+      )) as any;
 
     const session = await createSasPayCheckout({
       amount: "7.00",

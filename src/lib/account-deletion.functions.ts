@@ -70,7 +70,7 @@ export const getMyDeletionRequest = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await (supabase as any)
       .from("account_deletion_requests")
-      .select("id, status, requested_at, scheduled_deletion_at, cancelled_at")
+      .select("id, status, requested_at, scheduled_deletion_at, cancelled_at, reason, reason_other, comment")
       .eq("user_id", userId)
       .in("status", ["pending", "processed"])
       .maybeSingle();

@@ -13,7 +13,7 @@ export function PublicFooter() {
             <p>La boutique en ligne des commerçants de RDC. Votre catalogue, vos commandes sur WhatsApp, sans commission.</p>
             <div className="site-footer-social">
               <a href="https://wa.me/243906619747" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp MarketNet"><MessageCircle /></a>
-              <a href="mailto:support@marketnet.cd" aria-label="E-mail MarketNet"><Mail /></a>
+              <a href="mailto:marketnet243@gmail.com" aria-label="E-mail MarketNet"><Mail /></a>
             </div>
           </div>
           <div>

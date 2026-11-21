@@ -50,7 +50,7 @@ export const BLOG_ARTICLES: BlogArticle[] = [
       {
         title: "2. Donnez une identité à votre boutique",
         paragraphs: [
-          "Choisissez un nom clair, facile à retenir et à écrire. C’est ce nom que vos clients partageront entre eux. MarketNet crée automatiquement votre adresse personnelle, du type marketnet.cd/b/ma-boutique.",
+          "Choisissez un nom clair, facile à retenir et à écrire. C’est ce nom que vos clients partageront entre eux. MarketNet crée automatiquement votre adresse personnelle, accessible directement par vos clients avec un lien unique /b/ma-boutique.",
           "Une boutique soignée inspire confiance : c’est souvent ce qui décide un client à commander chez vous plutôt qu’ailleurs.",
         ],
         tips: ["Ajoutez votre logo ou une belle photo de votre magasin.", "Écrivez une courte description : ce que vous vendez et pour qui.", "Indiquez votre ville et votre quartier pour rassurer vos clients."],

@@ -21,6 +21,7 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import { publicShopQuery } from "@/lib/storefront.query";
 import { useCart } from "@/components/store/cart";
 import { StoreOfflineView } from "@/components/store/StoreOfflineView";
@@ -207,8 +208,10 @@ function ProductPage() {
     if (navigator.share) {
       await navigator.share({ title: product.name, text: priceStr, url });
     } else {
-      await navigator.clipboard.writeText(url);
-      toast.success("Lien copié !");
+      const ok = await copyToClipboard(url);
+      if (ok) {
+        toast.success("Lien copié !");
+      }
     }
   }
 

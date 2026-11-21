@@ -1,20 +1,35 @@
 import { PublicHeader } from "@/components/site/PublicHeader";
 import { PublicFooter } from "@/components/site/PublicFooter";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/imported-database";
-import { ShieldCheck, CheckCircle2, Lock, Share2, Trash2, ShieldAlert } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import {
+  ShieldCheck,
+  CheckCircle2,
+  Lock,
+  Share2,
+  Trash2,
+  FileText,
+  Clock,
+  HelpCircle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "Politique de confidentialité — MarketNet" },
-      { name: "description", content: "Politique de confidentialité et protection des données personnelles de la plateforme MarketNet." },
-      { property: "og:title", content: "Politique de confidentialité — MarketNet" },
-      { property: "og:description", content: "Découvrez comment MarketNet protège et traite vos données personnelles." },
+      { title: "Politique de Confidentialité — MarketNet" },
+      {
+        name: "description",
+        content:
+          "Politique de confidentialité et protection des données personnelles de la plateforme MarketNet.",
+      },
+      { property: "og:title", content: "Politique de Confidentialité — MarketNet" },
+      {
+        property: "og:description",
+        content: "Découvrez comment MarketNet protège et traite vos données personnelles avec rigueur et transparence.",
+      },
       { name: "robots", content: "index, follow" },
     ],
   }),
@@ -30,175 +45,156 @@ function PrivacyPage() {
         .select("value")
         .eq("key", "contact_email")
         .maybeSingle();
-      return data?.value ? String(data.value) : "support@marketnet.cd";
+      return data?.value ? String(data.value) : "marketnet243@gmail.com";
     },
   });
 
   return (
-    <div className="legal-layout">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-between">
       <PublicHeader solid />
-      <div className="legal-inner">
 
-        <div className="legal-body">
-          <div className="legal-title">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5">
-              <ShieldCheck className="h-8 w-8" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-normal text-foreground">Politique de Confidentialité</h1>
-            <p className="mt-3 text-muted-foreground text-lg">Protection et transparence de vos données personnelles.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Dernière mise à jour : 19 octobre 2026</p>
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10">
+        {/* ── En-tête de page ── */}
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
+            <ShieldCheck className="h-8 w-8" />
           </div>
-
-          <div className="space-y-12">
-            
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">Présentation de MarketNet</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet est une plateforme SaaS qui permet aux petits commerçants et entrepreneurs de créer facilement leur boutique en ligne personnalisée, d'y publier leurs catalogues de produits et de recevoir directement leurs commandes via WhatsApp.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">1. Données collectées auprès des commerçants</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
-                Pour créer et administrer votre compte et votre boutique, MarketNet collecte les informations suivantes :
-              </p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Identité et contact :</strong> Nom complet, adresse e-mail, numéro de téléphone et numéro WhatsApp international.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Boutique :</strong> Nom commercial, adresse physique, ville, horaires d'ouverture, description, logo et bannière.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Catalogue :</strong> Produits, prix, devises (USD, CDF), descriptions, catégories et photos de produits.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Gestion commerciale :</strong> Historique des commandes reçues et statut de votre forfait d'abonnement.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                  <span><strong>Assistance et Support :</strong> Les messages, descriptions de demandes et captures d'écran transmis lors de la soumission de tickets de support sont conservés pour traiter vos demandes d'aide et sont réservés exclusivement à notre équipe d'assistance.</span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">2. Réseaux sociaux et liens publics</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
-                MarketNet permet aux commerçants de renseigner les liens publics de leurs profils sociaux sur leur vitrine afin que leurs clients puissent facilement les retrouver.
-              </p>
-              <div className="rounded-2xl border border-info/20 bg-info/5 p-5 space-y-2">
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  MarketNet ne se connecte à aucun compte de réseau social externe, n'utilise aucune API d'authentification tierce et ne collecte aucun jeton ni donnée d'accès. La diffusion des produits s'effectue librement via le partage direct des liens de votre boutique.
-                </p>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">3. Données des clients des boutiques</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet <strong>ne demande aucune création de compte</strong> aux clients finaux. Les clients consultent librement la vitrine publique. Lorsqu'un client choisit des produits et clique sur « Commander sur WhatsApp », les informations de sa commande (nom renseigné, articles choisis, quantités et montant total) sont directement transmises au commerçant via la messagerie WhatsApp. Les commerçants s'engagent à respecter la vie privée de leurs acheteurs et à ne pas faire d'usage abusif de leurs coordonnées.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">4. Finalités du traitement</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-4">
-                Vos données sont exclusivement utilisées pour :
-              </p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span>Fournir, héberger et maintenir le service de boutique en ligne.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span>Permettre la diffusion de votre vitrine (partage direct WhatsApp, affiches et aperçus enrichis des liens).</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span>Afficher les statistiques de visites et de performances propres à votre boutique MarketNet.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span>Assurer la sécurité, la détection des fraudes et le support technique.</span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">5. Partage et sous-traitance</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet <strong>ne vend jamais vos données personnelles ni celles de vos clients</strong> à des tiers. Les données ne sont partagées qu'avec :
-              </p>
-              <ul className="space-y-3 mt-3">
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span><strong>SasPay :</strong> Notre prestataire de paiement en ligne. Lors de la souscription ou du renouvellement d'un abonnement, le nom de la boutique et l'adresse e-mail du compte commerçant lui sont transmis afin d'initialiser et sécuriser la session de paiement. Aucune coordonnée bancaire ou de paiement n'est stockée par MarketNet.</span>
-                </li>
-                <li className="flex items-start gap-3 text-muted-foreground text-base sm:text-lg">
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-2.5" />
-                  <span><strong>Fournisseurs d'infrastructure :</strong> Hébergement sécurisé (Supabase, Vercel) et gestion des médias (Cloudinary).</span>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">6. Sécurité des données</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                L'architecture multi-tenant de MarketNet isole strictement les données de chaque boutique via des règles de sécurité au niveau des lignes (RLS - Row Level Security). Aucun jeton d'accès externe ou de réseau social n'est conservé sur nos systèmes.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">7. Durée de conservation</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Vos données sont conservées pendant toute la durée d'activité de votre compte. En cas de demande de résiliation ou de suppression de compte, vos données personnelles et vos boutiques sont définitivement purgées de nos bases dans un délai maximal de <strong>30 jours</strong>.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">8. Vos droits</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Vous disposez d'un droit d'accès, de rectification et de suppression totale de vos données personnelles à tout moment depuis les réglages de votre compte ou sur simple demande.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">9. Demande de suppression des données</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                Pour faire valoir votre droit à l'oubli et demander la suppression intégrale de vos informations, consultez nos instructions dédiées sur la page{" "}
-                <Link to="/data-deletion" className="font-bold text-primary underline underline-offset-4 hover:opacity-80">
-                  Suppression des données
-                </Link>{" "}
-                ou écrivez-nous directement par e-mail.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">10. Modifications de la politique</h2>
-              <p className="text-muted-foreground leading-relaxed text-base sm:text-lg">
-                MarketNet se réserve le droit d'actualiser la présente politique pour refléter les évolutions techniques ou réglementaires. En cas de modification substantielle, les commerçants seront informés via leur tableau de bord ou par e-mail.
-              </p>
-            </section>
-
-            <div className="mt-8 p-6 bg-muted/50 rounded-2xl border border-muted">
-              <h3 className="font-bold text-foreground mb-2">Nous contacter</h3>
-              <p className="text-muted-foreground">
-                Pour toute question relative à la protection de vos données personnelles, veuillez nous écrire à :{" "}
-                <a href={`mailto:${contactEmail}`} className="font-bold text-primary hover:underline">
-                  {contactEmail}
-                </a>
-              </p>
-            </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+            Politique de Confidentialité
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg leading-relaxed">
+            Protection rigoureuse, transparence et respect de votre vie privée et de celle de vos clients.
+          </p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/60 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <Clock className="h-3.5 w-3.5 text-primary" />
+            <span>Mise à jour : Novembre 2026</span>
           </div>
         </div>
-      </div>
+
+        {/* ── Contenu principal en cartes structurées ── */}
+        <div className="space-y-6">
+          {/* Section Présentation */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <FileText className="h-5 w-5 text-primary" />
+              <span>Présentation de MarketNet</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              MarketNet est une plateforme technologique SaaS permettant aux commerçants et créateurs de marques de
+              déployer facilement leur vitrine de vente en ligne, de publier leurs catalogues de produits et de recevoir
+              leurs commandes directement via WhatsApp. Nous attachons une importance primordiale à la confidentialité de vos
+              informations.
+            </p>
+          </div>
+
+          {/* Section 1 : Données collectées */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              <span>1. Données collectées auprès des commerçants</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Pour administrer et sécuriser votre compte, MarketNet collecte les informations essentielles suivantes :
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {[
+                { title: "Identité & Contact", desc: "Nom, e-mail, numéro de téléphone et numéro WhatsApp commercial." },
+                { title: "Informations Boutique", desc: "Nom commercial, devise, logo, bannière, adresse et ville." },
+                { title: "Catalogue & Médias", desc: "Titres de produits, descriptions, prix et photographies hébergées." },
+                { title: "Historique & Facturation", desc: "Commandes reçues, statut de la formule et sessions SasPay." },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 space-y-1"
+                >
+                  <h3 className="font-bold text-xs text-slate-900 dark:text-slate-100">{item.title}</h3>
+                  <p className="text-xs text-slate-500">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 2 : Clients de vos boutiques */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <Share2 className="h-5 w-5 text-blue-600" />
+              <span>2. Données des acheteurs et clients finaux</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              MarketNet ne contraint pas vos acheteurs à créer un compte. Vos clients parcourent librement votre vitrine
+              publique. Lorsqu'un client valide son panier, son récapitulatif de commande est directement transmis vers votre
+              numéro WhatsApp. Aucun profilage publicitaire tiers n'est effectué sur vos clients.
+            </p>
+          </div>
+
+          {/* Section 3 : Paiements & Sécurité */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+              <Lock className="h-5 w-5 text-amber-600" />
+              <span>3. Sécurité et Paiements d'abonnement (SasPay)</span>
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Les transactions d'abonnements Pro sont opérées par <strong>SasPay</strong> en devises USD et Francs Congolais (CDF).
+              MarketNet ne conserve aucune coordonnée bancaire, code PIN Mobile Money ni numéro de carte de crédit. Nos serveurs
+              communiquent exclusivement par protocoles chiffrés SSL/TLS.
+            </p>
+          </div>
+
+          {/* Section 4 : Droit à l'oubli et suppression */}
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xs space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <Trash2 className="h-5 w-5 text-destructive" />
+                <span>4. Droit d'accès, rectification et suppression</span>
+              </h2>
+              <Link
+                to="/data-deletion"
+                className="text-xs font-bold text-primary hover:underline shrink-0"
+              >
+                Page de suppression &rarr;
+              </Link>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Vous pouvez à tout moment exporter, modifier ou solliciter la suppression intégrale de vos données. Les demandes
+              de suppression font l'objet d'un délai de grâce de 30 jours pour prévenir toute erreur accidentelle, avant
+              effacement définitif et complet de nos bases.
+            </p>
+          </div>
+
+          {/* Contact d'assistance */}
+          <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 shadow-xs space-y-3">
+            <h3 className="font-bold text-base">Questions relatives à vos données ?</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Pour exercer vos droits ou contacter notre délégué à la protection des données, écrivez-nous à :
+            </p>
+            <a
+              href={`mailto:${contactEmail}`}
+              className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+            >
+              {contactEmail}
+            </a>
+          </div>
+        </div>
+
+        {/* ── Pied de page navigation ── */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-2xl bg-slate-100/70 dark:bg-slate-850 text-xs text-slate-600 dark:text-slate-400">
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            <span>Consultez l'ensemble de nos engagements juridiques</span>
+          </div>
+          <div className="flex items-center gap-4 font-semibold">
+            <Link to="/terms" className="text-primary hover:underline">
+              Conditions Générales d'Utilisation
+            </Link>
+            <span>·</span>
+            <Link to="/data-deletion" className="text-primary hover:underline">
+              Suppression des données
+            </Link>
+          </div>
+        </div>
+      </main>
+
       <PublicFooter />
     </div>
   );

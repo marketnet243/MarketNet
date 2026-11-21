@@ -22,12 +22,14 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import { supabase } from "@/lib/imported-database";
 import { useMyShop } from "@/hooks/useMyShop";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getShopPublicUrl, getShopDisplayUrl } from "@/lib/marketnet";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardLayout,
@@ -108,15 +110,17 @@ function DashboardLayout() {
     );
   }
 
-  const shopUrl = typeof window !== "undefined" ? `${window.location.origin}/b/${shop.slug}` : `/b/${shop.slug}`;
-  const shortUrl = `${shop.slug}.marketnet.cd`;
+  const shopUrl = getShopPublicUrl(shop.slug);
+  const shortUrl = getShopDisplayUrl(shop.slug);
 
-  function copyShopLink() {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(shopUrl);
+  async function copyShopLink() {
+    const success = await copyToClipboard(shopUrl);
+    if (success) {
       setCopiedLink(true);
       toast.success("Lien copié dans le presse-papier !");
       setTimeout(() => setCopiedLink(false), 2000);
+    } else {
+      toast.error("Impossible de copier automatiquement.");
     }
   }
 

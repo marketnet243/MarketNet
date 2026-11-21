@@ -67,7 +67,7 @@ export async function sendDeletionRequestEmail(params: {
   fullName: string;
   shopName: string;
 }) {
-  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
+  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "marketnet243@gmail.com";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Votre demande a ete reçue</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>
@@ -107,7 +107,7 @@ export async function sendDeletionProcessedEmail(params: {
   shopName: string;
   deletionDate: string;
 }) {
-  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
+  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "marketnet243@gmail.com";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Votre compte est suspendu</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>
@@ -149,7 +149,7 @@ export async function sendDeletionReminderEmail(params: {
   shopName: string;
   deletionDate: string;
 }) {
-  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "support@marketnet.cd";
+  const supportEmail = process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"] || "marketnet243@gmail.com";
   const body = `
     <h2 style="font-size:18px;font-weight:800;margin:0 0 8px;color:#0f172a;">Rappel : suppression dans 7 jours</h2>
     <p style="font-size:14px;color:#475569;margin:0 0 20px;">Bonjour ${params.fullName},</p>

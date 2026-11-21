@@ -218,6 +218,59 @@ export function resolvePublicOrigin(reqUrl?: string | null, forwardedHost?: stri
 }
 
 /**
+ * Resolves the official site base URL (e.g. "https://appmarketnet.vercel.app" or current origin).
+ */
+export function getSiteUrl(): string {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin.replace(/\/+$/, "");
+  }
+  const envUrl = (process.env["MARKETNET_SITE_URL"] || process.env["VITE_PUBLIC_URL"] || "").trim();
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  return "https://appmarketnet.vercel.app";
+}
+
+/**
+ * Resolves the official display host/domain name (e.g. "appmarketnet.vercel.app" or current host).
+ */
+export function getSiteDomain(): string {
+  if (typeof window !== "undefined" && window.location?.host) {
+    return window.location.host;
+  }
+  const siteUrl = getSiteUrl();
+  try {
+    return new URL(siteUrl).host;
+  } catch {
+    return "appmarketnet.vercel.app";
+  }
+}
+
+/**
+ * Returns the full public store link for a shop slug.
+ */
+export function getShopPublicUrl(slug: string): string {
+  return `${getSiteUrl()}/b/${encodeURIComponent(slug)}`;
+}
+
+/**
+ * Returns a human-friendly display URL for a shop (e.g. "appmarketnet.vercel.app/b/ma-boutique").
+ */
+export function getShopDisplayUrl(slug: string): string {
+  return `${getSiteDomain()}/b/${slug}`;
+}
+
+/**
+ * Returns the default support email from env or default address.
+ */
+export function getDefaultSupportEmail(): string {
+  return (
+    (typeof process !== "undefined" && (process.env["MARKETNET_ADMIN_EMAIL"] || process.env["SMTP_USER"])) ||
+    "marketnet243@gmail.com"
+  );
+}
+
+/**
  * Returns a fully qualified public URL for an image, required for og:image / twitter:image.
  * Falls back to platform assets if no custom image, ensuring link previews always render.
  */

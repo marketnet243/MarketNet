@@ -170,21 +170,21 @@ function PlansPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">Prix mensuel (FC / CDF)</Label>
+                  <Label className="text-xs font-semibold">Prix mensuel ($ USD)</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">FC</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">$</span>
                     <Input
                       type="number"
-                      step="1000"
+                      step="0.01"
                       min="0"
-                      placeholder="25000"
+                      placeholder="3"
                       value={newPlanPrice}
                       onChange={(e) => setNewPlanPrice(e.target.value)}
-                      className="rounded-xl h-10 pl-10 font-mono font-bold"
+                      className="rounded-xl h-10 pl-8 font-mono font-bold"
                     />
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Indiquez le montant en Francs Congolais (laissez 0 pour gratuit).
+                    Indiquez le montant en Dollars américains (laissez 0 pour gratuit).
                   </p>
                 </div>
               </div>
@@ -237,7 +237,7 @@ function PlansPage() {
         <MetricCard
           label="Plans Payants"
           value={stats.paid}
-          subtext="Abonnements premium FC"
+          subtext="Abonnements premium ($)"
           icon={Zap}
           accent="primary"
         />
@@ -294,8 +294,8 @@ function PlanCard({ plan }: { plan: Plan }) {
     if (p.id === "pro") {
       return {
         bar: "bg-success",
-        badge: "bg-success text-success dark:bg-success dark:text-success",
-        icon: "bg-success text-success dark:bg-success dark:text-success",
+        badge: "bg-success/15 text-success border-success/30",
+        icon: "bg-success/15 text-success",
       };
     }
     return {
@@ -379,7 +379,7 @@ function PlanCard({ plan }: { plan: Plan }) {
 
           <div className="flex items-center gap-1.5">
             {p.active ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success text-success dark:bg-success/60 dark:text-success border border-success dark:border-success">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-success/15 text-success border border-success/30">
                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                 Actif
               </span>

@@ -128,35 +128,41 @@ function ShopDetail() {
             {shop.is_suspended ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" className="rounded-xl h-9 bg-success hover:bg-success text-primary-foreground"><CheckCircle2 className="mr-2 h-4 w-4" /> Reactiver</Button>
+                  <Button size="sm" className="rounded-xl h-9 bg-success hover:bg-success/90 text-primary-foreground font-semibold">
+                    <CheckCircle2 className="mr-2 h-4 w-4" /> Réactiver
+                  </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-2xl">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Reactiver la boutique ?</AlertDialogTitle>
-                    <AlertDialogDescription>La boutique <strong>{shop.name}</strong> redeviendra visible.</AlertDialogDescription>
+                    <AlertDialogTitle>Réactiver la boutique ?</AlertDialogTitle>
+                    <AlertDialogDescription>La boutique <strong>{shop.name}</strong> redeviendra visible immédiatement.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction className="bg-success hover:bg-success" onClick={() => suspendShop(false)}>Confirmer</AlertDialogAction>
+                    <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="rounded-xl bg-success hover:bg-success/90 text-primary-foreground font-semibold" onClick={() => suspendShop(false)}>
+                      Confirmer
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             ) : (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="rounded-xl h-9 text-warning border-warning hover:bg-warning">
+                  <Button size="sm" variant="outline" className="rounded-xl h-9 text-destructive border-destructive/40 hover:bg-destructive/10">
                     <Ban className="mr-2 h-4 w-4" /> Suspendre
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-2xl">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2 text-warning"><AlertTriangle className="h-5 w-5" /> Suspendre cette boutique ?</AlertDialogTitle>
+                    <AlertDialogTitle className="flex items-center gap-2 text-destructive"><AlertTriangle className="h-5 w-5" /> Suspendre cette boutique ?</AlertDialogTitle>
                     <AlertDialogDescription>Veuillez taper <strong>{shop.name}</strong> ci-dessous pour confirmer la suspension.</AlertDialogDescription>
-                    <Input placeholder={shop.name} value={confirmName} onChange={(e) => setConfirmName(e.target.value)} />
+                    <Input placeholder={shop.name} value={confirmName} onChange={(e) => setConfirmName(e.target.value)} className="rounded-xl" />
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setConfirmName("")}>Annuler</AlertDialogCancel>
-                    <AlertDialogAction disabled={confirmName !== shop.name} className="bg-warning hover:bg-warning" onClick={() => suspendShop(true)}>Oui, suspendre</AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setConfirmName("")} className="rounded-xl">Annuler</AlertDialogCancel>
+                    <AlertDialogAction disabled={confirmName !== shop.name} className="rounded-xl bg-destructive hover:bg-destructive/90 text-primary-foreground font-semibold" onClick={() => suspendShop(true)}>
+                      Oui, suspendre
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
