@@ -48,21 +48,45 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MarketNet" }, { name: "description", content: "Votre boutique en ligne, vos commandes sur WhatsApp." },
-      { name: "author", content: "MarketNet" }, { property: "og:title", content: "MarketNet" },
-      { property: "og:description", content: "Votre boutique en ligne, vos commandes sur WhatsApp." },
-      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss }, { rel: "icon", href: "/favicon.png", type: "image/png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" }, { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@500;700&family=Playfair+Display:wght@600;700&display=swap" },
-    ],
-  }),
-  shellComponent: RootShell, component: RootComponent, notFoundComponent: NotFoundComponent, errorComponent: ErrorComponent,
+  head: () => {
+    const siteOrigin = (process.env["MARKETNET_SITE_URL"] || process.env["VITE_PUBLIC_URL"] || "https://appmarketnet.vercel.app").replace(/\/+$/, "");
+    const shareImage = `${siteOrigin}/og-image.png`;
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+        { name: "theme-color", content: "#4F46E5" },
+        { title: "MarketNet" },
+        { name: "description", content: "Votre boutique en ligne, vos commandes sur WhatsApp." },
+        { name: "author", content: "MarketNet" },
+        { property: "og:site_name", content: "MarketNet" },
+        { property: "og:title", content: "MarketNet — Votre boutique en ligne, vos commandes sur WhatsApp" },
+        { property: "og:description", content: "Créez facilement votre boutique en ligne et recevez vos commandes sur WhatsApp." },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: shareImage },
+        { property: "og:image:secure_url", content: shareImage },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: "MarketNet — Votre boutique en ligne" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: shareImage },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "icon", href: "/pwa-icon.svg", type: "image/svg+xml" },
+        { rel: "apple-touch-icon", href: "/marketnet-logo.png" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@500;700&family=Playfair+Display:wght@600;700&display=swap" },
+      ],
+    };
+  },
+  shellComponent: RootShell,
+  component: RootComponent,
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
 });
 
 function RootShell({ children }: { children: ReactNode }) {
@@ -73,14 +97,23 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange(event => {
-      if (event === "SIGNED_OUT") { sessionStorage.removeItem("marketnet-auth-return"); queryClient.clear(); }
+      if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem("marketnet-auth-return");
+        queryClient.clear();
+      }
       if (event === "SIGNED_IN") {
         const authReturn = sessionStorage.getItem("marketnet-auth-return");
         sessionStorage.removeItem("marketnet-auth-return");
         if (window.location.pathname === "/" && authReturn) window.location.assign(authReturn);
       }
     });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error: unknown) => console.error("[PWA] Impossible d’enregistrer le service worker", error));
+    }
+
     return () => data.subscription.unsubscribe();
   }, [queryClient]);
+
   return <QueryClientProvider client={queryClient}><Outlet /><Toaster position="top-center" /></QueryClientProvider>;
 }

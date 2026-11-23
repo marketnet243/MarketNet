@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "MarketNet",
+  "short_name": "MarketNet",
+  "description": "Créez votre boutique en ligne et recevez vos commandes sur WhatsApp.",
+  "lang": "fr-CD",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F0F2F5",
+  "theme_color": "#4F46E5",
+  "categories": ["business", "shopping"],
+  "icons": [{ "src": "/pwa-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
