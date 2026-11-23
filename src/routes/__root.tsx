@@ -75,8 +75,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       links: [
         { rel: "stylesheet", href: appCss },
         { rel: "manifest", href: "/manifest.webmanifest" },
-        { rel: "icon", href: "/pwa-icon.svg", type: "image/svg+xml" },
-        { rel: "apple-touch-icon", href: "/marketnet-logo.png" },
+        { rel: "icon", href: "/favicon.png", type: "image/png" },
+        { rel: "apple-touch-icon", href: "/favicon.png" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
         { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@500;700&family=Playfair+Display:wght@600;700&display=swap" },
@@ -97,23 +97,17 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange(event => {
-      if (event === "SIGNED_OUT") {
-        sessionStorage.removeItem("marketnet-auth-return");
-        queryClient.clear();
-      }
+      if (event === "SIGNED_OUT") { sessionStorage.removeItem("marketnet-auth-return"); queryClient.clear(); }
       if (event === "SIGNED_IN") {
         const authReturn = sessionStorage.getItem("marketnet-auth-return");
         sessionStorage.removeItem("marketnet-auth-return");
         if (window.location.pathname === "/" && authReturn) window.location.assign(authReturn);
       }
     });
-
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error: unknown) => console.error("[PWA] Impossible d’enregistrer le service worker", error));
     }
-
     return () => data.subscription.unsubscribe();
   }, [queryClient]);
-
   return <QueryClientProvider client={queryClient}><Outlet /><Toaster position="top-center" /></QueryClientProvider>;
 }
