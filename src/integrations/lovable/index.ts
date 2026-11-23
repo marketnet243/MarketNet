@@ -11,10 +11,17 @@ export const lovable = {
   auth: {
     signInWithOAuth: async (provider: OAuthProvider, opts?: SignInOptions) => {
       try {
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        const configuredRedirect = opts?.redirect_uri
+          ? new URL(opts.redirect_uri, origin).pathname === "/auth"
+            ? `${origin}/auth/callback`
+            : opts.redirect_uri
+          : `${origin}/dashboard`;
+
         const { error } = await supabase.auth.signInWithOAuth({
           provider: provider as any,
           options: {
-            redirectTo: opts?.redirect_uri || `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`,
+            redirectTo: configuredRedirect,
             queryParams: opts?.extraParams,
           },
         });
