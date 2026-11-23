@@ -78,9 +78,6 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
-    // Replace these placeholders with the app's name and description when first building the app.
-    // Each content route, / included, must still set its own head(). Never add og:image or
-    // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -91,13 +88,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Votre boutique en ligne, vos commandes sur WhatsApp." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -116,7 +109,39 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ backgroundColor: "#F0F2F5", margin: 0 }}>
+        {/* Inline critical loader: visible before the JS bundle and protected routes load. */}
+        <div
+          id="app-loading"
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "grid",
+            placeItems: "center",
+            background: "#F0F2F5",
+            color: "#4F46E5",
+            fontFamily: "system-ui, sans-serif",
+          }}
+        >
+          <div style={{ display: "grid", justifyItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                border: "3px solid rgba(79,70,229,.18)",
+                borderTopColor: "#4F46E5",
+                borderRadius: "50%",
+                animation: "marketnet-loader-spin .8s linear infinite",
+              }}
+            />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#475569" }}>
+              Chargement de votre espace…
+            </span>
+          </div>
+          <style>{`@keyframes marketnet-loader-spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
         <a href="#main-content" className="skip-link">Aller au contenu</a>
         {children}
         <Scripts />
@@ -141,12 +166,19 @@ function RootComponent() {
         }
       }
     });
-    return () => data.subscription.unsubscribe();
+
+    // Remove the static loader only after the first client render has painted.
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("app-loading")?.remove();
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      data.subscription.unsubscribe();
+    };
   }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
     </QueryClientProvider>
