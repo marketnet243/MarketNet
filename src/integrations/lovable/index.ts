@@ -11,10 +11,21 @@ export const lovable = {
   auth: {
     signInWithOAuth: async (provider: OAuthProvider, opts?: SignInOptions) => {
       try {
+        // Returning to /auth mounts the login form before AuthPage checks the
+        // session and performs its post-login lookups. Send that callback to
+        // the authenticated entry point instead; its route already handles
+        // admin, existing-shop, and onboarding destinations.
+        const requestedRedirect = opts?.redirect_uri;
+        const redirectTo = requestedRedirect
+          ? new URL(requestedRedirect).pathname === "/auth"
+            ? `${new URL(requestedRedirect).origin}/dashboard`
+            : requestedRedirect
+          : `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`;
+
         const { error } = await supabase.auth.signInWithOAuth({
           provider: provider as any,
           options: {
-            redirectTo: opts?.redirect_uri || `${typeof window !== "undefined" ? window.location.origin : ""}/dashboard`,
+            redirectTo,
             queryParams: opts?.extraParams,
           },
         });
